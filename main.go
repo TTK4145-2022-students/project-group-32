@@ -1,6 +1,6 @@
 package main
 
-import "ControlUnit"
+import "controlunit"
 
 func main{
 	
