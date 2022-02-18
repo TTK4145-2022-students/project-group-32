@@ -11,6 +11,7 @@ import (
 )
 
 func main() {
+	phoenix.Init()
 	go phoenix.Phoenix()
 
 	controlunit.Init()
