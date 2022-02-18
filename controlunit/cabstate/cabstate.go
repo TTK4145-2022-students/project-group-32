@@ -73,3 +73,20 @@ func FSMFloorArrival(floor int) ElevatorBehaviour {
 	Cab.aboveOrAtFloor = floor
 	return Cab.behaviour
 }
+
+func FSMFDoorTimeout(floor int) ElevatorBehaviour {
+	switch Cab.behaviour {
+	case Idle:
+		break
+	case Moving:
+		if orderstate.OrderInFloor(floor, Cab.motorDirection) {
+			Cab.motorRunning = false
+			Cab.doorOpen = true
+			Cab.behaviour = DoorOpen
+		}
+	case DoorOpen:
+		break
+	}
+	Cab.aboveOrAtFloor = floor
+	return Cab.behaviour
+}
