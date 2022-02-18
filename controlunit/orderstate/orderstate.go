@@ -1,8 +1,8 @@
 package orderstate
 
 import (
-	"elevators/controlunit/cabstate"
 	"elevators/hardware"
+	"elevators/hardware/cab"
 	"fmt"
 	"time"
 )
@@ -57,13 +57,13 @@ func OrdersBetween(startFloor int, destinationFloor int) int {
 	ordersBetweenCount := 0
 	if startFloor < destinationFloor {
 		for floor := startFloor; floor < destinationFloor; floor++ {
-			if orderInFloor(floor, cabstate.Up) {
+			if OrderInFloor(floor, cab.Up) {
 				ordersBetweenCount++
 			}
 		}
 	} else {
 		for floor := startFloor; floor > destinationFloor; floor-- {
-			if orderInFloor(floor, cabstate.Down) {
+			if OrderInFloor(floor, cab.Down) {
 				ordersBetweenCount++
 			}
 		}
@@ -71,11 +71,11 @@ func OrdersBetween(startFloor int, destinationFloor int) int {
 	return ordersBetweenCount
 }
 
-func orderInFloor(floor int, direction cabstate.Direction) bool {
+func OrderInFloor(floor int, direction cab.Direction) bool {
 	switch direction {
-	case cabstate.Up:
+	case cab.Up:
 		return upOrders[floor].isOrder
-	case cabstate.Down:
+	case cab.Down:
 		return downOrders[floor].isOrder
 	default:
 		panic("direction not implemented " + string(rune(direction)))
