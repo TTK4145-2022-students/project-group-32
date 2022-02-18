@@ -81,3 +81,33 @@ func OrderInFloor(floor int, direction cab.Direction) bool {
 		panic("direction not implemented " + string(rune(direction)))
 	}
 }
+
+func AnyOrders() bool {
+	for _, order := range upOrders {
+		if order.isOrder {
+			return true
+		}
+	}
+	for _, order := range downOrders {
+		if order.isOrder {
+			return true
+		}
+	}
+	return false
+}
+
+func OrdersAbove(floor int) bool {
+	//todo finsis
+	switch direction {
+	case cab.Up:
+		for i, order := range upOrders[floor : hardware.FloorCount-1] {
+			if order.isOrder {
+				return cab.Up
+			}
+		}
+	case cab.Down:
+		return downOrders[floor].isOrder
+	default:
+		panic("direction not implemented " + string(rune(direction)))
+	}
+}
