@@ -1,7 +1,12 @@
 package main
 
-import "controlunit"
+import (
+	"elevators/controlunit"
+)
 
-func main{
-	
+const floorCount = 4
+
+func main() {
+
+	controlunit.Init()
 }
