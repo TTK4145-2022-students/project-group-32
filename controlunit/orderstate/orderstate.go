@@ -16,20 +16,16 @@ type OrderState struct {
 
 var upOrders [hardware.FloorCount]OrderState
 var downOrders [hardware.FloorCount]OrderState
+var cabOrders [hardware.FloorCount]bool
 
 func InitOrderState() {
 	upOrders := new([hardware.FloorCount]OrderState)
 	downOrders := new([hardware.FloorCount]OrderState)
+	cabOrders := new([hardware.FloorCount]bool)
 
 	_ = upOrders
 	_ = downOrders
-
-	// fmt.Println(upOrders[0].lastOrderTime.String())
-	// fmt.Println(downOrders[0].bestETA.String())
-
-	// updateUpFloorOrderState(OrderState{true, time.Now(), time.Now(), time.Now()}, &upOrders[0])
-
-	// fmt.Println(upOrders[0].lastOrderTime.String())
+	_ = cabOrders
 }
 
 func updateUpFloorOrderState(inputState OrderState, currentState *OrderState) {
@@ -74,9 +70,9 @@ func OrdersBetween(startFloor int, destinationFloor int) int {
 func OrderInFloor(floor int, direction cab.Direction) bool {
 	switch direction {
 	case cab.Up:
-		return upOrders[floor].isOrder
+		return upOrders[floor].isOrder || cabOrders[floor]
 	case cab.Down:
-		return downOrders[floor].isOrder
+		return downOrders[floor].isOrder || cabOrders[floor]
 	default:
 		panic("direction not implemented " + string(rune(direction)))
 	}
@@ -93,21 +89,26 @@ func AnyOrders() bool {
 			return true
 		}
 	}
-	return false
-}
-
-func OrdersAtOrAbove(floor int) bool {
-	for _, order := range upOrders[floor : hardware.FloorCount-1] {
-		if order.isOrder {
+	for _, order := range cabOrders {
+		if order {
 			return true
 		}
 	}
 	return false
 }
 
-func OrdersAtOrBelow(floor int) bool {
-	for _, order := range downOrders[0 : floor-1] {
-		if order.isOrder {
+func OrdersAtOrAbove(currentFloor int) bool {
+	for floor := currentFloor; floor < hardware.FloorCount; floor++ {
+		if OrderInFloor(floor, cab.Up) {
+			return true
+		}
+	}
+	return false
+}
+
+func OrdersAtOrBelow(currentFloor int) bool {
+	for floor := currentFloor; floor >= 0; floor-- {
+		if OrderInFloor(floor, cab.Down) {
 			return true
 		}
 	}
