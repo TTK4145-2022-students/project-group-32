@@ -1,12 +1,30 @@
 package main
 
 import (
-	"elevators/controlunit"
+	"fmt"
+	"elevators/filesystem"
 )
 
-const floorCount = 4
 
 func main() {
+	elevatorState := filesystem.ElevatorState {
+		Name:  "Elevator 6",
+		Floor: 1,
+		Dir:   "up",
+	}
 
-	controlunit.Init()
+	orderState := filesystem.OrderState {
+		Name:  "Order 1",
+		Floor: 1,
+		Dir:   "up",
+	}
+
+
+	filesystem.SaveElevatorState(elevatorState)
+	data := filesystem.ReadElevatorState()
+	fmt.Println(data)
+
+	filesystem.SaveOrders(orderState)
+	data_order := filesystem.ReadOrders()
+	fmt.Println(data_order)
 }
