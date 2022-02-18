@@ -16,7 +16,7 @@ func InitUDPSendingSocket(port int, sendAddr string) (net.UDPAddr, *net.UDPConn)
 	if err != nil {
 		panic(err)
 	}
-	defer wconn.Close() //Close at the end of program
+	//defer wconn.Close() //Close at the end of program
 
 	return sendaddr, wconn
 }

@@ -18,7 +18,7 @@ func InitUDPReceivingSocket(port int) (net.UDPAddr, *net.UDPConn){
 	if err != nil {
 		panic(err)
 	}
-	defer conn.Close()
+	// defer conn.Close()
 
 	return addr, conn
 }
