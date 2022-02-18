@@ -96,18 +96,20 @@ func AnyOrders() bool {
 	return false
 }
 
-func OrdersAbove(floor int) bool {
-	//todo finsis
-	switch direction {
-	case cab.Up:
-		for i, order := range upOrders[floor : hardware.FloorCount-1] {
-			if order.isOrder {
-				return cab.Up
-			}
+func OrdersAtOrAbove(floor int) bool {
+	for _, order := range upOrders[floor : hardware.FloorCount-1] {
+		if order.isOrder {
+			return true
 		}
-	case cab.Down:
-		return downOrders[floor].isOrder
-	default:
-		panic("direction not implemented " + string(rune(direction)))
 	}
+	return false
+}
+
+func OrdersAtOrBelow(floor int) bool {
+	for _, order := range downOrders[0 : floor-1] {
+		if order.isOrder {
+			return true
+		}
+	}
+	return false
 }

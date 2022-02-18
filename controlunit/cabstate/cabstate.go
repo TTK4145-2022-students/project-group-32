@@ -74,7 +74,7 @@ func FSMFloorArrival(floor int) ElevatorBehaviour {
 	return Cab.behaviour
 }
 
-func FSMDoorTimeout(floor int) ElevatorBehaviour {
+func FSMDoorTimeout() ElevatorBehaviour {
 	switch Cab.behaviour {
 	case Idle:
 		break
@@ -83,6 +83,30 @@ func FSMDoorTimeout(floor int) ElevatorBehaviour {
 	case DoorOpen:
 		//todo check orders
 		Cab.doorOpen = false
+		if orderstate.OrderInFloor(Cab.aboveOrAtFloor, Cab.motorDirection) {
+			Cab.doorOpen = true
+			Cab.behaviour = DoorOpen
+		} else if orderstate.OrderInFloor(Cab.aboveOrAtFloor, cab.Up) {
+			Cab.doorOpen = true
+			Cab.motorDirection = cab.Up
+			Cab.behaviour = DoorOpen
+		} else if orderstate.OrderInFloor(Cab.aboveOrAtFloor, cab.Down) {
+			Cab.doorOpen = true
+			Cab.motorDirection = cab.Down
+			Cab.behaviour = DoorOpen
+		} else if (Cab.motorDirection == cab.Up && orderstate.OrdersAtOrAbove(Cab.aboveOrAtFloor)) ||
+			(Cab.motorDirection == cab.Down && orderstate.OrdersAtOrBelow(Cab.aboveOrAtFloor)) {
+			Cab.motorRunning = true
+			Cab.behaviour = Moving
+		} else if Cab.motorDirection == cab.Up && orderstate.OrdersAtOrBelow(Cab.aboveOrAtFloor) {
+			Cab.motorDirection = cab.Down
+			Cab.motorRunning = true
+			Cab.behaviour = Moving
+		} else if Cab.motorDirection == cab.Down && orderstate.OrdersAtOrAbove(Cab.aboveOrAtFloor) {
+			Cab.motorDirection = cab.Up
+			Cab.motorRunning = true
+			Cab.behaviour = Moving
+		}
 	}
 	return Cab.behaviour
 }
