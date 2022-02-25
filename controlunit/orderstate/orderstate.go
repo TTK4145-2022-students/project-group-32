@@ -2,7 +2,6 @@ package orderstate
 
 import (
 	"elevators/hardware"
-	"elevators/hardware/cab"
 	"fmt"
 	"time"
 )
@@ -26,6 +25,38 @@ func InitOrderState() {
 	_ = upOrders
 	_ = downOrders
 	_ = cabOrders
+}
+
+func AcceptNewOrder(orderType hardware.ButtonType, floor int) {
+	switch orderType {
+	case hardware.BT_HallUp:
+		upOrders[floor].lastOrderTime = time.Now()
+		upOrders[floor].isOrder = true
+	case hardware.BT_HallDown:
+		downOrders[floor].lastOrderTime = time.Now()
+		downOrders[floor].isOrder = true
+	case hardware.BT_Cab:
+		cabOrders[floor] = true
+	default:
+		panic("order type not implemented " + string(rune(orderType)))
+	}
+	hardware.SetButtonLamp(orderType, floor, true)
+}
+
+func CompleteOrder(orderType hardware.ButtonType, floor int) {
+	switch orderType {
+	case hardware.BT_HallUp:
+		upOrders[floor].lastCompleteTime = time.Now()
+		upOrders[floor].isOrder = false
+	case hardware.BT_HallDown:
+		downOrders[floor].lastCompleteTime = time.Now()
+		downOrders[floor].isOrder = false
+	case hardware.BT_Cab:
+		cabOrders[floor] = false
+	default:
+		panic("order type not implemented " + string(rune(orderType)))
+	}
+	hardware.SetButtonLamp(orderType, floor, false)
 }
 
 func updateUpFloorOrderState(inputState OrderState, currentState *OrderState) {
@@ -53,13 +84,13 @@ func OrdersBetween(startFloor int, destinationFloor int) int {
 	ordersBetweenCount := 0
 	if startFloor < destinationFloor {
 		for floor := startFloor; floor < destinationFloor; floor++ {
-			if OrderInFloor(floor, cab.Up) {
+			if OrderInFloor(floor, hardware.MD_Up) {
 				ordersBetweenCount++
 			}
 		}
 	} else {
 		for floor := startFloor; floor > destinationFloor; floor-- {
-			if OrderInFloor(floor, cab.Down) {
+			if OrderInFloor(floor, hardware.MD_Down) {
 				ordersBetweenCount++
 			}
 		}
@@ -67,11 +98,11 @@ func OrdersBetween(startFloor int, destinationFloor int) int {
 	return ordersBetweenCount
 }
 
-func OrderInFloor(floor int, direction cab.Direction) bool {
+func OrderInFloor(floor int, direction hardware.MotorDirection) bool {
 	switch direction {
-	case cab.Up:
+	case hardware.MD_Up:
 		return upOrders[floor].isOrder || cabOrders[floor]
-	case cab.Down:
+	case hardware.MD_Down:
 		return downOrders[floor].isOrder || cabOrders[floor]
 	default:
 		panic("direction not implemented " + string(rune(direction)))
@@ -99,7 +130,7 @@ func AnyOrders() bool {
 
 func OrdersAtOrAbove(currentFloor int) bool {
 	for floor := currentFloor; floor < hardware.FloorCount; floor++ {
-		if OrderInFloor(floor, cab.Up) {
+		if OrderInFloor(floor, hardware.MD_Up) {
 			return true
 		}
 	}
@@ -108,7 +139,7 @@ func OrdersAtOrAbove(currentFloor int) bool {
 
 func OrdersAtOrBelow(currentFloor int) bool {
 	for floor := currentFloor; floor >= 0; floor-- {
-		if OrderInFloor(floor, cab.Down) {
+		if OrderInFloor(floor, hardware.MD_Down) {
 			return true
 		}
 	}
