@@ -3,6 +3,7 @@ package cabstate
 import (
 	"elevators/controlunit/orderstate"
 	"elevators/hardware"
+	"elevators/timer"
 )
 
 type ElevatorBehaviour int
@@ -61,8 +62,10 @@ func setDoorAndCabState(state hardware.DoorState) {
 	switch state {
 	case hardware.DS_Open:
 		Cab.behaviour = DoorOpen
+		timer.TimerStart(3)
 	case hardware.DS_Closed:
 		Cab.behaviour = Idle
+		timer.TimerStop()
 	default:
 		panic("door state not implemented")
 	}
@@ -119,17 +122,17 @@ func FSMDoorTimeout() ElevatorBehaviour {
 	case DoorOpen:
 		//todo check orders
 		setDoorAndCabState(hardware.DS_Closed)
-		if orderstate.OrderInFloor(Cab.aboveOrAtFloor, Cab.motorDirection) {
-			setDoorAndCabState(hardware.DS_Open)
-		} else if Cab.recentDirection == Up && orderstate.OrdersAtOrAbove(Cab.aboveOrAtFloor) {
-			setMotorAndCabState(hardware.MD_Up)
-		} else if Cab.recentDirection == Down && orderstate.OrdersAtOrBelow(Cab.aboveOrAtFloor) {
-			setMotorAndCabState(hardware.MD_Down)
-		} else if orderstate.OrdersAtOrBelow(Cab.aboveOrAtFloor) {
-			setMotorAndCabState(hardware.MD_Down)
-		} else if orderstate.OrdersAtOrAbove(Cab.aboveOrAtFloor) {
-			setMotorAndCabState(hardware.MD_Up)
-		}
+		// if orderstate.OrderInFloor(Cab.aboveOrAtFloor, Cab.motorDirection) {
+		// 	setDoorAndCabState(hardware.DS_Open)
+		// } else if Cab.recentDirection == Up && orderstate.OrdersAtOrAbove(Cab.aboveOrAtFloor) {
+		// 	setMotorAndCabState(hardware.MD_Up)
+		// } else if Cab.recentDirection == Down && orderstate.OrdersAtOrBelow(Cab.aboveOrAtFloor) {
+		// 	setMotorAndCabState(hardware.MD_Down)
+		// } else if orderstate.OrdersAtOrBelow(Cab.aboveOrAtFloor) {
+		// 	setMotorAndCabState(hardware.MD_Down)
+		// } else if orderstate.OrdersAtOrAbove(Cab.aboveOrAtFloor) {
+		// 	setMotorAndCabState(hardware.MD_Up)
+		// }
 	}
 	return Cab.behaviour
 }
