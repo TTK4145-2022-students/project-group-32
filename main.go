@@ -7,7 +7,7 @@ import (
 	"elevators/hardware"
 	"elevators/network"
 	"elevators/phoenix"
-	"time"
+	//"time"
 )
 
 func main() {
@@ -16,15 +16,7 @@ func main() {
 
 	controlunit.Init()
 
-	UDPPort := 20014
-	_, wconn := network.InitUDPSendingSocket(UDPPort, "255.255.255.255")
-	_, conn := network.InitUDPReceivingSocket(UDPPort)
-	for {
-		network.BroadcastMessage("Kan dette virke mon tro", wconn)
-		time.Sleep(time.Millisecond * 4000)
-		network.ReceiveUDPMessage(conn)
-		break
-	}
+	network.TestSendAndReceive()
 	hardware.Init("localhost:15657", hardware.FloorCount)
 
 	var d hardware.MotorDirection = hardware.MD_Up
