@@ -6,10 +6,14 @@ import (
 	"elevators/controlunit"
 	"elevators/hardware"
 	"elevators/network"
+	"elevators/phoenix"
 	"time"
 )
 
 func main() {
+	phoenix.Init()
+	go phoenix.Phoenix()
+
 	controlunit.Init()
 
 	UDPPort := 20014
