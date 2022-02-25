@@ -8,7 +8,8 @@ import (
 	"net"
 	"time"
 )
-
+const UDPPort = 20014
+const broadcastAddr = "255.255.255.255"
 
 func InitUDPSendingSocket(port int, sendAddr string) (net.UDPAddr, *net.UDPConn) {
 	sendaddr := net.UDPAddr{
@@ -39,7 +40,6 @@ func broadcastMessage(message []byte, wconn *net.UDPConn) {
 }
 
 func TestSendAndReceive() {
-	UDPPort := 20014
 
 	var state filesystem.OrderState
 	state.Dir = "up"
@@ -52,7 +52,7 @@ func TestSendAndReceive() {
 	// fmt.Println(string(state))
 
 	//Initialize sockets
-	_, wconn := InitUDPSendingSocket(UDPPort, "255.255.255.255")
+	_, wconn := InitUDPSendingSocket(UDPPort, broadcastAddr)
 	_, conn := InitUDPReceivingSocket(UDPPort)
 
 	//Close sockets when program terminates

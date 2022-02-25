@@ -8,7 +8,6 @@ import (
 )
 
 
-
 func InitUDPReceivingSocket(port int) (net.UDPAddr, *net.UDPConn){
 	addr := net.UDPAddr{
 		Port: port,
