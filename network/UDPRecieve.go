@@ -2,11 +2,12 @@ package network
 
 import (
 	"fmt"
+	// "encoding/json"
 	"net"
+	// "elevators/filesystem"
 )
 
-//const broadcastAddr = "255.255.255.255"
-//const port = 20014 //TODO: Set to appropiate port number
+
 
 func InitUDPReceivingSocket(port int) (net.UDPAddr, *net.UDPConn){
 	addr := net.UDPAddr{
@@ -23,13 +24,32 @@ func InitUDPReceivingSocket(port int) (net.UDPAddr, *net.UDPConn){
 	return addr, conn
 }
 
-func ReceiveUDPMessage(conn *net.UDPConn) ([1024]byte){  //Perhaps unneccesary function. Enough with readfromudp?
+func ReceiveUDPMessage(conn *net.UDPConn) (string){  //return in string format
+	// var buf json.RawMessage
 	var buf [1024]byte
 	rlen, addr, err := conn.ReadFromUDP(buf[:])
 	fmt.Println(addr, "sent:", string(buf[0:rlen]))
 	if err != nil {
 		panic(err)
-	}
-	return buf
+	} 
+	//message := buf
+	message := string(buf[0:rlen])
+	return message
 }
 
+// func ReceiveUDPMessage(conn *net.UDPConn) filesystem.OrderState {  //return in struct format
+// 	var buf []byte
+// 	rlen, addr, err := conn.ReadFromUDP(buf[:])
+// 	// _, addr, err := conn.ReadFromUDP(buf[:])
+// 	fmt.Println(string(buf[:]))
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	var orderState filesystem.OrderState 
+// 	//message, _ := json.Marshal(string(buf[:]))
+// 	message := (buf[:rlen])
+// 	fmt.Println(addr, "sent:", string(message))
+// 	json.Unmarshal(message, &orderState)
+// 	fmt.Println(addr, "sent:", string(message))
+// 	return orderState
+// }
