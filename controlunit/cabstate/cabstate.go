@@ -16,7 +16,6 @@ const (
 type CabState struct {
 	aboveOrAtFloor int
 	betweenFloors  bool
-	doorOpen       bool
 	motorDirection hardware.MotorDirection
 	behaviour      ElevatorBehaviour
 }
@@ -28,8 +27,27 @@ func InitCabState() {
 	_ = Cab
 }
 
+func setMotorAndCabState(state hardware.MotorDirection) {
+	hardware.SetMotorDirection(state)
+	Cab.motorDirection = state
+	if state != hardware.MD_Stop {
+		Cab.behaviour = Moving
+	} else {
+		Cab.behaviour = Idle
+	}
+}
+
+func setDoorAndCabState(state hardware.DoorState) {
+	hardware.SetDoorOpenLamp(state)
+	if state == hardware.DS_Open {
+		Cab.behaviour = DoorOpen
+	} else {
+		Cab.behaviour = Idle
+	}
+}
+
 func FSMInitBetweenFloors() ElevatorBehaviour {
-	Cab.motorDirection = hardware.MD_Down
+	setMotorAndCabState(hardware.MD_Down)
 	Cab.behaviour = Moving
 	return Cab.behaviour
 }
@@ -38,23 +56,16 @@ func FSMNewOrder(orderFloor int) ElevatorBehaviour {
 	switch Cab.behaviour {
 	case Idle:
 		if (Cab.aboveOrAtFloor == orderFloor) && !Cab.betweenFloors {
-			Cab.doorOpen = true
-			Cab.behaviour = DoorOpen
-			break
-		}
-
-		if Cab.aboveOrAtFloor < orderFloor {
-			Cab.motorDirection = hardware.MD_Up
+			setDoorAndCabState(hardware.DS_Open)
+		} else if Cab.aboveOrAtFloor < orderFloor {
+			setMotorAndCabState(hardware.MD_Up)
 		} else {
-			Cab.motorDirection = hardware.MD_Down
+			setMotorAndCabState(hardware.MD_Down)
 		}
-		Cab.motorRunning = true
-		Cab.behaviour = Moving
 	case Moving:
 		if (Cab.aboveOrAtFloor == orderFloor) && !Cab.betweenFloors {
-			Cab.motorRunning = false
-			Cab.doorOpen = true
-			Cab.behaviour = DoorOpen
+			setMotorAndCabState(hardware.MD_Stop)
+			setDoorAndCabState(hardware.DS_Open)
 		}
 	case DoorOpen:
 		break
@@ -68,9 +79,8 @@ func FSMFloorArrival(floor int) ElevatorBehaviour {
 		break
 	case Moving:
 		if orderstate.OrderInFloor(floor, Cab.motorDirection) {
-			Cab.motorRunning = false
-			Cab.doorOpen = true
-			Cab.behaviour = DoorOpen
+			setMotorAndCabState(hardware.MD_Stop)
+			setDoorAndCabState(hardware.DS_Open)
 		}
 	case DoorOpen:
 		break
