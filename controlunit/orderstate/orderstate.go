@@ -59,6 +59,11 @@ func CompleteOrder(floor int) {
 	hardware.SetButtonLamp(hardware.BT_HallUp, floor, false)
 	hardware.SetButtonLamp(hardware.BT_HallDown, floor, false)
 	hardware.SetButtonLamp(hardware.BT_Cab, floor, false)
+	upOrders[floor].lastCompleteTime = time.Now()
+	upOrders[floor].isOrder = false
+	downOrders[floor].lastCompleteTime = time.Now()
+	downOrders[floor].isOrder = false
+	cabOrders[floor] = false
 }
 
 func updateUpFloorOrderState(inputState OrderState, currentState *OrderState) {

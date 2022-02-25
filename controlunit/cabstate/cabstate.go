@@ -14,17 +14,10 @@ const (
 	Moving
 )
 
-type Direction int
-
-const (
-	Up Direction = iota
-	Down
-)
-
 type CabState struct {
 	aboveOrAtFloor  int
 	betweenFloors   bool
-	recentDirection Direction
+	recentDirection hardware.MotorDirection
 	motorDirection  hardware.MotorDirection
 	behaviour       ElevatorBehaviour
 }
@@ -46,10 +39,10 @@ func setMotorAndCabState(state hardware.MotorDirection) {
 	switch state {
 	case hardware.MD_Up:
 		Cab.behaviour = Moving
-		Cab.recentDirection = Up
+		Cab.recentDirection = state
 	case hardware.MD_Down:
 		Cab.behaviour = Moving
-		Cab.recentDirection = Down
+		Cab.recentDirection = state
 	case hardware.MD_Stop:
 		Cab.behaviour = Idle
 	default:
@@ -105,6 +98,8 @@ func FSMFloorArrival(floor int) ElevatorBehaviour {
 		if orderstate.OrderInFloor(floor, Cab.motorDirection) {
 			setMotorAndCabState(hardware.MD_Stop)
 			setDoorAndCabState(hardware.DS_Open)
+		} else if floor == 0 || floor == hardware.FloorCount-1 {
+			setMotorAndCabState(hardware.MD_Stop)
 		}
 	case DoorOpen:
 		break
@@ -122,17 +117,17 @@ func FSMDoorTimeout() ElevatorBehaviour {
 	case DoorOpen:
 		//todo check orders
 		setDoorAndCabState(hardware.DS_Closed)
-		// if orderstate.OrderInFloor(Cab.aboveOrAtFloor, Cab.motorDirection) {
-		// 	setDoorAndCabState(hardware.DS_Open)
-		// } else if Cab.recentDirection == Up && orderstate.OrdersAtOrAbove(Cab.aboveOrAtFloor) {
-		// 	setMotorAndCabState(hardware.MD_Up)
-		// } else if Cab.recentDirection == Down && orderstate.OrdersAtOrBelow(Cab.aboveOrAtFloor) {
-		// 	setMotorAndCabState(hardware.MD_Down)
-		// } else if orderstate.OrdersAtOrBelow(Cab.aboveOrAtFloor) {
-		// 	setMotorAndCabState(hardware.MD_Down)
-		// } else if orderstate.OrdersAtOrAbove(Cab.aboveOrAtFloor) {
-		// 	setMotorAndCabState(hardware.MD_Up)
-		// }
+		if orderstate.OrderInFloor(Cab.aboveOrAtFloor, Cab.recentDirection) {
+			setDoorAndCabState(hardware.DS_Open)
+		} else if Cab.recentDirection == hardware.MD_Up && orderstate.OrdersAtOrAbove(Cab.aboveOrAtFloor) {
+			setMotorAndCabState(hardware.MD_Up)
+		} else if Cab.recentDirection == hardware.MD_Down && orderstate.OrdersAtOrBelow(Cab.aboveOrAtFloor) {
+			setMotorAndCabState(hardware.MD_Down)
+		} else if orderstate.OrdersAtOrBelow(Cab.aboveOrAtFloor) {
+			setMotorAndCabState(hardware.MD_Down)
+		} else if orderstate.OrdersAtOrAbove(Cab.aboveOrAtFloor) {
+			setMotorAndCabState(hardware.MD_Up)
+		}
 	}
 	return Cab.behaviour
 }
