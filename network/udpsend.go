@@ -25,7 +25,7 @@ func InitUDPSendingSocket(port int, sendAddr string) (net.UDPAddr, *net.UDPConn)
 	return sendaddr, wconn
 }
 
-func BroadcastMessage(message string, wconn *net.UDPConn) {  //Sending string
+func BroadcastMessage(message string, wconn *net.UDPConn) { //Sending string
 	sendMessage := []byte(message)
 	// var buf [1024]byte
 	_, err := wconn.Write(sendMessage)
@@ -42,14 +42,10 @@ func BroadcastMessage(message string, wconn *net.UDPConn) {  //Sending string
 // 	}
 // }
 
-
-
-
-
-func TestSendAndReceive(){
+func TestSendAndReceive() {
 	UDPPort := 20014
 
-	var state  filesystem.OrderState
+	var state filesystem.OrderState
 	state.Dir = "up"
 	state.Floor = 3
 	state.Name = "Elevator"
@@ -75,4 +71,3 @@ func TestSendAndReceive(){
 		ReceiveUDPMessage(conn)
 	}
 }
-
