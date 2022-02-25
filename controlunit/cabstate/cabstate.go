@@ -35,6 +35,10 @@ func InitCabState() {
 	_ = Cab
 }
 
+func GetCabDirection() hardware.MotorDirection {
+	return Cab.motorDirection
+}
+
 func setMotorAndCabState(state hardware.MotorDirection) {
 	hardware.SetMotorDirection(state)
 	Cab.motorDirection = state
@@ -53,14 +57,14 @@ func setMotorAndCabState(state hardware.MotorDirection) {
 }
 
 func setDoorAndCabState(state hardware.DoorState) {
-	hardware.SetDoorOpenLamp(state)
+	hardware.SetDoorOpenLamp(bool(state))
 	switch state {
 	case hardware.DS_Open:
 		Cab.behaviour = DoorOpen
 	case hardware.DS_Closed:
 		Cab.behaviour = Idle
 	default:
-		panic("door state not implemented " + string(rune(state)))
+		panic("door state not implemented")
 	}
 }
 

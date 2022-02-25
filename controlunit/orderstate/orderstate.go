@@ -27,6 +27,38 @@ func InitOrderState() {
 	_ = cabOrders
 }
 
+func AcceptNewOrder(orderType hardware.ButtonType, floor int) {
+	switch orderType {
+	case hardware.BT_HallUp:
+		upOrders[floor].lastOrderTime = time.Now()
+		upOrders[floor].isOrder = true
+	case hardware.BT_HallDown:
+		downOrders[floor].lastOrderTime = time.Now()
+		downOrders[floor].isOrder = true
+	case hardware.BT_Cab:
+		cabOrders[floor] = true
+	default:
+		panic("order type not implemented " + string(rune(orderType)))
+	}
+	hardware.SetButtonLamp(orderType, floor, true)
+}
+
+func CompleteOrder(orderType hardware.ButtonType, floor int) {
+	switch orderType {
+	case hardware.BT_HallUp:
+		upOrders[floor].lastCompleteTime = time.Now()
+		upOrders[floor].isOrder = false
+	case hardware.BT_HallDown:
+		downOrders[floor].lastCompleteTime = time.Now()
+		downOrders[floor].isOrder = false
+	case hardware.BT_Cab:
+		cabOrders[floor] = false
+	default:
+		panic("order type not implemented " + string(rune(orderType)))
+	}
+	hardware.SetButtonLamp(orderType, floor, false)
+}
+
 func updateUpFloorOrderState(inputState OrderState, currentState *OrderState) {
 	if inputState.lastOrderTime.After(currentState.lastOrderTime) {
 		currentState.lastOrderTime = inputState.lastOrderTime
