@@ -35,6 +35,10 @@ func InitCabState() {
 	_ = Cab
 }
 
+func GetCabDirection() hardware.MotorDirection {
+	return Cab.motorDirection
+}
+
 func setMotorAndCabState(state hardware.MotorDirection) {
 	hardware.SetMotorDirection(state)
 	Cab.motorDirection = state
