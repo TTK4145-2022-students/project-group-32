@@ -1,7 +1,7 @@
 package network
 
 import (
-	"fmt"
+	//"fmt"
 	// "encoding/json"
 	"net"
 	// "elevators/filesystem"
@@ -24,17 +24,15 @@ func InitUDPReceivingSocket(port int) (net.UDPAddr, *net.UDPConn){
 	return addr, conn
 }
 
-func ReceiveUDPMessage(conn *net.UDPConn) (string){  //return in string format
-	// var buf json.RawMessage
-	var buf [1024]byte
-	rlen, addr, err := conn.ReadFromUDP(buf[:])
-	fmt.Println(addr, "sent:", string(buf[0:rlen]))
+func ReceiveUDPMessage(conn *net.UDPConn) ([]byte){  //return in string format
+	var buf []byte
+	//rlen, addr, err := conn.ReadFromUDP(buf[:])
+	_, _, err := conn.ReadFromUDP(buf[:])
+	//fmt.Println(addr, "You received:", string(buf[0:rlen]))
 	if err != nil {
 		panic(err)
 	} 
-	//message := buf
-	message := string(buf[0:rlen])
-	return message
+	return buf
 }
 
 // func ReceiveUDPMessage(conn *net.UDPConn) filesystem.OrderState {  //return in struct format

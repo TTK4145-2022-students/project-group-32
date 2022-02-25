@@ -1,6 +1,7 @@
 package network
 
 import (
+	//"elevators/controlunit"
 	"elevators/filesystem"
 	"encoding/json"
 	"fmt"
@@ -8,8 +9,6 @@ import (
 	"time"
 )
 
-// const broadcastAddr = "255.255.255.255"
-// const port = 20014
 
 func InitUDPSendingSocket(port int, sendAddr string) (net.UDPAddr, *net.UDPConn) {
 	sendaddr := net.UDPAddr{
@@ -25,22 +24,18 @@ func InitUDPSendingSocket(port int, sendAddr string) (net.UDPAddr, *net.UDPConn)
 	return sendaddr, wconn
 }
 
-func BroadcastMessage(message string, wconn *net.UDPConn) { //Sending string
-	sendMessage := []byte(message)
-	// var buf [1024]byte
-	_, err := wconn.Write(sendMessage)
+func BroadcastStruct(orderState filesystem.OrderState, wconn *net.UDPConn) {
+	message, _ := json.Marshal(orderState)
+	BroadcastMessage(message, wconn)
+}
+
+func BroadcastMessage(message []byte, wconn *net.UDPConn) {
+	_, err := wconn.Write(message)
 	if err != nil {
 		panic(err)
 	}
+	// fmt.Println("You sent: msg: ", message)
 }
-
-// func BroadcastMessage(message json.RawMessage, wconn *net.UDPConn) {  //Sending json.RawMessage
-// 	// sendMessage := []byte(message)
-// 	_, err := wconn.Write(message)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// }
 
 func TestSendAndReceive() {
 	UDPPort := 20014
@@ -66,8 +61,18 @@ func TestSendAndReceive() {
 	//Send and receive message
 	for {
 		// BroadcastMessage(json.RawMessage(`{"precomputed": true}`), wconn)
-		BroadcastMessage(string(jsState), wconn)
-		time.Sleep(time.Millisecond * 2000)
-		ReceiveUDPMessage(conn)
+		//BroadcastMessage(string(jsState), wconn)
+		BroadcastStruct(state, wconn)
+		time.Sleep(time.Millisecond * 1000)
+		
+		msg := ReceiveUDPMessage(conn)
+		// fmt.Println("You received:", msg)
+		
+		json.Unmarshal(msg, &state)
+
+		//fmt.Println("Your state:", state.Name)
+		fmt.Printf("state: %v\n", state)
+
+		time.Sleep(time.Millisecond * 1000)
 	}
 }
