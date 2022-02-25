@@ -41,8 +41,7 @@ func RunElevatorLoop() {
 
 		case a := <-drv_floors:
 			fmt.Printf("%+v\n", a)
-
-			orderstate.CompleteOrder(hardware.BT_HallUp, a)
+			orderstate.CompleteOrder(a)
 			cabstate.FSMFloorArrival(a)
 
 		case a := <-drv_obstr:
