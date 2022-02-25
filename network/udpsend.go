@@ -15,21 +15,22 @@ func InitUDPSendingSocket(port int, sendAddr string) (net.UDPAddr, *net.UDPConn)
 		Port: port,
 		IP:   net.ParseIP(sendAddr),
 	}
+	
 	wconn, err := net.DialUDP("udp", nil, &sendaddr) // code does not block here
+	
 	if err != nil {
 		panic(err)
 	}
-	//defer wconn.Close() //Close at the end of program
 
 	return sendaddr, wconn
 }
 
-func BroadcastStruct(orderState filesystem.OrderState, wconn *net.UDPConn) {
+func BroadcastOrderState(orderState filesystem.OrderState, wconn *net.UDPConn) {
 	message, _ := json.Marshal(orderState)
-	BroadcastMessage(message, wconn)
+	broadcastMessage(message, wconn)
 }
 
-func BroadcastMessage(message []byte, wconn *net.UDPConn) {
+func broadcastMessage(message []byte, wconn *net.UDPConn) {
 	_, err := wconn.Write(message)
 	if err != nil {
 		panic(err)
@@ -56,22 +57,27 @@ func TestSendAndReceive() {
 
 	//Close sockets when program terminates
 	defer conn.Close()
-	defer wconn.Close()
+	// defer wconn.Close()
 
 	//Send and receive message
 	for {
 		// BroadcastMessage(json.RawMessage(`{"precomputed": true}`), wconn)
 		//BroadcastMessage(string(jsState), wconn)
-		BroadcastStruct(state, wconn)
+		BroadcastOrderState(state, wconn)
 		time.Sleep(time.Millisecond * 1000)
 		
+		// state = ReceiveOrderState(conn)
 		msg := ReceiveUDPMessage(conn)
-		// fmt.Println("You received:", msg)
-		
 		json.Unmarshal(msg, &state)
 
-		//fmt.Println("Your state:", state.Name)
-		fmt.Printf("state: %v\n", state)
+		// msg := ReceiveCopy(conn)
+		// print msg
+		fmt.Println(string(msg))
+		s := string(msg)
+		fmt.Println(s)
+		json.Unmarshal(msg, &state)
+
+		fmt.Println("Your state:", state)
 
 		time.Sleep(time.Millisecond * 1000)
 	}

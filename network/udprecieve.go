@@ -2,9 +2,9 @@ package network
 
 import (
 	//"fmt"
-	// "encoding/json"
+	"elevators/filesystem"
+	"encoding/json"
 	"net"
-	// "elevators/filesystem"
 )
 
 
@@ -15,39 +15,27 @@ func InitUDPReceivingSocket(port int) (net.UDPAddr, *net.UDPConn){
 		//IP:   net.ParseIP("10.100.23.240:39205"),
 	}
 
-	conn, err := net.ListenUDP("udp", &addr) // code does not block here
+	conn, err := net.ListenUDP("udp", &addr)
 	if err != nil {
 		panic(err)
 	}
-	// defer conn.Close()
 
 	return addr, conn
 }
 
-func ReceiveUDPMessage(conn *net.UDPConn) ([]byte){  //return in string format
+func ReceiveOrderState(conn *net.UDPConn) (filesystem.OrderState) {
+	var orderState filesystem.OrderState
+	buf := ReceiveUDPMessage(conn)
+	json.Unmarshal(buf, &orderState) // convert from json/[]byte to struct/OrderState
+	return orderState
+}
+
+func ReceiveUDPMessage(conn *net.UDPConn) ([]byte) {
 	var buf []byte
-	//rlen, addr, err := conn.ReadFromUDP(buf[:])
 	_, _, err := conn.ReadFromUDP(buf[:])
-	//fmt.Println(addr, "You received:", string(buf[0:rlen]))
+
 	if err != nil {
 		panic(err)
 	} 
 	return buf
 }
-
-// func ReceiveUDPMessage(conn *net.UDPConn) filesystem.OrderState {  //return in struct format
-// 	var buf []byte
-// 	rlen, addr, err := conn.ReadFromUDP(buf[:])
-// 	// _, addr, err := conn.ReadFromUDP(buf[:])
-// 	fmt.Println(string(buf[:]))
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	var orderState filesystem.OrderState 
-// 	//message, _ := json.Marshal(string(buf[:]))
-// 	message := (buf[:rlen])
-// 	fmt.Println(addr, "sent:", string(message))
-// 	json.Unmarshal(message, &orderState)
-// 	fmt.Println(addr, "sent:", string(message))
-// 	return orderState
-// }
