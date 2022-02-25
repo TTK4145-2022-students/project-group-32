@@ -29,6 +29,13 @@ func InitCabState() {
 	_ = Cab
 }
 
+func FSMInitBetweenFloors() ElevatorBehaviour {
+	Cab.motorDirection = cab.Down
+	Cab.motorRunning = true
+	Cab.behaviour = Moving
+	return Cab.behaviour
+}
+
 func FSMNewOrder(orderFloor int) ElevatorBehaviour {
 	switch Cab.behaviour {
 	case Idle:
