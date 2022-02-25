@@ -1,6 +1,7 @@
 package network
 
 import (
+	//"elevators/controlunit"
 	"elevators/filesystem"
 	"encoding/json"
 	"fmt"
@@ -8,39 +9,34 @@ import (
 	"time"
 )
 
-// const broadcastAddr = "255.255.255.255"
-// const port = 20014
 
 func InitUDPSendingSocket(port int, sendAddr string) (net.UDPAddr, *net.UDPConn) {
 	sendaddr := net.UDPAddr{
 		Port: port,
 		IP:   net.ParseIP(sendAddr),
 	}
+	
 	wconn, err := net.DialUDP("udp", nil, &sendaddr) // code does not block here
+	
 	if err != nil {
 		panic(err)
 	}
-	//defer wconn.Close() //Close at the end of program
 
 	return sendaddr, wconn
 }
 
-func BroadcastMessage(message string, wconn *net.UDPConn) { //Sending string
-	sendMessage := []byte(message)
-	// var buf [1024]byte
-	_, err := wconn.Write(sendMessage)
+func BroadcastOrderState(orderState filesystem.OrderState, wconn *net.UDPConn) {
+	message, _ := json.Marshal(orderState)
+	broadcastMessage(message, wconn)
+}
+
+func broadcastMessage(message []byte, wconn *net.UDPConn) {
+	_, err := wconn.Write(message)
 	if err != nil {
 		panic(err)
 	}
+	// fmt.Println("You sent: msg: ", message)
 }
-
-// func BroadcastMessage(message json.RawMessage, wconn *net.UDPConn) {  //Sending json.RawMessage
-// 	// sendMessage := []byte(message)
-// 	_, err := wconn.Write(message)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// }
 
 func TestSendAndReceive() {
 	UDPPort := 20014
@@ -61,13 +57,28 @@ func TestSendAndReceive() {
 
 	//Close sockets when program terminates
 	defer conn.Close()
-	defer wconn.Close()
+	// defer wconn.Close()
 
 	//Send and receive message
 	for {
 		// BroadcastMessage(json.RawMessage(`{"precomputed": true}`), wconn)
-		BroadcastMessage(string(jsState), wconn)
-		time.Sleep(time.Millisecond * 2000)
-		ReceiveUDPMessage(conn)
+		//BroadcastMessage(string(jsState), wconn)
+		BroadcastOrderState(state, wconn)
+		time.Sleep(time.Millisecond * 1000)
+		
+		// state = ReceiveOrderState(conn)
+		msg := ReceiveUDPMessage(conn)
+		json.Unmarshal(msg, &state)
+
+		// msg := ReceiveCopy(conn)
+		// print msg
+		fmt.Println(string(msg))
+		s := string(msg)
+		fmt.Println(s)
+		json.Unmarshal(msg, &state)
+
+		fmt.Println("Your state:", state)
+
+		time.Sleep(time.Millisecond * 1000)
 	}
 }

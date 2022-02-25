@@ -6,13 +6,13 @@ import (
 	"elevators/controlunit"
 	"elevators/hardware"
 	"elevators/network"
-	"elevators/phoenix"
+	// "elevators/phoenix"
 	//"time"
 )
 
 func main() {
-	phoenix.Init()
-	go phoenix.Phoenix()
+	// phoenix.Init()
+	// go phoenix.Phoenix()
 
 	controlunit.Init()
 
