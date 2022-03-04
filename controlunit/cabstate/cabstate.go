@@ -41,9 +41,12 @@ func setMotorAndCabState(state hardware.MotorDirection) {
 	case hardware.MD_Up:
 		Cab.behaviour = Moving
 		Cab.recentDirection = state
+		Cab.betweenFloors = true
 	case hardware.MD_Down:
 		Cab.behaviour = Moving
 		Cab.recentDirection = state
+		Cab.aboveOrAtFloor = Cab.aboveOrAtFloor - 1
+		Cab.betweenFloors = true
 	case hardware.MD_Stop:
 		Cab.behaviour = Idle
 	default:
@@ -108,6 +111,8 @@ func FSMFloorArrival(floor int) ElevatorBehaviour {
 	Cab.aboveOrAtFloor = floor
 	return Cab.behaviour
 }
+
+// floor leave
 
 func FSMDoorTimeout() ElevatorBehaviour {
 	switch Cab.behaviour {
