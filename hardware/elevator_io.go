@@ -25,8 +25,8 @@ const (
 type DoorState bool
 
 const (
-	DS_Open   DoorState = true
-	DS_Closed DoorState = false
+	DS_Open  DoorState = true
+	DS_Close DoorState = false
 )
 
 type ButtonType int

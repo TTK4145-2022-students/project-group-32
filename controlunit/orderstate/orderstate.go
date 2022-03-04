@@ -108,12 +108,28 @@ func OrdersBetween(startFloor int, destinationFloor int) int {
 func OrderInFloor(floor int, direction hardware.MotorDirection) bool {
 	switch direction {
 	case hardware.MD_Up:
-		return upOrders[floor].isOrder || cabOrders[floor]
+		return UpOrdersInFloor(floor) || CabOrdersInFloor(floor)
 	case hardware.MD_Down:
-		return downOrders[floor].isOrder || cabOrders[floor]
+		return DownOrdersInFloor(floor) || CabOrdersInFloor(floor)
 	default:
 		panic("direction not implemented " + string(rune(direction)))
 	}
+}
+
+func OrdersInFloor(floor int) bool {
+	return UpOrdersInFloor(floor) || DownOrdersInFloor(floor) || CabOrdersInFloor(floor)
+}
+
+func DownOrdersInFloor(floor int) bool {
+	return downOrders[floor].isOrder
+}
+
+func UpOrdersInFloor(floor int) bool {
+	return upOrders[floor].isOrder
+}
+
+func CabOrdersInFloor(floor int) bool {
+	return cabOrders[floor]
 }
 
 func AnyOrders() bool {
@@ -147,6 +163,24 @@ func OrdersAtOrAbove(currentFloor int) bool {
 func OrdersAtOrBelow(currentFloor int) bool {
 	for floor := currentFloor; floor >= 0; floor-- {
 		if OrderInFloor(floor, hardware.MD_Down) {
+			return true
+		}
+	}
+	return false
+}
+
+func OrdersAbove(currentFloor int) bool {
+	for floor := currentFloor + 1; floor < hardware.FloorCount; floor++ {
+		if OrdersInFloor(floor) {
+			return true
+		}
+	}
+	return false
+}
+
+func OrdersBelow(currentFloor int) bool {
+	for floor := currentFloor - 1; floor >= 0; floor-- {
+		if OrdersInFloor(floor) {
 			return true
 		}
 	}
