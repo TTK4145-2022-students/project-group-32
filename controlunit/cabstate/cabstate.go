@@ -2,6 +2,7 @@ package cabstate
 
 import (
 	"elevators/controlunit/orderstate"
+	"elevators/controlunit/prioritize"
 	"elevators/hardware"
 	"elevators/timer"
 )
@@ -56,7 +57,7 @@ func setDoorAndCabState(state hardware.DoorState) {
 	case hardware.DS_Open:
 		Cab.behaviour = DoorOpen
 		timer.TimerStart(3)
-	case hardware.DS_Closed:
+	case hardware.DS_Close:
 		Cab.behaviour = Idle
 		timer.TimerStop()
 	default:
@@ -110,24 +111,22 @@ func FSMFloorArrival(floor int) ElevatorBehaviour {
 
 func FSMDoorTimeout() ElevatorBehaviour {
 	switch Cab.behaviour {
-	case Idle:
-		break
-	case Moving:
-		break
 	case DoorOpen:
 		//todo check orders
-		setDoorAndCabState(hardware.DS_Closed)
-		if orderstate.OrderInFloor(Cab.aboveOrAtFloor, Cab.recentDirection) {
-			setDoorAndCabState(hardware.DS_Open)
-		} else if Cab.recentDirection == hardware.MD_Up && orderstate.OrdersAtOrAbove(Cab.aboveOrAtFloor) {
-			setMotorAndCabState(hardware.MD_Up)
-		} else if Cab.recentDirection == hardware.MD_Down && orderstate.OrdersAtOrBelow(Cab.aboveOrAtFloor) {
-			setMotorAndCabState(hardware.MD_Down)
-		} else if orderstate.OrdersAtOrBelow(Cab.aboveOrAtFloor) {
-			setMotorAndCabState(hardware.MD_Down)
-		} else if orderstate.OrdersAtOrAbove(Cab.aboveOrAtFloor) {
-			setMotorAndCabState(hardware.MD_Up)
-		}
+		doorAction := prioritize.ActionOnDoorTimeout(
+			Cab.recentDirection,
+			orderstate.UpOrdersInFloor(Cab.aboveOrAtFloor),
+			orderstate.DownOrdersInFloor(Cab.aboveOrAtFloor),
+			orderstate.CabOrdersInFloor(Cab.aboveOrAtFloor))
+		setDoorAndCabState(doorAction)
+
+		motorAction := prioritize.ActionOnDoorClose(
+			Cab.recentDirection,
+			orderstate.OrdersAbove(Cab.aboveOrAtFloor),
+			orderstate.OrdersBelow(Cab.aboveOrAtFloor))
+		setMotorAndCabState(motorAction)
+	default:
+		panic("Invalid cab state on door timeout")
 	}
 	return Cab.behaviour
 }
