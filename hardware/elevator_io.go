@@ -103,13 +103,17 @@ func PollButtons(receiver chan<- ButtonEvent) {
 	}
 }
 
-func PollFloorSensor(receiver chan<- int) {
+func PollFloorSensor(arrival_receiver chan<- int, leave_reciever chan<- bool) {
 	prev := -1
 	for {
 		time.Sleep(_pollRate)
 		v := getFloor()
-		if v != prev && v != -1 {
-			receiver <- v
+		if v != prev {
+			if v == -1 {
+				leave_reciever <- true
+			} else {
+				arrival_receiver <- v
+			}
 		}
 		prev = v
 	}

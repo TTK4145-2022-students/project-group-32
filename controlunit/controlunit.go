@@ -21,13 +21,14 @@ func Init() {
 func RunElevatorLoop() {
 
 	drv_buttons := make(chan hardware.ButtonEvent)
-	drv_floors := make(chan int)
+	drv_floor_arrival := make(chan int)
+	drv_floor_leave := make(chan bool)
 	drv_obstr := make(chan bool)
 	drv_stop := make(chan bool)
 	drv_timer := make(chan bool)
 
 	go hardware.PollButtons(drv_buttons)
-	go hardware.PollFloorSensor(drv_floors)
+	go hardware.PollFloorSensor(drv_floor_arrival, drv_floor_leave)
 	go hardware.PollObstructionSwitch(drv_obstr)
 	go hardware.PollStopButton(drv_stop)
 	go timer.PollTimer(drv_timer)
@@ -39,10 +40,13 @@ func RunElevatorLoop() {
 			orderstate.AcceptNewOrder(a.Button, a.Floor)
 			cabstate.FSMNewOrder(a.Floor)
 
-		case a := <-drv_floors:
+		case a := <-drv_floor_arrival:
 			fmt.Printf("%+v\n", a)
 			cabstate.FSMFloorArrival(a)
-			orderstate.CompleteOrder(a)
+
+		case a := <-drv_floor_leave:
+			fmt.Printf("%+v\n", a)
+			cabstate.FSMFloorLeave()
 
 		case a := <-drv_obstr:
 			fmt.Printf("%+v\n", a)

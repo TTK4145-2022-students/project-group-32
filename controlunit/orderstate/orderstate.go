@@ -43,27 +43,45 @@ func AcceptNewOrder(orderType hardware.ButtonType, floor int) {
 	hardware.SetButtonLamp(orderType, floor, true)
 }
 
-func CompleteOrder(floor int) {
-	// switch orderType {
-	// case hardware.BT_HallUp:
-	// 	upOrders[floor].lastCompleteTime = time.Now()
-	// 	upOrders[floor].isOrder = false
-	// case hardware.BT_HallDown:
-	// 	downOrders[floor].lastCompleteTime = time.Now()
-	// 	downOrders[floor].isOrder = false
-	// case hardware.BT_Cab:
-	// 	cabOrders[floor] = false
-	// default:
-	// 	panic("order type not implemented " + string(rune(orderType)))
-	// }
-	hardware.SetButtonLamp(hardware.BT_HallUp, floor, false)
-	hardware.SetButtonLamp(hardware.BT_HallDown, floor, false)
+func CompleteOrder(floor int,
+	recentDirection hardware.MotorDirection,
+	upOrdersInFloor bool,
+	downOrdersInFloor bool,
+	ordersAbove bool,
+	ordersBelow bool) {
+
+	clearCabOrder(floor)
+	switch recentDirection {
+	case hardware.MD_Up:
+		clearUpOrder(floor)
+		if downOrdersInFloor && (!ordersAbove && !upOrdersInFloor) {
+			clearDownOrder(floor)
+		}
+	case hardware.MD_Down:
+		clearDownOrder(floor)
+		if upOrdersInFloor && (!ordersBelow && !downOrdersInFloor) {
+			clearUpOrder(floor)
+		}
+	default:
+		panic("Invalid recent direction on floor stop")
+	}
+}
+
+func clearCabOrder(floor int) {
 	hardware.SetButtonLamp(hardware.BT_Cab, floor, false)
+	cabOrders[floor] = false
+}
+
+func clearUpOrder(floor int) {
+	hardware.SetButtonLamp(hardware.BT_HallUp, floor, false)
 	upOrders[floor].lastCompleteTime = time.Now()
 	upOrders[floor].isOrder = false
+}
+
+func clearDownOrder(floor int) {
+	hardware.SetButtonLamp(hardware.BT_HallDown, floor, false)
 	downOrders[floor].lastCompleteTime = time.Now()
 	downOrders[floor].isOrder = false
-	cabOrders[floor] = false
 }
 
 func updateUpFloorOrderState(inputState OrderState, currentState *OrderState) {

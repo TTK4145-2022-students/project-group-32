@@ -4,7 +4,7 @@ import (
 	"elevators/hardware"
 )
 
-func ActionOnDoorClose(
+func MotorActionOnDoorClose(
 	recentDirection hardware.MotorDirection,
 	ordersAbove bool,
 	ordersBelow bool) hardware.MotorDirection {
@@ -31,26 +31,40 @@ func ActionOnDoorClose(
 	}
 }
 
-func ActionOnDoorTimeout(
+func MotorActionOnFloorArrival(
 	recentDirection hardware.MotorDirection,
 	upOrdersInFloor bool,
 	downOrdersInFloor bool,
-	cabOrdersInFloor bool) hardware.DoorState {
+	cabOrdersInFloor bool,
+	ordersAbove bool,
+	ordersBelow bool) hardware.MotorDirection {
 
+	if cabOrdersInFloor {
+		return hardware.MD_Stop
+	}
 	switch recentDirection {
 	case hardware.MD_Up:
 		if upOrdersInFloor {
-			return hardware.DS_Open
+			return hardware.MD_Stop
+		} else if ordersAbove {
+			return hardware.MD_Up
+		} else if downOrdersInFloor {
+			return hardware.MD_Stop
+		} else if ordersBelow {
+			return hardware.MD_Down
 		}
 	case hardware.MD_Down:
 		if downOrdersInFloor {
-			return hardware.DS_Open
+			return hardware.MD_Stop
+		} else if ordersBelow {
+			return hardware.MD_Down
+		} else if upOrdersInFloor {
+			return hardware.MD_Stop
+		} else if ordersAbove {
+			return hardware.MD_Up
 		}
 	default:
-		panic("Invalid recent direction on door close")
+		panic("Invalid recent direction on floor arrival")
 	}
-	if cabOrdersInFloor {
-		return hardware.DS_Open
-	}
-	return hardware.DS_Close
+	return hardware.MD_Stop
 }
