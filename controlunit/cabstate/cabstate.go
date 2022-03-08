@@ -28,6 +28,7 @@ var Cab CabState
 func InitCabState() {
 	Cab := new(CabState)
 	_ = Cab
+	FSMInitBetweenFloors()
 }
 
 func GetCabDirection() hardware.MotorDirection {
@@ -41,12 +42,9 @@ func setMotorAndCabState(state hardware.MotorDirection) {
 	case hardware.MD_Up:
 		Cab.behaviour = Moving
 		Cab.recentDirection = state
-		Cab.betweenFloors = true
 	case hardware.MD_Down:
 		Cab.behaviour = Moving
 		Cab.recentDirection = state
-		Cab.aboveOrAtFloor = Cab.aboveOrAtFloor - 1
-		Cab.betweenFloors = true
 	case hardware.MD_Stop:
 		Cab.behaviour = Idle
 	default:
@@ -69,6 +67,7 @@ func setDoorAndCabState(state hardware.DoorState) {
 }
 
 func FSMInitBetweenFloors() ElevatorBehaviour {
+	Cab.betweenFloors = true
 	setMotorAndCabState(hardware.MD_Down)
 	return Cab.behaviour
 }
@@ -95,37 +94,83 @@ func FSMNewOrder(orderFloor int) ElevatorBehaviour {
 }
 
 func FSMFloorArrival(floor int) ElevatorBehaviour {
-	switch Cab.behaviour {
-	case Idle:
-		break
-	case Moving:
-		if orderstate.OrderInFloor(floor, Cab.motorDirection) {
-			setMotorAndCabState(hardware.MD_Stop)
-			setDoorAndCabState(hardware.DS_Open)
-		} else if floor == 0 || floor == hardware.FloorCount-1 {
-			setMotorAndCabState(hardware.MD_Stop)
-		}
-	case DoorOpen:
-		break
-	}
 	Cab.aboveOrAtFloor = floor
+	Cab.betweenFloors = false
+	switch Cab.behaviour {
+	case Moving:
+		motorAction := prioritize.MotorActionOnFloorArrival(
+			Cab.recentDirection,
+			orderstate.UpOrdersInFloor(Cab.aboveOrAtFloor),
+			orderstate.DownOrdersInFloor(Cab.aboveOrAtFloor),
+			orderstate.CabOrdersInFloor(Cab.aboveOrAtFloor),
+			orderstate.OrdersAbove(Cab.aboveOrAtFloor),
+			orderstate.OrdersBelow(Cab.aboveOrAtFloor))
+		setMotorAndCabState(motorAction)
+
+		if motorAction != hardware.MD_Stop {
+			return Cab.behaviour
+		}
+		doorAction := prioritize.DoorActionOnFloorStop(
+			Cab.recentDirection,
+			orderstate.UpOrdersInFloor(Cab.aboveOrAtFloor),
+			orderstate.DownOrdersInFloor(Cab.aboveOrAtFloor),
+			orderstate.CabOrdersInFloor(Cab.aboveOrAtFloor),
+			orderstate.OrdersAbove(Cab.aboveOrAtFloor),
+			orderstate.OrdersBelow(Cab.aboveOrAtFloor))
+		setDoorAndCabState(doorAction)
+		if doorAction == hardware.DS_Open {
+			orderstate.CompleteOrder(floor,
+				Cab.recentDirection,
+				orderstate.UpOrdersInFloor(Cab.aboveOrAtFloor),
+				orderstate.DownOrdersInFloor(Cab.aboveOrAtFloor),
+				orderstate.OrdersAbove(Cab.aboveOrAtFloor),
+				orderstate.OrdersBelow(Cab.aboveOrAtFloor))
+		}
+	default:
+		panic("Invalid cab state on floor arrival")
+	}
 	return Cab.behaviour
 }
 
-// floor leave
+func FSMFloorLeave() ElevatorBehaviour {
+	Cab.betweenFloors = true
+	switch Cab.behaviour {
+	case Moving:
+		switch Cab.motorDirection {
+		case hardware.MD_Up:
+			break
+		case hardware.MD_Down:
+			Cab.aboveOrAtFloor = Cab.aboveOrAtFloor - 1
+		default:
+			panic("Invalid motor direction on floor leave")
+		}
+	default:
+		panic("Invalid cab state on floor leave")
+	}
+	return Cab.behaviour
+}
 
 func FSMDoorTimeout() ElevatorBehaviour {
 	switch Cab.behaviour {
 	case DoorOpen:
 		//todo check orders
-		doorAction := prioritize.ActionOnDoorTimeout(
+		doorAction := prioritize.DoorActionOnDoorTimeout(
 			Cab.recentDirection,
 			orderstate.UpOrdersInFloor(Cab.aboveOrAtFloor),
 			orderstate.DownOrdersInFloor(Cab.aboveOrAtFloor),
 			orderstate.CabOrdersInFloor(Cab.aboveOrAtFloor))
 		setDoorAndCabState(doorAction)
 
-		motorAction := prioritize.ActionOnDoorClose(
+		if doorAction == hardware.DS_Open {
+			orderstate.CompleteOrder(Cab.aboveOrAtFloor,
+				Cab.recentDirection,
+				orderstate.UpOrdersInFloor(Cab.aboveOrAtFloor),
+				orderstate.DownOrdersInFloor(Cab.aboveOrAtFloor),
+				orderstate.OrdersAbove(Cab.aboveOrAtFloor),
+				orderstate.OrdersBelow(Cab.aboveOrAtFloor))
+			return Cab.behaviour
+		}
+		motorAction := prioritize.MotorActionOnDoorClose(
 			Cab.recentDirection,
 			orderstate.OrdersAbove(Cab.aboveOrAtFloor),
 			orderstate.OrdersBelow(Cab.aboveOrAtFloor))

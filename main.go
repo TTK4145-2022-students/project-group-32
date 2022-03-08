@@ -14,10 +14,10 @@ func main() {
 	// phoenix.Init()
 	// go phoenix.Phoenix()
 
+	hardware.Init("localhost:15657", hardware.FloorCount)
 	controlunit.Init()
 
 	go network.TestSendAndReceive()
-	hardware.Init("localhost:15657", hardware.FloorCount)
 
 	controlunit.RunElevatorLoop()
 
