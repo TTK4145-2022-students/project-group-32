@@ -93,18 +93,15 @@ func FSMNewOrder(orderFloor int) ElevatorBehaviour {
 	return Cab.behaviour
 }
 
-func FSMFloorArrival(floor int) ElevatorBehaviour {
+func FSMFloorArrival(floor int, orders orderstate.AllOrders) ElevatorBehaviour {
 	Cab.aboveOrAtFloor = floor
 	Cab.betweenFloors = false
+	orderStatus := orderstate.GetOrderStatus(orders, floor)
 	switch Cab.behaviour {
 	case Moving:
 		motorAction := prioritize.MotorActionOnFloorArrival(
 			Cab.recentDirection,
-			orderstate.UpOrdersInFloor(Cab.aboveOrAtFloor),
-			orderstate.DownOrdersInFloor(Cab.aboveOrAtFloor),
-			orderstate.CabOrdersInFloor(Cab.aboveOrAtFloor),
-			orderstate.OrdersAbove(Cab.aboveOrAtFloor),
-			orderstate.OrdersBelow(Cab.aboveOrAtFloor))
+			orderStatus)
 		setMotorAndCabState(motorAction)
 
 		if motorAction != hardware.MD_Stop {
@@ -112,19 +109,12 @@ func FSMFloorArrival(floor int) ElevatorBehaviour {
 		}
 		doorAction := prioritize.DoorActionOnFloorStop(
 			Cab.recentDirection,
-			orderstate.UpOrdersInFloor(Cab.aboveOrAtFloor),
-			orderstate.DownOrdersInFloor(Cab.aboveOrAtFloor),
-			orderstate.CabOrdersInFloor(Cab.aboveOrAtFloor),
-			orderstate.OrdersAbove(Cab.aboveOrAtFloor),
-			orderstate.OrdersBelow(Cab.aboveOrAtFloor))
+			orderStatus)
 		setDoorAndCabState(doorAction)
 		if doorAction == hardware.DS_Open {
 			orderstate.CompleteOrder(floor,
 				Cab.recentDirection,
-				orderstate.UpOrdersInFloor(Cab.aboveOrAtFloor),
-				orderstate.DownOrdersInFloor(Cab.aboveOrAtFloor),
-				orderstate.OrdersAbove(Cab.aboveOrAtFloor),
-				orderstate.OrdersBelow(Cab.aboveOrAtFloor))
+				orderStatus)
 		}
 	default:
 		panic("Invalid cab state on floor arrival")
@@ -150,30 +140,25 @@ func FSMFloorLeave() ElevatorBehaviour {
 	return Cab.behaviour
 }
 
-func FSMDoorTimeout() ElevatorBehaviour {
+func FSMDoorTimeout(orders orderstate.AllOrders) ElevatorBehaviour {
+	currentOrderStatus := orderstate.GetOrderStatus(orders, Cab.aboveOrAtFloor)
 	switch Cab.behaviour {
 	case DoorOpen:
-		//todo check orders
+		// todo check orders
 		doorAction := prioritize.DoorActionOnDoorTimeout(
 			Cab.recentDirection,
-			orderstate.UpOrdersInFloor(Cab.aboveOrAtFloor),
-			orderstate.DownOrdersInFloor(Cab.aboveOrAtFloor),
-			orderstate.CabOrdersInFloor(Cab.aboveOrAtFloor))
+			currentOrderStatus)
 		setDoorAndCabState(doorAction)
 
 		if doorAction == hardware.DS_Open {
 			orderstate.CompleteOrder(Cab.aboveOrAtFloor,
 				Cab.recentDirection,
-				orderstate.UpOrdersInFloor(Cab.aboveOrAtFloor),
-				orderstate.DownOrdersInFloor(Cab.aboveOrAtFloor),
-				orderstate.OrdersAbove(Cab.aboveOrAtFloor),
-				orderstate.OrdersBelow(Cab.aboveOrAtFloor))
+				currentOrderStatus)
 			return Cab.behaviour
 		}
 		motorAction := prioritize.MotorActionOnDoorClose(
 			Cab.recentDirection,
-			orderstate.OrdersAbove(Cab.aboveOrAtFloor),
-			orderstate.OrdersBelow(Cab.aboveOrAtFloor))
+			currentOrderStatus)
 		setMotorAndCabState(motorAction)
 	default:
 		panic("Invalid cab state on door timeout")

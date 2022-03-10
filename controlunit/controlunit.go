@@ -10,11 +10,10 @@ import (
 )
 
 func Init() {
-	orderstate.InitOrderState()
+	orderstate.InitOrders()
 	cabstate.InitCabState()
-	newETA := eta.ComputeETA(2, 3)
-	// eta.ComputeETA(2, 3)
-	// fmt.Println(fmt.Println(newETA.String()))
+	orders := orderstate.GetOrders()
+	newETA := eta.ComputeETA(orders, 2, 3)
 	fmt.Println(newETA.String())
 }
 
@@ -42,7 +41,8 @@ func RunElevatorLoop() {
 
 		case a := <-drv_floor_arrival:
 			fmt.Printf("%+v\n", a)
-			cabstate.FSMFloorArrival(a)
+			orders := orderstate.GetOrders()
+			cabstate.FSMFloorArrival(a, orders)
 
 		case a := <-drv_floor_leave:
 			fmt.Printf("%+v\n", a)
@@ -57,7 +57,8 @@ func RunElevatorLoop() {
 		case a := <-drv_timer:
 			fmt.Printf("%+v\n", a)
 			if a {
-				cabstate.FSMDoorTimeout()
+				orders := orderstate.GetOrders()
+				cabstate.FSMDoorTimeout(orders)
 			}
 
 		case a := <-drv_stop:

@@ -1,30 +1,30 @@
 package prioritize
 
 import (
+	"elevators/controlunit/orderstate"
 	"elevators/hardware"
 )
 
 func MotorActionOnDoorClose(
 	recentDirection hardware.MotorDirection,
-	ordersAbove bool,
-	ordersBelow bool) hardware.MotorDirection {
+	currentOrders orderstate.OrderStatus) hardware.MotorDirection {
 
 	switch recentDirection {
 	case hardware.MD_Up:
-		if ordersAbove {
+		if currentOrders.AboveFloor {
 			return hardware.MD_Up
 		}
 	case hardware.MD_Down:
-		if ordersBelow {
+		if currentOrders.BelowFloor {
 			return hardware.MD_Down
 		}
 	default:
 		panic("Invalid recent direction on door close")
 	}
 
-	if ordersAbove {
+	if currentOrders.AboveFloor {
 		return hardware.MD_Up
-	} else if ordersBelow {
+	} else if currentOrders.BelowFloor {
 		return hardware.MD_Down
 	} else {
 		return hardware.MD_Stop
@@ -33,34 +33,30 @@ func MotorActionOnDoorClose(
 
 func MotorActionOnFloorArrival(
 	recentDirection hardware.MotorDirection,
-	upOrdersInFloor bool,
-	downOrdersInFloor bool,
-	cabOrdersInFloor bool,
-	ordersAbove bool,
-	ordersBelow bool) hardware.MotorDirection {
+	currentOrders orderstate.OrderStatus) hardware.MotorDirection {
 
-	if cabOrdersInFloor {
+	if currentOrders.CabAtFloor {
 		return hardware.MD_Stop
 	}
 	switch recentDirection {
 	case hardware.MD_Up:
-		if upOrdersInFloor {
+		if currentOrders.UpAtFloor {
 			return hardware.MD_Stop
-		} else if ordersAbove {
+		} else if currentOrders.AboveFloor {
 			return hardware.MD_Up
-		} else if downOrdersInFloor {
+		} else if currentOrders.DownAtFloor {
 			return hardware.MD_Stop
-		} else if ordersBelow {
+		} else if currentOrders.BelowFloor {
 			return hardware.MD_Down
 		}
 	case hardware.MD_Down:
-		if downOrdersInFloor {
+		if currentOrders.DownAtFloor {
 			return hardware.MD_Stop
-		} else if ordersBelow {
+		} else if currentOrders.BelowFloor {
 			return hardware.MD_Down
-		} else if upOrdersInFloor {
+		} else if currentOrders.UpAtFloor {
 			return hardware.MD_Stop
-		} else if ordersAbove {
+		} else if currentOrders.AboveFloor {
 			return hardware.MD_Up
 		}
 	default:
