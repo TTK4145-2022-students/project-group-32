@@ -1,28 +1,27 @@
 package prioritize
 
 import (
+	"elevators/controlunit/orderstate"
 	"elevators/hardware"
 )
 
 func DoorActionOnDoorTimeout(
 	recentDirection hardware.MotorDirection,
-	upOrdersInFloor bool,
-	downOrdersInFloor bool,
-	cabOrdersInFloor bool) hardware.DoorState {
+	currentOrders orderstate.OrderStatus) hardware.DoorState {
 
 	switch recentDirection {
 	case hardware.MD_Up:
-		if upOrdersInFloor {
+		if currentOrders.UpAtFloor {
 			return hardware.DS_Open
 		}
 	case hardware.MD_Down:
-		if downOrdersInFloor {
+		if currentOrders.DownAtFloor {
 			return hardware.DS_Open
 		}
 	default:
 		panic("Invalid recent direction on door close")
 	}
-	if cabOrdersInFloor {
+	if currentOrders.CabAtFloor {
 		return hardware.DS_Open
 	}
 	return hardware.DS_Close
@@ -30,26 +29,22 @@ func DoorActionOnDoorTimeout(
 
 func DoorActionOnFloorStop(
 	recentDirection hardware.MotorDirection,
-	upOrdersInFloor bool,
-	downOrdersInFloor bool,
-	cabOrdersInFloor bool,
-	ordersAbove bool,
-	ordersBelow bool) hardware.DoorState {
+	currentOrders orderstate.OrderStatus) hardware.DoorState {
 
-	if cabOrdersInFloor {
+	if currentOrders.CabAtFloor {
 		return hardware.DS_Open
 	}
 	switch recentDirection {
 	case hardware.MD_Up:
-		if upOrdersInFloor {
+		if currentOrders.UpAtFloor {
 			return hardware.DS_Open
-		} else if downOrdersInFloor && !ordersAbove {
+		} else if currentOrders.DownAtFloor && !currentOrders.AboveFloor {
 			return hardware.DS_Open
 		}
 	case hardware.MD_Down:
-		if downOrdersInFloor {
+		if currentOrders.DownAtFloor {
 			return hardware.DS_Open
-		} else if upOrdersInFloor && !ordersBelow {
+		} else if currentOrders.UpAtFloor && !currentOrders.BelowFloor {
 			return hardware.DS_Open
 		}
 	default:
