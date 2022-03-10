@@ -50,9 +50,8 @@ func RunElevatorLoop() {
 
 		case a := <-drv_obstr:
 			fmt.Printf("%+v\n", a)
-			if a {
-				hardware.SetMotorDirection(hardware.MD_Stop)
-			}
+			orders := orderstate.GetOrders()
+			cabstate.FSMObstructionChange(a, orders)
 
 		case a := <-drv_timer:
 			fmt.Printf("%+v\n", a)

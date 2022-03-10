@@ -7,8 +7,8 @@ import (
 
 func DoorActionOnDoorTimeout(
 	recentDirection hardware.MotorDirection,
+	doorObstructed bool,
 	currentOrders orderstate.OrderStatus) hardware.DoorState {
-
 	switch recentDirection {
 	case hardware.MD_Up:
 		if currentOrders.UpAtFloor {
@@ -22,6 +22,10 @@ func DoorActionOnDoorTimeout(
 		panic("Invalid recent direction on door close")
 	}
 	if currentOrders.CabAtFloor {
+		return hardware.DS_Open
+	}
+
+	if doorObstructed {
 		return hardware.DS_Open
 	}
 	return hardware.DS_Close
