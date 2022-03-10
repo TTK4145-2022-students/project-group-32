@@ -4,7 +4,6 @@ import (
 	"elevators/controlunit/orderstate"
 	"elevators/controlunit/prioritize"
 	"elevators/hardware"
-	"elevators/timer"
 )
 
 type ElevatorBehaviour int
@@ -12,6 +11,7 @@ type ElevatorBehaviour int
 const (
 	Idle ElevatorBehaviour = iota
 	DoorOpen
+	CabObstructed
 	Moving
 )
 
@@ -20,6 +20,7 @@ type CabState struct {
 	betweenFloors   bool
 	recentDirection hardware.MotorDirection
 	motorDirection  hardware.MotorDirection
+	doorObstructed  bool
 	behaviour       ElevatorBehaviour
 }
 
@@ -29,10 +30,6 @@ func InitCabState() {
 	Cab := new(CabState)
 	_ = Cab
 	FSMInitBetweenFloors()
-}
-
-func GetCabDirection() hardware.MotorDirection {
-	return Cab.motorDirection
 }
 
 func setMotorAndCabState(state hardware.MotorDirection) {
@@ -49,20 +46,6 @@ func setMotorAndCabState(state hardware.MotorDirection) {
 		Cab.behaviour = Idle
 	default:
 		panic("motor state not implemented " + string(rune(state)))
-	}
-}
-
-func setDoorAndCabState(state hardware.DoorState) {
-	hardware.SetDoorOpenLamp(bool(state))
-	switch state {
-	case hardware.DS_Open:
-		Cab.behaviour = DoorOpen
-		timer.TimerStart(3)
-	case hardware.DS_Close:
-		Cab.behaviour = Idle
-		timer.TimerStop()
-	default:
-		panic("door state not implemented")
 	}
 }
 
@@ -87,8 +70,6 @@ func FSMNewOrder(orderFloor int) ElevatorBehaviour {
 			setMotorAndCabState(hardware.MD_Stop)
 			setDoorAndCabState(hardware.DS_Open)
 		}
-	case DoorOpen:
-		break
 	}
 	return Cab.behaviour
 }
@@ -104,17 +85,8 @@ func FSMFloorArrival(floor int, orders orderstate.AllOrders) ElevatorBehaviour {
 			orderStatus)
 		setMotorAndCabState(motorAction)
 
-		if motorAction != hardware.MD_Stop {
-			return Cab.behaviour
-		}
-		doorAction := prioritize.DoorActionOnFloorStop(
-			Cab.recentDirection,
-			orderStatus)
-		setDoorAndCabState(doorAction)
-		if doorAction == hardware.DS_Open {
-			orderstate.CompleteOrder(floor,
-				Cab.recentDirection,
-				orderStatus)
+		if motorAction == hardware.MD_Stop {
+			return FSMFloorStop(floor, orders)
 		}
 	default:
 		panic("Invalid cab state on floor arrival")
@@ -140,22 +112,10 @@ func FSMFloorLeave() ElevatorBehaviour {
 	return Cab.behaviour
 }
 
-func FSMDoorTimeout(orders orderstate.AllOrders) ElevatorBehaviour {
+func FSMDoorClose(orders orderstate.AllOrders) ElevatorBehaviour {
 	currentOrderStatus := orderstate.GetOrderStatus(orders, Cab.aboveOrAtFloor)
 	switch Cab.behaviour {
-	case DoorOpen:
-		// todo check orders
-		doorAction := prioritize.DoorActionOnDoorTimeout(
-			Cab.recentDirection,
-			currentOrderStatus)
-		setDoorAndCabState(doorAction)
-
-		if doorAction == hardware.DS_Open {
-			orderstate.CompleteOrder(Cab.aboveOrAtFloor,
-				Cab.recentDirection,
-				currentOrderStatus)
-			return Cab.behaviour
-		}
+	case Idle:
 		motorAction := prioritize.MotorActionOnDoorClose(
 			Cab.recentDirection,
 			currentOrderStatus)
