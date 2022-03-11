@@ -75,12 +75,14 @@ func TestSendAndReceive() {
 
 		// msg := ReceiveCopy(conn)
 		// print msg
-		fmt.Println(string(msg))
-		s := string(msg)
-		fmt.Println(s)
+		//fmt.Println(string(msg))
+		// s := string(msg)
+		// fmt.Println(s)
 		json.Unmarshal(msg, &state)
 
-		fmt.Println("orders:", state)
+		fmt.Println(time.Now())
+
+		fmt.Println("orders:", state,"\n\n")
 
 		// cabstate := cabstate.Cab
 
