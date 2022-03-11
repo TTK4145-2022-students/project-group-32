@@ -52,27 +52,18 @@ func AcceptNewOrder(orderType hardware.ButtonType, floor int) {
 	hardware.SetButtonLamp(orderType, floor, true)
 }
 
-func CompleteOrder(floor int,
-	recentDirection hardware.MotorDirection,
-	currentOrders OrderStatus) {
-
+func CompleteOrderCabAndUp(floor int) {
 	clearCabOrder(floor)
-	switch recentDirection {
-	case hardware.MD_Up:
-		clearUpOrder(floor)
-		if currentOrders.DownAtFloor &&
-			(!currentOrders.AboveFloor && !currentOrders.UpAtFloor) {
-			clearDownOrder(floor)
-		}
-	case hardware.MD_Down:
-		clearDownOrder(floor)
-		if currentOrders.UpAtFloor &&
-			(!currentOrders.BelowFloor && !currentOrders.DownAtFloor) {
-			clearUpOrder(floor)
-		}
-	default:
-		panic("Invalid recent direction on floor stop")
-	}
+	clearUpOrder(floor)
+}
+
+func CompleteOrderCabAndDown(floor int) {
+	clearCabOrder(floor)
+	clearDownOrder(floor)
+}
+
+func CompleteOrderCab(floor int) {
+	clearCabOrder(floor)
 }
 
 func clearCabOrder(floor int) {
