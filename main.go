@@ -19,7 +19,7 @@ func main() {
 
 	go controlunit.RunElevatorLoop()
 	
-	// network.TestSendAndReceive()
+	go network.TestSend()
 	go network.TestReceive()
 
 	// elevatorState := filesystem.ElevatorState {
