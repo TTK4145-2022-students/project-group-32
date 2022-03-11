@@ -37,7 +37,8 @@ func RunElevatorLoop() {
 		case a := <-drv_buttons:
 			fmt.Printf("%+v\n", a)
 			orderstate.AcceptNewOrder(a.Button, a.Floor)
-			cabstate.FSMNewOrder(a.Floor)
+			orders := orderstate.GetOrders()
+			cabstate.FSMNewOrder(a.Floor, orders)
 
 		case a := <-drv_floor_arrival:
 			fmt.Printf("%+v\n", a)

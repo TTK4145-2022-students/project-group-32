@@ -55,11 +55,11 @@ func FSMInitBetweenFloors() ElevatorBehaviour {
 	return Cab.behaviour
 }
 
-func FSMNewOrder(orderFloor int) ElevatorBehaviour {
+func FSMNewOrder(orderFloor int, orders orderstate.AllOrders) ElevatorBehaviour {
 	switch Cab.behaviour {
 	case Idle:
 		if (Cab.aboveOrAtFloor == orderFloor) && !Cab.betweenFloors {
-			setDoorAndCabState(hardware.DS_Open)
+			FSMFloorStop(orderFloor, orders)
 		} else if Cab.aboveOrAtFloor < orderFloor {
 			setMotorAndCabState(hardware.MD_Up)
 		} else {
@@ -68,7 +68,7 @@ func FSMNewOrder(orderFloor int) ElevatorBehaviour {
 	case Moving:
 		if (Cab.aboveOrAtFloor == orderFloor) && !Cab.betweenFloors {
 			setMotorAndCabState(hardware.MD_Stop)
-			setDoorAndCabState(hardware.DS_Open)
+			FSMFloorStop(orderFloor, orders)
 		}
 	}
 	return Cab.behaviour
