@@ -2,7 +2,7 @@ package network
 
 import (
 	//"elevators/controlunit"
-	"elevators/controlunit/cabstate"
+
 	"elevators/controlunit/orderstate"
 	"encoding/json"
 	"fmt"
@@ -80,9 +80,11 @@ func TestSendAndReceive() {
 		fmt.Println(s)
 		json.Unmarshal(msg, &state)
 
-		cabstate := cabstate.Cab
+		fmt.Println("orders:", state)
 
-		fmt.Println("Your state:", cabstate)
+		// cabstate := cabstate.Cab
+
+		// fmt.Println("Your state:", cabstate)
 
 		time.Sleep(time.Millisecond * 1000)
 	}
