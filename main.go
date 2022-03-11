@@ -18,9 +18,9 @@ func main() {
 	controlunit.Init()
 
 	go controlunit.RunElevatorLoop()
-	network.TestSend()
-	// go network.TestSendAndReceive()
-
+	
+	go network.TestSend()
+	go network.TestReceive()
 
 	// elevatorState := filesystem.ElevatorState {
 	// 	Name:  "Elevator 6",
@@ -41,4 +41,6 @@ func main() {
 	// filesystem.SaveOrders(orderState)
 	// data_order := filesystem.ReadOrders()
 	// fmt.Println(data_order)
+
+	for {}
 }
