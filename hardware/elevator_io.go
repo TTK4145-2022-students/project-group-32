@@ -22,11 +22,13 @@ const (
 	MD_Stop                = 0
 )
 
-type DoorState bool
+type DoorState int
 
 const (
-	DS_Open  DoorState = true
-	DS_Close DoorState = false
+	DS_Close DoorState = iota
+	DS_Open_Up
+	DS_Open_Down
+	DS_Open_Cab
 )
 
 type ButtonType int
