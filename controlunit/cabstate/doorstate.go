@@ -9,7 +9,7 @@ import (
 
 // type DoorState struct {
 // 	Obstructed bool
-// 	Open   bool
+// 	DoorBehaviour hardware.DoorState
 // }
 
 // var Door DoorState
@@ -46,17 +46,35 @@ import (
 // }
 
 func setDoorAndCabState(state hardware.DoorState) {
-	hardware.SetDoorOpenLamp(bool(state))
 	switch state {
-	case hardware.DS_Open:
-		Cab.behaviour = DoorOpen
-		timer.TimerStart(3)
+	case hardware.DS_Open_Cab:
+		openDoor()
+		orderstate.CompleteOrderCab(Cab.aboveOrAtFloor)
+	case hardware.DS_Open_Up:
+		openDoor()
+		orderstate.CompleteOrderCabAndUp(Cab.aboveOrAtFloor)
+		Cab.recentDirection = hardware.MD_Up
+	case hardware.DS_Open_Down:
+		openDoor()
+		orderstate.CompleteOrderCabAndDown(Cab.aboveOrAtFloor)
+		Cab.recentDirection = hardware.MD_Down
 	case hardware.DS_Close:
-		Cab.behaviour = Idle
-		timer.TimerStop()
+		closeDoor()
 	default:
 		panic("door state not implemented")
 	}
+}
+
+func openDoor() {
+	hardware.SetDoorOpenLamp(true)
+	Cab.behaviour = DoorOpen
+	timer.TimerStart(3)
+}
+
+func closeDoor() {
+	hardware.SetDoorOpenLamp(false)
+	Cab.behaviour = Idle
+	timer.TimerStop()
 }
 
 func FSMObstructionChange(obstructed bool, orders orderstate.AllOrders) {
@@ -88,11 +106,7 @@ func FSMDoorTimeout(orders orderstate.AllOrders) ElevatorBehaviour {
 			currentOrderStatus)
 		setDoorAndCabState(doorAction)
 
-		if doorAction == hardware.DS_Open {
-			orderstate.CompleteOrder(Cab.aboveOrAtFloor,
-				Cab.recentDirection,
-				currentOrderStatus)
-		} else {
+		if doorAction == hardware.DS_Close {
 			return FSMDoorClose(orders)
 		}
 	case CabObstructed:
@@ -111,12 +125,6 @@ func FSMFloorStop(floor int, orders orderstate.AllOrders) ElevatorBehaviour {
 			Cab.recentDirection,
 			currentOrderStatus)
 		setDoorAndCabState(doorAction)
-
-		if doorAction == hardware.DS_Open {
-			orderstate.CompleteOrder(Cab.aboveOrAtFloor,
-				Cab.recentDirection,
-				currentOrderStatus)
-		}
 	default:
 		panic("Invalid cab state on door timeout")
 	}
