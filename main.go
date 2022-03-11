@@ -17,9 +17,10 @@ func main() {
 	hardware.Init("localhost:15657", hardware.FloorCount)
 	controlunit.Init()
 
-	go network.TestSendAndReceive()
-
-	controlunit.RunElevatorLoop()
+	go controlunit.RunElevatorLoop()
+	
+	go network.TestSend()
+	go network.TestReceive()
 
 	// elevatorState := filesystem.ElevatorState {
 	// 	Name:  "Elevator 6",
@@ -40,4 +41,6 @@ func main() {
 	// filesystem.SaveOrders(orderState)
 	// data_order := filesystem.ReadOrders()
 	// fmt.Println(data_order)
+
+	for {}
 }

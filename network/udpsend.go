@@ -1,8 +1,6 @@
 package network
 
 import (
-	//"elevators/controlunit"
-
 	"elevators/controlunit/orderstate"
 	"encoding/json"
 	"fmt"
@@ -19,7 +17,7 @@ func InitUDPSendingSocket(port int, sendAddr string) (net.UDPAddr, *net.UDPConn)
 		IP:   net.ParseIP(sendAddr),
 	}
 
-	wconn, err := net.DialUDP("udp", nil, &sendaddr) // code does not block here
+	wconn, err := net.DialUDP("udp", nil, &sendaddr)
 
 	if err != nil {
 		panic(err)
@@ -38,54 +36,19 @@ func broadcastMessage(message []byte, wconn *net.UDPConn) {
 	if err != nil {
 		panic(err)
 	}
-	// fmt.Println("You sent: msg: ", message)
 }
 
-func TestSendAndReceive() {
-
-	// var state filesystem.OrderState
-	// state.Dir = "up"
-	// state.Floor = 3
-	// state.Name = "Elevator"
-	var state = orderstate.GetOrders()
-	jsState, _ := json.Marshal(state)
-	json.Unmarshal(jsState, &state)
-	fmt.Println(string(jsState))
-	// fmt.Println(string(state))
-
-	//Initialize sockets
+func TestSend() {
 	_, wconn := InitUDPSendingSocket(UDPPort, broadcastAddr)
-	_, conn := InitUDPReceivingSocket(UDPPort)
+	defer wconn.Close()
 
-	//Close sockets when program terminates
-	defer conn.Close()
-	// defer wconn.Close()
-
-	//Send and receive message
 	for {
-		// BroadcastMessage(json.RawMessage(`{"precomputed": true}`), wconn)
-		//BroadcastMessage(string(jsState), wconn)
-		state := orderstate.GetOrders()
+		var state orderstate.AllOrders
+		state.Up[0] = orderstate.OrderState{time.Now(), time.Now().Add(-5 * time.Second), time.Now().Add(-5 * time.Second)}
+		state.Cab[1] = true
+
+		fmt.Println("state send:", state, "\n\n")
 		BroadcastOrderState(state, wconn)
-		time.Sleep(time.Millisecond * 1000)
-
-		// state = ReceiveOrderState(conn)
-		msg := ReceiveUDPMessage(conn)
-		json.Unmarshal(msg, &state)
-
-		// msg := ReceiveCopy(conn)
-		// print msg
-		fmt.Println(string(msg))
-		s := string(msg)
-		fmt.Println(s)
-		json.Unmarshal(msg, &state)
-
-		fmt.Println("orders:", state)
-
-		// cabstate := cabstate.Cab
-
-		// fmt.Println("Your state:", cabstate)
-
-		time.Sleep(time.Millisecond * 1000)
+		time.Sleep(time.Second)
 	}
 }
