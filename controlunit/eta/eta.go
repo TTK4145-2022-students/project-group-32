@@ -1,19 +1,31 @@
 package eta
 
 import (
-	"elevators/controlunit/orderstate"
+	"elevators/hardware"
 	"time"
 )
 
-const timeEstimateBetweenFloors = 2
+const secsPerFloor = 2
 
-const timeEstimatePerOrder = 4
+const secsPerOrder = 4
 
 func ComputeETA(
-	orders orderstate.AllOrders, aboveOrAtFloor int, destinationFloor int) time.Time {
-	// Todo: get more realistic newETA, take direction into consideration
-	var newETA = time.Now()
-	newETA = newETA.Add(time.Second * timeEstimateBetweenFloors * time.Duration(destinationFloor-aboveOrAtFloor))
-	newETA = newETA.Add(time.Second * timeEstimatePerOrder * time.Duration(orderstate.OrdersBetween(orders, aboveOrAtFloor, destinationFloor)))
-	return newETA
+	direction hardware.MotorDirection, aboveOrAtFloor int, destinationFloor int) time.Time {
+	return time.Now().Add(ComputeDurationToFloor(direction, aboveOrAtFloor, destinationFloor))
+
+}
+
+func ComputeDurationToFloor(
+	direction hardware.MotorDirection, aboveOrAtFloor int, destinationFloor int) time.Duration {
+	// Todo: get more realistic newETA, take orders into consideration
+	var durationSecs = 0
+	for floor := aboveOrAtFloor; (floor < hardware.FloorCount) && (floor >= 0) && (floor != destinationFloor); floor += int(direction) {
+		durationSecs += secsPerFloor
+		if floor == 0 {
+			durationSecs += destinationFloor * secsPerFloor
+		} else if floor == hardware.FloorCount-1 {
+			durationSecs += (floor - destinationFloor) * secsPerFloor
+		}
+	}
+	return time.Duration(durationSecs) * time.Second
 }

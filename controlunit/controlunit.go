@@ -13,8 +13,7 @@ import (
 func Init() {
 	orderstate.InitOrders()
 	cabstate.InitCabState()
-	orders := orderstate.GetOrders()
-	newETA := eta.ComputeETA(orders, 2, 3)
+	newETA := eta.ComputeETA(hardware.MD_Up, 2, 3)
 	fmt.Println(newETA.String())
 }
 
