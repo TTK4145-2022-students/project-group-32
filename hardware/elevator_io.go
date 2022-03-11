@@ -54,7 +54,19 @@ func Init(addr string, numFloors int) {
 	if err != nil {
 		panic(err.Error())
 	}
+	TurnOffAllLamps()
 	_initialized = true
+}
+
+func TurnOffAllLamps() {
+	for f := 0; f < FloorCount; f++ {
+		for b := ButtonType(0); b < 3; b++ {
+			SetButtonLamp(b, f, false)
+		}
+	}
+	SetDoorOpenLamp(false)
+	SetStopLamp(false)
+
 }
 
 func SetMotorDirection(dir MotorDirection) {
