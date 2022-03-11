@@ -47,14 +47,14 @@ func TestSendAndReceive() {
 	// state.Dir = "up"
 	// state.Floor = 3
 	// state.Name = "Elevator"
-	var state = orderstate.GetOrders()
-	jsState, _ := json.Marshal(state)
-	json.Unmarshal(jsState, &state)
-	fmt.Println(string(jsState))
+	// var state = orderstate.GetOrders()
+	// jsState, _ := json.Marshal(state)
+	// json.Unmarshal(jsState, &state)
+	// fmt.Println(string(jsState))
 	// fmt.Println(string(state))
 
 	//Initialize sockets
-	_, wconn := InitUDPSendingSocket(UDPPort, broadcastAddr)
+	// _, wconn := InitUDPSendingSocket(UDPPort, broadcastAddr)
 	_, conn := InitUDPReceivingSocket(UDPPort)
 
 	//Close sockets when program terminates
@@ -65,24 +65,26 @@ func TestSendAndReceive() {
 	for {
 		// BroadcastMessage(json.RawMessage(`{"precomputed": true}`), wconn)
 		//BroadcastMessage(string(jsState), wconn)
-		state := orderstate.GetOrders()
-		BroadcastOrderState(state, wconn)
-		time.Sleep(time.Millisecond * 1000)
+		// state := orderstate.GetOrders()
+		// BroadcastOrderState(state, wconn)
+		// time.Sleep(time.Millisecond * 1000)
 
 		// state = ReceiveOrderState(conn)
-		msg := ReceiveUDPMessage(conn)
-		json.Unmarshal(msg, &state)
+		var state orderstate.OrderStatus
+		var msg [1024]byte
+		rlen, _, _ := conn.ReadFromUDP(msg[:])
+		json.Unmarshal(msg[:rlen], &state)
 
 		// msg := ReceiveCopy(conn)
 		// print msg
 		//fmt.Println(string(msg))
 		// s := string(msg)
 		// fmt.Println(s)
-		json.Unmarshal(msg, &state)
+		// json.Unmarshal(msg, &state)
 
 		fmt.Println(time.Now())
 
-		fmt.Println("orders:", state,"\n\n")
+		fmt.Println("msg", msg[:rlen], "state:", state,"\n\n")
 
 		// cabstate := cabstate.Cab
 
