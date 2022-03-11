@@ -7,6 +7,7 @@ import (
 	"elevators/hardware"
 	"elevators/timer"
 	"fmt"
+	"time"
 )
 
 func Init() {
@@ -25,12 +26,14 @@ func RunElevatorLoop() {
 	drv_obstr := make(chan bool)
 	drv_stop := make(chan bool)
 	drv_timer := make(chan bool)
+	drv_order_update := make(chan [hardware.FloorCount]bool)
 
 	go hardware.PollButtons(drv_buttons)
 	go hardware.PollFloorSensor(drv_floor_arrival, drv_floor_leave)
 	go hardware.PollObstructionSwitch(drv_obstr)
 	go hardware.PollStopButton(drv_stop)
 	go timer.PollTimer(drv_timer)
+	go PollOrderUpdate(drv_order_update)
 
 	for {
 		select {
@@ -68,6 +71,26 @@ func RunElevatorLoop() {
 					hardware.SetButtonLamp(b, f, false)
 				}
 			}
+		case a := <-drv_order_update:
+			fmt.Printf("%+v\n", a)
+			// todo better handling of bunch update of new orders
+			orders := orderstate.GetOrders()
+			for floor, newOrder := range a {
+				if newOrder {
+					cabstate.FSMNewOrder(floor, orders)
+				}
+			}
 		}
+	}
+}
+
+// temp order update
+func PollOrderUpdate(receiver chan<- [hardware.FloorCount]bool) {
+	for {
+		time.Sleep(7 * time.Second)
+		var newOrders orderstate.AllOrders
+		newOrders.Up[0] = orderstate.OrderState{time.Now(), time.Now().Add(-5 * time.Second), time.Now().Add(-5 * time.Second)}
+		updatedOrders := orderstate.UpdateOrders(newOrders)
+		receiver <- updatedOrders
 	}
 }
