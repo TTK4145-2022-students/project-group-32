@@ -17,9 +17,10 @@ func main() {
 	hardware.Init("localhost:15657", hardware.FloorCount)
 	controlunit.Init()
 
-	go network.TestSendAndReceive()
+	go controlunit.RunElevatorLoop()
+	network.TestSend()
+	// go network.TestSendAndReceive()
 
-	controlunit.RunElevatorLoop()
 
 	// elevatorState := filesystem.ElevatorState {
 	// 	Name:  "Elevator 6",

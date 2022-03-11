@@ -40,6 +40,45 @@ func broadcastMessage(message []byte, wconn *net.UDPConn) {
 	}
 	// fmt.Println("You sent: msg: ", message)
 }
+func SendHello(){
+	//Initialize sockets
+	_, wconn := InitUDPSendingSocket(UDPPort, broadcastAddr)
+	// _, conn := InitUDPReceivingSocket(UDPPort)
+
+	// Close sockets when program terminates
+	// defer conn.Close()
+	//defer wconn.Close()
+	
+	for{
+		message := []byte("hello43")
+		// broadcastMessage(message, wconn)
+		wconn.Write(message)
+		time.Sleep(time.Millisecond * 1000)
+		fmt.Println(message)
+	}
+	
+}
+
+func TestSend() {
+	_, wconn := InitUDPSendingSocket(UDPPort, broadcastAddr)
+	defer wconn.Close()
+
+	// var state orderstate.OrderStatus
+	// state.UpAtFloor = true
+	// state.DownAtFloor = false
+	// state.CabAtFloor = true
+	// state.AboveFloor = false
+	// state.BelowFloor = false
+	for{
+		var state orderstate.AllOrders // = orderstate.GetOrders() 
+		state
+		fmt.Println(state, "\n\n")
+		jsState, _ := json.Marshal(state)
+	
+		broadcastMessage(jsState, wconn)
+		time.Sleep(time.Millisecond * 1000)
+	}
+}
 
 func TestSendAndReceive() {
 
@@ -57,9 +96,9 @@ func TestSendAndReceive() {
 	_, wconn := InitUDPSendingSocket(UDPPort, broadcastAddr)
 	_, conn := InitUDPReceivingSocket(UDPPort)
 
-	//Close sockets when program terminates
+	// Close sockets when program terminates
 	defer conn.Close()
-	// defer wconn.Close()
+	//defer wconn.Close()
 
 	//Send and receive message
 	for {
@@ -69,24 +108,11 @@ func TestSendAndReceive() {
 		BroadcastOrderState(state, wconn)
 		time.Sleep(time.Millisecond * 1000)
 
-		// state = ReceiveOrderState(conn)
+		//state = ReceiveOrderState(conn)
 		msg := ReceiveUDPMessage(conn)
 		json.Unmarshal(msg, &state)
 
-		// msg := ReceiveCopy(conn)
-		// print msg
-		//fmt.Println(string(msg))
-		// s := string(msg)
-		// fmt.Println(s)
-		json.Unmarshal(msg, &state)
-
-		fmt.Println(time.Now())
-
-		fmt.Println("orders:", state,"\n\n")
-
-		// cabstate := cabstate.Cab
-
-		// fmt.Println("Your state:", cabstate)
+		fmt.Println("I am 1,   ", time.Now(), "orders:", msg,"\n\n")
 
 		time.Sleep(time.Millisecond * 1000)
 	}
