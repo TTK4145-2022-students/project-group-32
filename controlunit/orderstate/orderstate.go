@@ -38,8 +38,10 @@ var allOrders AllOrders
 
 func InitOrders() {
 	allOrders := new(AllOrders)
+	allDurations := new(AllDurations)
 
 	_ = allOrders
+	_ = allDurations
 }
 
 func GetOrders() AllOrders {
@@ -137,6 +139,24 @@ func UpdateOrders(inputOrders AllOrders) [hardware.FloorCount]bool {
 	return newOrders
 }
 
+func UpdateETAs(
+	prioritizedDirection hardware.MotorDirection,
+	currentFloor int) {
+	newDurations := ComputeAllDurations(prioritizedDirection, currentFloor, allOrders)
+	newETAs := ComputeAllETAs(newDurations)
+	for floor := 0; floor < hardware.FloorCount; floor++ {
+		if newDurations.Up[floor] < allDurations.Up[floor] && newETAs.Up[floor].Before(allOrders.Up[floor].BestETA) {
+			allOrders.Up[floor].BestETA = newETAs.Up[floor]
+		}
+
+		if newDurations.Down[floor] < allDurations.Down[floor] && newETAs.Down[floor].Before(allOrders.Down[floor].BestETA) {
+			allOrders.Down[floor].BestETA = newETAs.Down[floor]
+		}
+	}
+	allDurations = newDurations
+	allETAs = newETAs
+}
+
 func OrdersBetween(orders AllOrders, startFloor int, destinationFloor int) int {
 	if startFloor == destinationFloor {
 		return 0
@@ -167,9 +187,27 @@ func OrdersAbove(orders AllOrders, currentFloor int) bool {
 	return false
 }
 
+func CabOrdersAbove(cabOrders [hardware.FloorCount]bool, currentFloor int) bool {
+	for floor := currentFloor + 1; floor < hardware.FloorCount; floor++ {
+		if cabOrders[floor] {
+			return true
+		}
+	}
+	return false
+}
+
 func OrdersBelow(orders AllOrders, currentFloor int) bool {
 	for floor := currentFloor - 1; floor >= 0; floor-- {
 		if hasOrder(orders.Up[floor]) || hasOrder(orders.Down[floor]) || orders.Cab[floor] {
+			return true
+		}
+	}
+	return false
+}
+
+func CabOrdersBelow(cabOrders [hardware.FloorCount]bool, currentFloor int) bool {
+	for floor := currentFloor - 1; floor >= 0; floor-- {
+		if cabOrders[floor] {
 			return true
 		}
 	}
