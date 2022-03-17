@@ -89,7 +89,6 @@ func ComputeAllDurations(
 			}
 			if CabOrdersAbove(orders.Cab, floor) {
 				newDurations.Up[floor] = newDurations.Cab[floor]
-				floor++
 			} else if CabOrdersBelow(orders.Cab, currentFloor) {
 				break // loop
 			} else {
@@ -126,6 +125,54 @@ func ComputeAllDurations(
 					newDurations.Up[floor] = newDurations.Up[floor-1] + travelDuration
 					if floor > highestReachedFloor {
 						newDurations.Cab[floor] = newDurations.Up[floor]
+					}
+				}
+			}
+		}
+	case hardware.MD_Down:
+		floor := currentFloor
+		for {
+			if floor < currentFloor {
+				newDurations.Cab[floor] = newDurations.Cab[floor+1] + travelDuration + stopDuration(orders.Cab[floor+1])
+			}
+			if CabOrdersAbove(orders.Cab, floor) {
+				newDurations.Down[floor] = newDurations.Cab[floor]
+			} else if CabOrdersBelow(orders.Cab, currentFloor) {
+				break // loop
+			} else {
+				newDurations.Down[floor] = newDurations.Cab[floor]
+			}
+
+			floor--
+			if floor == -1 {
+				floor++
+				break // loop
+			}
+		}
+
+		lowestReachedFloor := floor
+		newDurations.Up[floor] = newDurations.Cab[floor]
+
+		for {
+			if floor < hardware.FloorCount-1 {
+				floor++
+			} else {
+				break // loop
+			}
+
+			newDurations.Up[floor] = newDurations.Up[floor-1] + travelDuration
+			if floor > currentFloor {
+				newDurations.Cab[floor] = newDurations.Up[floor]
+			}
+		}
+
+		if currentFloor < floor {
+			newDurations.Down[floor] = newDurations.Cab[floor]
+			for floor := floor - 1; floor >= 0; floor-- {
+				if floor > currentFloor || floor <= lowestReachedFloor {
+					newDurations.Down[floor] = newDurations.Down[floor+1] + travelDuration
+					if floor < lowestReachedFloor {
+						newDurations.Cab[floor] = newDurations.Down[floor]
 					}
 				}
 			}
