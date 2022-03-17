@@ -147,10 +147,16 @@ func UpdateETAs(
 	for floor := 0; floor < hardware.FloorCount; floor++ {
 		if newDurations.Up[floor] < allDurations.Up[floor] && newETAs.Up[floor].Before(allOrders.Up[floor].BestETA) {
 			allOrders.Up[floor].BestETA = newETAs.Up[floor]
+		} else if allETAs.Up[floor].Equal(allOrders.Up[floor].BestETA) {
+			// Make sure to keep ownership
+			newETAs.Up[floor] = allETAs.Up[floor]
 		}
 
 		if newDurations.Down[floor] < allDurations.Down[floor] && newETAs.Down[floor].Before(allOrders.Down[floor].BestETA) {
 			allOrders.Down[floor].BestETA = newETAs.Down[floor]
+		} else if allETAs.Down[floor].Equal(allOrders.Down[floor].BestETA) {
+			// Make sure to keep ownership
+			newETAs.Down[floor] = allETAs.Down[floor]
 		}
 	}
 	allDurations = newDurations
