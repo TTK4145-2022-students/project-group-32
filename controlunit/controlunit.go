@@ -2,7 +2,6 @@ package controlunit
 
 import (
 	"elevators/controlunit/cabstate"
-	"elevators/controlunit/eta"
 	"elevators/controlunit/orderstate"
 	"elevators/hardware"
 	"elevators/timer"
@@ -13,8 +12,7 @@ import (
 func Init() {
 	orderstate.InitOrders()
 	cabstate.InitCabState()
-	orders := orderstate.GetOrders()
-	newETA := eta.ComputeETA(orders, 2, 3)
+	newETA := orderstate.ComputeETA(hardware.MD_Up, 2, 3)
 	fmt.Println(newETA.String())
 }
 
