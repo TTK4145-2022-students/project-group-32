@@ -84,11 +84,11 @@ func RunElevatorLoop() {
 
 		case a := <-drv_stop:
 			fmt.Printf("%+v\n", a)
-			for f := 0; f < hardware.FloorCount; f++ {
-				for b := hardware.ButtonType(0); b < 3; b++ {
-					hardware.SetButtonLamp(b, f, false)
-				}
-			}
+			// for f := 0; f < hardware.FloorCount; f++ {
+			// 	for b := hardware.ButtonType(0); b < 3; b++ {
+			// 		hardware.SetButtonLamp(b, f, false)
+			// 	}
+			// }
 		case a := <-drv_order_update:
 			fmt.Printf("%+v\n", a)
 			fmt.Println("updating orders")
