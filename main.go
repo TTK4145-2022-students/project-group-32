@@ -5,7 +5,7 @@ import (
 	// "elevators/filesystem"
 	"elevators/controlunit"
 	"elevators/hardware"
-
+	"time"
 	// "elevators/phoenix"
 	//"time"
 )
@@ -20,5 +20,6 @@ func main() {
 	go controlunit.RunElevatorLoop()
 
 	for {
+		time.Sleep(1 * time.Hour)
 	}
 }
