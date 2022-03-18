@@ -5,7 +5,6 @@ import (
 	// "elevators/filesystem"
 	"elevators/controlunit"
 	"elevators/hardware"
-	"elevators/network"
 	// "elevators/phoenix"
 	//"time"
 )
@@ -18,9 +17,6 @@ func main() {
 	controlunit.Init()
 
 	go controlunit.RunElevatorLoop()
-	
-	go network.TestSend()
-	go network.TestReceive()
 
 	// elevatorState := filesystem.ElevatorState {
 	// 	Name:  "Elevator 6",
@@ -42,5 +38,6 @@ func main() {
 	// data_order := filesystem.ReadOrders()
 	// fmt.Println(data_order)
 
-	for {}
+	for {
+	}
 }
