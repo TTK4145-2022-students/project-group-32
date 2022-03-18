@@ -10,10 +10,7 @@ import (
 )
 
 func Init() {
-	orderstate.InitOrders()
-	cabstate.InitCabState()
-	newETA := orderstate.ComputeETA(hardware.MD_Up, 2, 3)
-	fmt.Println(newETA.String())
+	cabstate.FSMInitBetweenFloors()
 }
 
 func RunCommunicationLoop(receiver chan<- [hardware.FloorCount]bool) {
@@ -66,6 +63,7 @@ func RunElevatorLoop() {
 
 		case a := <-drv_floor_arrival:
 			fmt.Printf("%+v\n", a)
+			hardware.SetFloorIndicator(a)
 			orders := orderstate.GetOrders()
 			cabstate.FSMFloorArrival(a, orders)
 
@@ -87,11 +85,11 @@ func RunElevatorLoop() {
 
 		case a := <-drv_stop:
 			fmt.Printf("%+v\n", a)
-			for f := 0; f < hardware.FloorCount; f++ {
-				for b := hardware.ButtonType(0); b < 3; b++ {
-					hardware.SetButtonLamp(b, f, false)
-				}
-			}
+			// for f := 0; f < hardware.FloorCount; f++ {
+			// 	for b := hardware.ButtonType(0); b < 3; b++ {
+			// 		hardware.SetButtonLamp(b, f, false)
+			// 	}
+			// }
 		case a := <-drv_order_update:
 			fmt.Printf("%+v\n", a)
 			fmt.Println("updating orders")

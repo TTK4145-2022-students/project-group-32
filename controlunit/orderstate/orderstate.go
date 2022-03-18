@@ -36,14 +36,6 @@ type OrderStatus struct {
 
 var allOrders AllOrders
 
-func InitOrders() {
-	allOrders := new(AllOrders)
-	allDurations := new(AllDurations)
-
-	_ = allOrders
-	_ = allDurations
-}
-
 func GetOrders() AllOrders {
 	return allOrders
 }
