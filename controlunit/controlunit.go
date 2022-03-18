@@ -28,7 +28,12 @@ func RunCommunicationLoop(receiver chan<- [hardware.FloorCount]bool) {
 		case orders := <-drv_recieve:
 			// fmt.Printf("%+v\n", a)
 			updatedOrders := orderstate.UpdateOrders(orders)
-			receiver <- updatedOrders
+			for _, newOrder := range updatedOrders {
+				if newOrder {
+					receiver <- updatedOrders
+				}
+			}
+
 		}
 	}
 }
@@ -89,6 +94,7 @@ func RunElevatorLoop() {
 			}
 		case a := <-drv_order_update:
 			fmt.Printf("%+v\n", a)
+			fmt.Println("updating orders")
 			// todo better handling of bunch update of new orders
 			orders := orderstate.GetOrders()
 			for floor, newOrder := range a {
