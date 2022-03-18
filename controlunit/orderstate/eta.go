@@ -185,6 +185,19 @@ func ComputeAllDurations(
 	return newDurations
 }
 
+func SimulateDurations(
+	currentFloor int,
+	recentDirection hardware.MotorDirection,
+	orders AllOrders,
+	allETAs AllETAs)
+
+	simulationOrders := orders
+	simulatedDurations := AllDurations
+	simulationTime := time.Duration(0)
+	for recentDirection != hardware.MD_Stop {
+		
+	}
+
 func simulateStep() {
 
 }
