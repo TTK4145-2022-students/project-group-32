@@ -180,3 +180,11 @@ func ComputeAllDurations(
 	}
 	return newDurations
 }
+
+func simulateStep() {
+
+}
+
+func prioritizing() {
+
+}
