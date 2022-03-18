@@ -36,6 +36,10 @@ type OrderStatus struct {
 
 var allOrders AllOrders
 
+func Init(orderState AllOrders) {
+	allOrders = orderState
+}
+
 func GetOrders() AllOrders {
 	return allOrders
 }

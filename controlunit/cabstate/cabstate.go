@@ -27,6 +27,11 @@ type CabState struct {
 
 var Cab CabState
 
+func Init(cabState CabState) {
+	Cab = cabState
+	FSMInitBetweenFloors()
+}
+
 func setMotorAndCabState(state hardware.MotorDirection) {
 	hardware.SetMotorDirection(state)
 	Cab.MotorDirection = state

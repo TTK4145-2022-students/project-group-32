@@ -6,10 +6,22 @@ import (
 	"elevators/controlunit/orderstate"
 	"encoding/json"
 	"io/ioutil"
+	"time"
 )
 
-func SaveState(cabState cabstate.CabState, orderState orderstate.AllOrders) {
+func SaveStatePeriodically() {
+	for {
+		SaveCabState(cabstate.Cab)
+		SaveOrders(orderstate.GetOrders())
+		time.Sleep(time.Millisecond * 50)
+	}
+}
+
+func SaveCabState(cabState cabstate.CabState) {
 	write("filesystem/cabState.json", cabState)
+}
+
+func SaveOrders(orderState orderstate.AllOrders) {
 	write("filesystem/orderState.json", orderState)
 }
 

@@ -3,6 +3,7 @@ package controlunit
 import (
 	"elevators/controlunit/cabstate"
 	"elevators/controlunit/orderstate"
+	"elevators/filesystem"
 	"elevators/hardware"
 	"elevators/network"
 	"elevators/timer"
@@ -10,7 +11,8 @@ import (
 )
 
 func Init() {
-	cabstate.FSMInitBetweenFloors()
+	orderstate.Init(filesystem.ReadOrders())
+	cabstate.Init(filesystem.ReadCabState())
 }
 
 func RunCommunicationLoop(receiver chan<- [hardware.FloorCount]bool) {
@@ -52,6 +54,7 @@ func RunElevatorLoop() {
 	go timer.PollTimer(drv_timer)
 	// go PollOrderUpdate(drv_order_update)
 	go RunCommunicationLoop(drv_order_update)
+	go filesystem.SaveStatePeriodically()
 
 	for {
 		select {
