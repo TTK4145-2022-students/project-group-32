@@ -26,6 +26,9 @@ func Init() {
 	}
 
 	cmnd := exec.Command("gnome-terminal", "--", "go", "run", "./main.go")
+	// if len(os.Args) > 1 {
+	// 	cmnd.Args = append(cmnd.Args, os.Args[1])
+	// }
 	cmnd.Run()
 }
 
