@@ -5,6 +5,7 @@ import (
 	// "elevators/filesystem"
 	"elevators/controlunit"
 	"elevators/hardware"
+
 	// "elevators/phoenix"
 	//"time"
 	"os"
@@ -22,26 +23,6 @@ func main() {
 	controlunit.Init()
 
 	go controlunit.RunElevatorLoop()
-
-	// elevatorState := filesystem.ElevatorState {
-	// 	Name:  "Elevator 6",
-	// 	Floor: 1,
-	// 	Dir:   "up",
-	// }
-
-	// orderState := filesystem.OrderState {
-	// 	Name:  "Order 1",
-	// 	Floor: 1,
-	// 	Dir:   "up",
-	// }
-
-	// filesystem.SaveElevatorState(elevatorState)
-	// data := filesystem.ReadElevatorState()
-	// fmt.Println(data)
-
-	// filesystem.SaveOrders(orderState)
-	// data_order := filesystem.ReadOrders()
-	// fmt.Println(data_order)
 
 	for {
 	}

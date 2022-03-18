@@ -2,16 +2,15 @@ package filesystem
 
 import (
 	// "fmt"
+	"elevators/controlunit/cabstate"
+	"elevators/controlunit/orderstate"
 	"encoding/json"
 	"io/ioutil"
 )
 
-func SaveElevatorState(elevatorState interface{}) {
-	write("filesystem/elevator_state.json", elevatorState)
-}
-
-func SaveOrders(orders interface{}) {
-	write("filesystem/orders.json", orders)
+func SaveState(cabState cabstate.CabState, orderState orderstate.AllOrders) {
+	write("filesystem/cabState.json", cabState)
+	write("filesystem/orderState.json", orderState)
 }
 
 func write(filepath string, elevatorState interface{}) {
