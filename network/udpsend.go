@@ -3,6 +3,7 @@ package network
 import (
 	"elevators/controlunit/orderstate"
 	"encoding/json"
+	"fmt"
 	"net"
 	"time"
 )
@@ -34,7 +35,8 @@ func BroadcastOrderState(orderState orderstate.AllOrders, wconn *net.UDPConn) {
 func broadcastMessage(message []byte, wconn *net.UDPConn) {
 	_, err := wconn.Write(message)
 	if err != nil {
-		panic(err)
+		// panic(err)
+		fmt.Println("nonet")
 	}
 }
 
