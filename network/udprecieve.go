@@ -3,9 +3,7 @@ package network
 import (
 	"elevators/controlunit/orderstate"
 	"encoding/json"
-	"fmt"
 	"net"
-	"time"
 )
 
 const bufferSize = 2048
@@ -40,12 +38,13 @@ func receiveUDPMessage(conn *net.UDPConn) []byte {
 	return buf[:rlen]
 }
 
-func TestReceive() {
+func Receive(receiver chan<- orderstate.AllOrders) {
 	_, conn := InitUDPReceivingSocket(UDPPort)
 	defer conn.Close()
 
 	for {
 		state := ReceiveOrderState(conn)
-		fmt.Println("state recieve:", state, "\n\n", time.Now())
+		// fmt.Println("state recieve:", state, "\n\n", time.Now())
+		receiver <- state
 	}
 }
