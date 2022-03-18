@@ -3,13 +3,13 @@ package network
 import (
 	"elevators/controlunit/orderstate"
 	"encoding/json"
-	"fmt"
 	"net"
 	"time"
 )
 
 const UDPPort = 20014
 const broadcastAddr = "255.255.255.255"
+const _sendRate = 40 * time.Millisecond
 
 func InitUDPSendingSocket(port int, sendAddr string) (net.UDPAddr, *net.UDPConn) {
 	sendaddr := net.UDPAddr{
@@ -38,17 +38,15 @@ func broadcastMessage(message []byte, wconn *net.UDPConn) {
 	}
 }
 
-func TestSend() {
+func Send() {
 	_, wconn := InitUDPSendingSocket(UDPPort, broadcastAddr)
 	defer wconn.Close()
 
 	for {
-		var state orderstate.AllOrders
-		state.Up[0] = orderstate.OrderState{time.Now(), time.Now().Add(-5 * time.Second), time.Now().Add(-5 * time.Second)}
-		state.Cab[1] = true
+		state := orderstate.GetOrders()
 
-		fmt.Println("state send:", state, "\n\n")
+		// fmt.Println("state send:", state, "\n\n")
 		BroadcastOrderState(state, wconn)
-		time.Sleep(time.Second)
+		time.Sleep(_sendRate)
 	}
 }

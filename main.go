@@ -5,7 +5,6 @@ import (
 	// "elevators/filesystem"
 	"elevators/controlunit"
 	"elevators/hardware"
-
 	// "elevators/phoenix"
 	//"time"
 	"os"
@@ -23,9 +22,6 @@ func main() {
 	controlunit.Init()
 
 	go controlunit.RunElevatorLoop()
-
-	// go network.TestSend()
-	// go network.TestReceive()
 
 	// elevatorState := filesystem.ElevatorState {
 	// 	Name:  "Elevator 6",

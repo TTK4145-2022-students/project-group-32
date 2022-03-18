@@ -7,6 +7,8 @@ import (
 	"elevators/timer"
 )
 
+const doorOpenSecs = 3
+
 // type DoorState struct {
 // 	Obstructed bool
 // 	DoorBehaviour hardware.DoorState
@@ -24,7 +26,7 @@ import (
 // 	switch state {
 // 	case hardware.DS_Open:
 // 		.Open = true
-// 		timer.TimerStart(3)
+// 		timer.TimerStart(doorOpenSecs)
 // 	case hardware.DS_Close:
 // 		Door.Open = false
 // 		timer.TimerStop()
@@ -68,7 +70,7 @@ func setDoorAndCabState(state hardware.DoorState) {
 func openDoor() {
 	hardware.SetDoorOpenLamp(true)
 	Cab.behaviour = DoorOpen
-	timer.TimerStart(3)
+	timer.TimerStart(doorOpenSecs)
 }
 
 func closeDoor() {

@@ -2,20 +2,35 @@ package controlunit
 
 import (
 	"elevators/controlunit/cabstate"
-	"elevators/controlunit/eta"
 	"elevators/controlunit/orderstate"
 	"elevators/hardware"
+	"elevators/network"
 	"elevators/timer"
 	"fmt"
-	"time"
 )
 
 func Init() {
 	orderstate.InitOrders()
 	cabstate.InitCabState()
-	orders := orderstate.GetOrders()
-	newETA := eta.ComputeETA(orders, 2, 3)
+	newETA := orderstate.ComputeETA(hardware.MD_Up, 2, 3)
 	fmt.Println(newETA.String())
+}
+
+func RunCommunicationLoop(receiver chan<- [hardware.FloorCount]bool) {
+
+	drv_recieve := make(chan orderstate.AllOrders)
+
+	go network.Send()
+	go network.Receive(drv_recieve)
+
+	for {
+		select {
+		case orders := <-drv_recieve:
+			// fmt.Printf("%+v\n", a)
+			updatedOrders := orderstate.UpdateOrders(orders)
+			receiver <- updatedOrders
+		}
+	}
 }
 
 func RunElevatorLoop() {
@@ -33,7 +48,8 @@ func RunElevatorLoop() {
 	go hardware.PollObstructionSwitch(drv_obstr)
 	go hardware.PollStopButton(drv_stop)
 	go timer.PollTimer(drv_timer)
-	go PollOrderUpdate(drv_order_update)
+	// go PollOrderUpdate(drv_order_update)
+	go RunCommunicationLoop(drv_order_update)
 
 	for {
 		select {
@@ -84,13 +100,13 @@ func RunElevatorLoop() {
 	}
 }
 
-// temp order update
-func PollOrderUpdate(receiver chan<- [hardware.FloorCount]bool) {
-	for {
-		time.Sleep(7 * time.Second)
-		var newOrders orderstate.AllOrders
-		newOrders.Up[0] = orderstate.OrderState{time.Now(), time.Now().Add(-5 * time.Second), time.Now().Add(-5 * time.Second)}
-		updatedOrders := orderstate.UpdateOrders(newOrders)
-		receiver <- updatedOrders
-	}
-}
+// // temp order update
+// func PollOrderUpdate(receiver chan<- [hardware.FloorCount]bool) {
+// 	for {
+// 		time.Sleep(7 * time.Second)
+// 		var newOrders orderstate.AllOrders
+// 		newOrders.Up[0] = orderstate.OrderState{time.Now(), time.Now().Add(-5 * time.Second), time.Now().Add(-5 * time.Second)}
+// 		updatedOrders := orderstate.UpdateOrders(newOrders)
+// 		receiver <- updatedOrders
+// 	}
+// }
