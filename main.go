@@ -5,22 +5,27 @@ import (
 	// "elevators/filesystem"
 	"elevators/controlunit"
 	"elevators/hardware"
-	"elevators/network"
+
 	// "elevators/phoenix"
 	//"time"
+	"os"
 )
 
 func main() {
 	// phoenix.Init()
 	// go phoenix.Phoenix()
 
-	hardware.Init("localhost:15657", hardware.FloorCount)
+	if len(os.Args) > 1 {
+		hardware.Init("localhost:"+os.Args[1], hardware.FloorCount)
+	} else {
+		hardware.Init("localhost:15657", hardware.FloorCount)
+	}
 	controlunit.Init()
 
 	go controlunit.RunElevatorLoop()
-	
-	go network.TestSend()
-	go network.TestReceive()
+
+	// go network.TestSend()
+	// go network.TestReceive()
 
 	// elevatorState := filesystem.ElevatorState {
 	// 	Name:  "Elevator 6",
@@ -42,5 +47,6 @@ func main() {
 	// data_order := filesystem.ReadOrders()
 	// fmt.Println(data_order)
 
-	for {}
+	for {
+	}
 }
