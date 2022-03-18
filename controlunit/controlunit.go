@@ -63,6 +63,7 @@ func RunElevatorLoop() {
 
 		case a := <-drv_floor_arrival:
 			fmt.Printf("%+v\n", a)
+			hardware.SetFloorIndicator(a)
 			orders := orderstate.GetOrders()
 			cabstate.FSMFloorArrival(a, orders)
 
