@@ -81,7 +81,10 @@ func FSMFloorArrival(floor int, orders orderstate.AllOrders) ElevatorBehaviour {
 	switch Cab.Behaviour {
 	case Moving:
 		motorAction := prioritize.MotorActionOnFloorArrival(
-			Cab.RecentDirection,
+			prioritize.PrioritizedDirection(Cab.AboveOrAtFloor,
+				Cab.RecentDirection,
+				orders,
+				orderstate.GetInternalETAs()),
 			orderStatus)
 		setMotorAndCabState(motorAction)
 
@@ -119,7 +122,10 @@ func FSMDoorClose(orders orderstate.AllOrders) ElevatorBehaviour {
 	switch Cab.Behaviour {
 	case Idle:
 		motorAction := prioritize.MotorActionOnDoorClose(
-			Cab.RecentDirection,
+			prioritize.PrioritizedDirection(Cab.AboveOrAtFloor,
+				Cab.RecentDirection,
+				orders,
+				orderstate.GetInternalETAs()),
 			currentOrderStatus)
 		setMotorAndCabState(motorAction)
 	default:
