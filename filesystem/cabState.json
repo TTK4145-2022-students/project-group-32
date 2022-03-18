@@ -1,0 +1,8 @@
+{
+ "AboveOrAtFloor": 1,
+ "BetweenFloors": true,
+ "RecentDirection": -1,
+ "MotorDirection": 0,
+ "DoorObstructed": false,
+ "Behaviour": 0
+}

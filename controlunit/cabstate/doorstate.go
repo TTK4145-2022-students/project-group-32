@@ -51,15 +51,15 @@ func setDoorAndCabState(state hardware.DoorState) {
 	switch state {
 	case hardware.DS_Open_Cab:
 		openDoor()
-		orderstate.CompleteOrderCab(Cab.aboveOrAtFloor)
+		orderstate.CompleteOrderCab(Cab.AboveOrAtFloor)
 	case hardware.DS_Open_Up:
 		openDoor()
-		orderstate.CompleteOrderCabAndUp(Cab.aboveOrAtFloor)
-		Cab.recentDirection = hardware.MD_Up
+		orderstate.CompleteOrderCabAndUp(Cab.AboveOrAtFloor)
+		Cab.RecentDirection = hardware.MD_Up
 	case hardware.DS_Open_Down:
 		openDoor()
-		orderstate.CompleteOrderCabAndDown(Cab.aboveOrAtFloor)
-		Cab.recentDirection = hardware.MD_Down
+		orderstate.CompleteOrderCabAndDown(Cab.AboveOrAtFloor)
+		Cab.RecentDirection = hardware.MD_Down
 	case hardware.DS_Close:
 		closeDoor()
 	default:
@@ -69,28 +69,28 @@ func setDoorAndCabState(state hardware.DoorState) {
 
 func openDoor() {
 	hardware.SetDoorOpenLamp(true)
-	Cab.behaviour = DoorOpen
+	Cab.Behaviour = DoorOpen
 	timer.TimerStart(doorOpenSecs)
 }
 
 func closeDoor() {
 	hardware.SetDoorOpenLamp(false)
-	Cab.behaviour = Idle
+	Cab.Behaviour = Idle
 	timer.TimerStop()
 }
 
 func FSMObstructionChange(obstructed bool, orders orderstate.AllOrders) {
-	Cab.doorObstructed = obstructed
+	Cab.DoorObstructed = obstructed
 	switch obstructed {
 	case true:
-		switch Cab.behaviour {
+		switch Cab.Behaviour {
 		case DoorOpen:
-			Cab.behaviour = CabObstructed
+			Cab.Behaviour = CabObstructed
 		}
 	case false:
-		switch Cab.behaviour {
+		switch Cab.Behaviour {
 		case CabObstructed:
-			Cab.behaviour = DoorOpen
+			Cab.Behaviour = DoorOpen
 			if timer.TimedOut() {
 				FSMDoorTimeout(orders)
 			}
@@ -99,12 +99,12 @@ func FSMObstructionChange(obstructed bool, orders orderstate.AllOrders) {
 }
 
 func FSMDoorTimeout(orders orderstate.AllOrders) ElevatorBehaviour {
-	currentOrderStatus := orderstate.GetOrderStatus(orders, Cab.aboveOrAtFloor)
-	switch Cab.behaviour {
+	currentOrderStatus := orderstate.GetOrderStatus(orders, Cab.AboveOrAtFloor)
+	switch Cab.Behaviour {
 	case DoorOpen:
 		doorAction := prioritize.DoorActionOnDoorTimeout(
-			Cab.recentDirection,
-			Cab.doorObstructed,
+			Cab.RecentDirection,
+			Cab.DoorObstructed,
 			currentOrderStatus)
 		setDoorAndCabState(doorAction)
 
@@ -116,19 +116,19 @@ func FSMDoorTimeout(orders orderstate.AllOrders) ElevatorBehaviour {
 	default:
 		panic("Invalid cab state on door timeout")
 	}
-	return Cab.behaviour
+	return Cab.Behaviour
 }
 
 func FSMFloorStop(floor int, orders orderstate.AllOrders) ElevatorBehaviour {
-	currentOrderStatus := orderstate.GetOrderStatus(orders, Cab.aboveOrAtFloor)
-	switch Cab.behaviour {
+	currentOrderStatus := orderstate.GetOrderStatus(orders, Cab.AboveOrAtFloor)
+	switch Cab.Behaviour {
 	case Idle:
 		doorAction := prioritize.DoorActionOnFloorStop(
-			Cab.recentDirection,
+			Cab.RecentDirection,
 			currentOrderStatus)
 		setDoorAndCabState(doorAction)
 	default:
 		panic("Invalid cab state on door timeout")
 	}
-	return Cab.behaviour
+	return Cab.Behaviour
 }
