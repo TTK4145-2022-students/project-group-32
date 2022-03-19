@@ -1,6 +1,7 @@
 package orderstate
 
 import (
+	"elevators/controlunit/prioritize"
 	"elevators/hardware"
 	"time"
 )
@@ -189,17 +190,49 @@ func SimulateDurations(
 	currentFloor int,
 	recentDirection hardware.MotorDirection,
 	orders AllOrders,
-	allETAs AllETAs)
+	allETAs AllETAs) {
 
+	simulationFloor := currentFloor
+	simulationDirection := recentDirection
 	simulationOrders := orders
-	simulatedDurations := AllDurations
-	simulationTime := time.Duration(0)
-	for recentDirection != hardware.MD_Stop {
-		
+	simulationTime := time.Duration(1) * time.Microsecond
+	var simulatedDurations AllDurations
+	prioritizedDirection := ETADirection(simulationFloor, simulationDirection, simulationOrders, allETAs)
+	for prioritizedDirection != hardware.MD_Stop {
+		prioritizedDirection = simulateStep(
+			prioritizedDirection,
+			&simulationFloor,
+			&simulationDirection,
+			&simulationOrders,
+			&simulationTime,
+			&simulatedDurations)
 	}
+}
 
-func simulateStep() {
+func simulateStep(
+	prioritizedDirection hardware.MotorDirection,
+	floor *int,
+	direction *hardware.MotorDirection,
+	orders *AllOrders,
+	simTime *time.Duration,
+	durations *AllDurations) hardware.MotorDirection {
 
+	if durations.Cab[*floor] == time.Duration(0) {
+		durations.Cab[*floor] = *simTime
+	}
+	switch prioritize.DoorActionOnDoorTimeout(
+		prioritizedDirection,
+		false,
+		GetOrderStatus(*orders, *floor)) {
+	case hardware.DS_Close:
+		*direction = prioritize.MotorActionOnDoorClose(
+			prioritizedDirection,
+			GetOrderStatus(*orders, *floor))
+	case hardware.DS_Open_Down:
+		durations.Down[*floor] = *simTime
+		//Todo handle rest of simulation step
+	}
+	return prioritizedDirection
 }
 
 func internalETABest(orderState OrderState, internalETA time.Time) bool {
@@ -253,4 +286,17 @@ func ETADirection(
 		}
 	}
 	return hardware.MD_Stop
+}
+
+func PrioritizedDirection(currentFloor int,
+	recentDirection hardware.MotorDirection,
+	orders AllOrders,
+	allETAs AllETAs) hardware.MotorDirection {
+
+	etaDirection := ETADirection(currentFloor, recentDirection, orders, allETAs)
+	if etaDirection == hardware.MD_Stop {
+		return recentDirection
+	} else {
+		return etaDirection
+	}
 }

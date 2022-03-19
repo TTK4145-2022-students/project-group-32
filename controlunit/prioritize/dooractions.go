@@ -1,14 +1,13 @@
 package prioritize
 
 import (
-	"elevators/controlunit/orderstate"
 	"elevators/hardware"
 )
 
 func DoorActionOnDoorTimeout(
 	prioritizedDirection hardware.MotorDirection,
 	doorObstructed bool,
-	currentOrders orderstate.OrderStatus) hardware.DoorState {
+	currentOrders OrderStatus) hardware.DoorState {
 	switch prioritizedDirection {
 	case hardware.MD_Up:
 		if currentOrders.UpAtFloor ||
@@ -37,7 +36,7 @@ func DoorActionOnDoorTimeout(
 
 func DoorActionOnFloorStop(
 	prioritizedDirection hardware.MotorDirection,
-	currentOrders orderstate.OrderStatus) hardware.DoorState {
+	currentOrders OrderStatus) hardware.DoorState {
 
 	switch prioritizedDirection {
 	case hardware.MD_Up:

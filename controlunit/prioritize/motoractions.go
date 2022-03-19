@@ -1,15 +1,14 @@
 package prioritize
 
 import (
-	"elevators/controlunit/orderstate"
 	"elevators/hardware"
 )
 
 func MotorActionOnDoorClose(
-	recentDirection hardware.MotorDirection,
-	currentOrders orderstate.OrderStatus) hardware.MotorDirection {
+	prioritizedDirection hardware.MotorDirection,
+	currentOrders OrderStatus) hardware.MotorDirection {
 
-	switch recentDirection {
+	switch prioritizedDirection {
 	case hardware.MD_Up:
 		if currentOrders.AboveFloor {
 			return hardware.MD_Up
@@ -32,13 +31,13 @@ func MotorActionOnDoorClose(
 }
 
 func MotorActionOnFloorArrival(
-	recentDirection hardware.MotorDirection,
-	currentOrders orderstate.OrderStatus) hardware.MotorDirection {
+	prioritizedDirection hardware.MotorDirection,
+	currentOrders OrderStatus) hardware.MotorDirection {
 
 	if currentOrders.CabAtFloor {
 		return hardware.MD_Stop
 	}
-	switch recentDirection {
+	switch prioritizedDirection {
 	case hardware.MD_Up:
 		if currentOrders.UpAtFloor {
 			return hardware.MD_Stop

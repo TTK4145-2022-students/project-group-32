@@ -1,6 +1,7 @@
 package orderstate
 
 import (
+	"elevators/controlunit/prioritize"
 	"elevators/hardware"
 	"fmt"
 	"time"
@@ -24,14 +25,6 @@ type AllOrders struct {
 	Up   [hardware.FloorCount]OrderState
 	Down [hardware.FloorCount]OrderState
 	Cab  [hardware.FloorCount]bool
-}
-
-type OrderStatus struct {
-	UpAtFloor   bool
-	DownAtFloor bool
-	CabAtFloor  bool
-	AboveFloor  bool
-	BelowFloor  bool
 }
 
 var allOrders AllOrders
@@ -216,8 +209,8 @@ func CabOrdersBelow(cabOrders [hardware.FloorCount]bool, currentFloor int) bool 
 	return false
 }
 
-func GetOrderStatus(orders AllOrders, floor int) OrderStatus {
-	var orderStatus OrderStatus
+func GetOrderStatus(orders AllOrders, floor int) prioritize.OrderStatus {
+	var orderStatus prioritize.OrderStatus
 	orderStatus.UpAtFloor = hasOrder(orders.Up[floor])
 	orderStatus.DownAtFloor = hasOrder(orders.Down[floor])
 	orderStatus.CabAtFloor = orders.Cab[floor]
