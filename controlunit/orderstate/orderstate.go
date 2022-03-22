@@ -129,10 +129,10 @@ func UpdateOrders(inputOrders AllOrders) [hardware.FloorCount]bool {
 }
 
 func UpdateETAs(
-	prioritizedDirection hardware.MotorDirection,
+	recentDirection hardware.MotorDirection,
 	currentFloor int) {
-	newDurations := ComputeAllDurations(prioritizedDirection, currentFloor, allOrders)
-	newETAs := ComputeAllETAs(newDurations)
+	newDurations := ComputeDurations(currentFloor, recentDirection, allOrders, allETAs)
+	newETAs := ComputeInternalETAs(newDurations)
 	for floor := 0; floor < hardware.FloorCount; floor++ {
 		if newDurations.Up[floor] < allDurations.Up[floor] && newETAs.Up[floor].Before(allOrders.Up[floor].BestETA) {
 			allOrders.Up[floor].BestETA = newETAs.Up[floor]
