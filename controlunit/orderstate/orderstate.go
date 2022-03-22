@@ -1,6 +1,7 @@
 package orderstate
 
 import (
+	"elevators/controlunit/prioritize"
 	"elevators/hardware"
 	// "fmt"
 	"time"
@@ -25,14 +26,6 @@ type AllOrders struct {
 	Up   [hardware.FloorCount]OrderState
 	Down [hardware.FloorCount]OrderState
 	Cab  [hardware.FloorCount]bool
-}
-
-type OrderStatus struct {
-	UpAtFloor   bool
-	DownAtFloor bool
-	CabAtFloor  bool
-	AboveFloor  bool
-	BelowFloor  bool
 }
 
 var allOrders AllOrders
@@ -163,10 +156,10 @@ func UpdateOrders(inputOrders AllOrders) [hardware.FloorCount]bool {
 }
 
 func UpdateETAs(
-	prioritizedDirection hardware.MotorDirection,
+	recentDirection hardware.MotorDirection,
 	currentFloor int) {
-	newDurations := ComputeAllDurations(prioritizedDirection, currentFloor, allOrders)
-	newETAs := ComputeAllETAs(newDurations)
+	newDurations := ComputeDurations(currentFloor, recentDirection, allOrders, allETAs)
+	newETAs := ComputeInternalETAs(newDurations)
 	for floor := 0; floor < hardware.FloorCount; floor++ {
 		if newDurations.Up[floor] < allDurations.Up[floor] && newETAs.Up[floor].Before(allOrders.Up[floor].BestETA) {
 			allOrders.Up[floor].BestETA = newETAs.Up[floor]
@@ -243,8 +236,8 @@ func CabOrdersBelow(cabOrders [hardware.FloorCount]bool, currentFloor int) bool 
 	return false
 }
 
-func GetOrderStatus(orders AllOrders, floor int) OrderStatus {
-	var orderStatus OrderStatus
+func GetOrderStatus(orders AllOrders, floor int) prioritize.OrderStatus {
+	var orderStatus prioritize.OrderStatus
 	orderStatus.UpAtFloor = hasOrder(orders.Up[floor])
 	orderStatus.DownAtFloor = hasOrder(orders.Down[floor])
 	orderStatus.CabAtFloor = orders.Cab[floor]
