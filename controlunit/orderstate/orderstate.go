@@ -42,6 +42,19 @@ func Init(orderState AllOrders) {
 	allOrdersMtx.Lock()
 	defer allOrdersMtx.Unlock()
 	allOrders = orderState
+	for floor := 0; floor < hardware.FloorCount; floor++ {
+		if allOrders.Cab[floor]{
+			hardware.SetButtonLamp(hardware.BT_Cab, floor, true)
+		}
+		if floor < hardware.FloorCount-1{
+			if hasOrder(allOrders.Up[floor]){
+				hardware.SetButtonLamp(hardware.BT_HallUp, floor, true)
+			}
+			if hasOrder(allOrders.Down[floor]){
+				hardware.SetButtonLamp(hardware.BT_HallDown, floor, true)
+			}
+		}
+	}
 }
 
 func GetOrders() AllOrders {
