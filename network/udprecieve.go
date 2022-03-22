@@ -7,9 +7,11 @@ import (
 )
 
 const bufferSize = 2048
+const listenAddr = "224.0.0.251"
 
 func InitUDPReceivingSocket(port int) (net.UDPAddr, *net.UDPConn) {
 	addr := net.UDPAddr{
+		IP:   net.ParseIP(listenAddr),
 		Port: port,
 	}
 

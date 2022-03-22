@@ -32,11 +32,7 @@ func BroadcastOrderState(orderState orderstate.AllOrders, wconn *net.UDPConn) {
 }
 
 func broadcastMessage(message []byte, wconn *net.UDPConn) {
-	_, err := wconn.Write(message)
-	if err != nil {
-		// panic(err)
-		// fmt.Println("nonet")
-	}
+	wconn.Write(message)
 }
 
 func Send() {
