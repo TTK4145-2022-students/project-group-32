@@ -6,8 +6,11 @@ import (
 	"elevators/controlunit/orderstate"
 	"encoding/json"
 	"io/ioutil"
+	"sync"
 	"time"
 )
+
+var fileMtx = new(sync.RWMutex)
 
 func SaveStatePeriodically() {
 	for {
@@ -18,10 +21,14 @@ func SaveStatePeriodically() {
 }
 
 func SaveCabState(cabState cabstate.CabState) {
+	fileMtx.Lock()
+	defer fileMtx.Unlock()
 	write("filesystem/cabState.json", cabState)
 }
 
 func SaveOrders(orderState orderstate.AllOrders) {
+	fileMtx.Lock()
+	defer fileMtx.Unlock()
 	write("filesystem/orderState.json", orderState)
 }
 

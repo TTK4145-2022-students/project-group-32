@@ -4,6 +4,7 @@ import (
 	"elevators/controlunit/orderstate"
 	"elevators/controlunit/prioritize"
 	"elevators/hardware"
+	// "fmt"
 )
 
 type ElevatorBehaviour int
@@ -77,6 +78,7 @@ func FSMFloorArrival(floor int, orders orderstate.AllOrders) ElevatorBehaviour {
 	Cab.AboveOrAtFloor = floor
 	Cab.BetweenFloors = false
 	orderStatus := orderstate.GetOrderStatus(orders, floor)
+	// fmt.Println("FSMFloorArrival")
 	switch Cab.Behaviour {
 	case Moving:
 		motorAction := prioritize.MotorActionOnFloorArrival(
@@ -84,10 +86,13 @@ func FSMFloorArrival(floor int, orders orderstate.AllOrders) ElevatorBehaviour {
 				Cab.RecentDirection,
 				orders,
 				orderstate.GetInternalETAs()),
+			// Cab.RecentDirection,
 			orderStatus)
+		// fmt.Println("Moving")
 		setMotorAndCabState(motorAction)
 
 		if motorAction == hardware.MD_Stop {
+			// fmt.Println("Should stop now")
 			return FSMFloorStop(floor, orders)
 		}
 	default:

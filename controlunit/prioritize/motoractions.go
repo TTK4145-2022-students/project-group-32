@@ -3,6 +3,7 @@ package prioritize
 import (
 	"elevators/controlunit/orderstate"
 	"elevators/hardware"
+	// "fmt"
 )
 
 func MotorActionOnDoorClose(
@@ -45,6 +46,7 @@ func MotorActionOnFloorArrival(
 		} else if currentOrders.AboveFloor {
 			return hardware.MD_Up
 		} else if currentOrders.DownAtFloor {
+			// fmt.Println("last downorder")
 			return hardware.MD_Stop
 		} else if currentOrders.BelowFloor {
 			return hardware.MD_Down
@@ -55,6 +57,7 @@ func MotorActionOnFloorArrival(
 		} else if currentOrders.BelowFloor {
 			return hardware.MD_Down
 		} else if currentOrders.UpAtFloor {
+			// fmt.Println("last uporder")
 			return hardware.MD_Stop
 		} else if currentOrders.AboveFloor {
 			return hardware.MD_Up
