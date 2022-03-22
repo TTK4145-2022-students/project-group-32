@@ -44,7 +44,7 @@ func Receive(receiver chan<- orderstate.AllOrders) {
 
 	for {
 		state := ReceiveOrderState(conn)
-		// fmt.Println("state recieve:", state, "\n\n", time.Now())
+		// // fmt.Println("state recieve:", state, "\n\n", time.Now())
 		receiver <- state
 	}
 }

@@ -7,7 +7,6 @@ import (
 	"elevators/hardware"
 	"elevators/network"
 	"elevators/timer"
-	"fmt"
 )
 
 func Init() {
@@ -25,7 +24,7 @@ func RunCommunicationLoop(receiver chan<- [hardware.FloorCount]bool) {
 	for {
 		select {
 		case orders := <-drv_recieve:
-			// fmt.Printf("%+v\n", a)
+			// // fmt.Printf("%+v\n", a)
 			updatedOrders := orderstate.UpdateOrders(orders)
 			for _, newOrder := range updatedOrders {
 				if newOrder {
@@ -59,43 +58,45 @@ func RunElevatorLoop() {
 	for {
 		select {
 		case a := <-drv_buttons:
-			fmt.Printf("%+v\n", a)
+			// fmt.Printf("%+v\n", a)
 			orderstate.AcceptNewOrder(a.Button, a.Floor)
 			orders := orderstate.GetOrders()
 			cabstate.FSMNewOrder(a.Floor, orders)
 
 		case a := <-drv_floor_arrival:
-			fmt.Printf("%+v\n", a)
+			// fmt.Printf("%+v\n", a)
 			hardware.SetFloorIndicator(a)
 			orders := orderstate.GetOrders()
 			cabstate.FSMFloorArrival(a, orders)
 
 		case a := <-drv_floor_leave:
-			fmt.Printf("%+v\n", a)
+			// fmt.Printf("%+v\n", a)
+			_ = a
 			cabstate.FSMFloorLeave()
 
 		case a := <-drv_obstr:
-			fmt.Printf("%+v\n", a)
+			// fmt.Printf("%+v\n", a)
 			orders := orderstate.GetOrders()
 			cabstate.FSMObstructionChange(a, orders)
 
 		case a := <-drv_timer:
-			fmt.Printf("%+v\n", a)
+			// fmt.Printf("%+v\n", a)
 			if a {
 				orders := orderstate.GetOrders()
 				cabstate.FSMDoorTimeout(orders)
 			}
 
 		case a := <-drv_stop:
-			fmt.Printf("%+v\n", a)
+			_ = a
+			// fmt.Printf("%+v\n", a)
 			// for f := 0; f < hardware.FloorCount; f++ {
 			// 	for b := hardware.ButtonType(0); b < 3; b++ {
 			// 		hardware.SetButtonLamp(b, f, false)
 			// 	}
 			// }
 		case a := <-drv_order_update:
-			fmt.Printf("%+v\n", a)
-			fmt.Println("updating orders")
+			// fmt.Printf("%+v\n", a)
+			// fmt.Println("updating orders")
 			// todo better handling of bunch update of new orders
 			orders := orderstate.GetOrders()
 			for floor, newOrder := range a {

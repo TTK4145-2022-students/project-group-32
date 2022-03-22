@@ -26,7 +26,7 @@ func SaveOrders(orderState orderstate.AllOrders) {
 }
 
 func write(filepath string, elevatorState interface{}) {
-	// fmt.Println("Filesystem/write.go")
+	// // fmt.Println("Filesystem/write.go")
 
 	file, _ := json.MarshalIndent(elevatorState, "", " ")
 	_ = ioutil.WriteFile(filepath, file, 0644)

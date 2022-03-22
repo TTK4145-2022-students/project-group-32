@@ -4,7 +4,6 @@ import (
 	"elevators/controlunit/orderstate"
 	"elevators/controlunit/prioritize"
 	"elevators/hardware"
-	"fmt"
 )
 
 type ElevatorBehaviour int
@@ -93,7 +92,7 @@ func FSMFloorArrival(floor int, orders orderstate.AllOrders) ElevatorBehaviour {
 		}
 	default:
 		// panic("Invalid cab state on floor arrival")
-		fmt.Println("nomoarrive")
+		// fmt.Println("nomoarrive")
 	}
 	return Cab.Behaviour
 }
@@ -112,7 +111,7 @@ func FSMFloorLeave() ElevatorBehaviour {
 		}
 	default:
 		// panic("Invalid cab state on floor leave")
-		fmt.Println("nomoleave")
+		// fmt.Println("nomoleave")
 	}
 	return Cab.Behaviour
 }

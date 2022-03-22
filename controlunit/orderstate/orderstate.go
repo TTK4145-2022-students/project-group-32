@@ -2,8 +2,9 @@ package orderstate
 
 import (
 	"elevators/hardware"
-	"fmt"
+	// "fmt"
 	"time"
+	"sync"
 )
 
 type OrderChange int
@@ -35,16 +36,23 @@ type OrderStatus struct {
 }
 
 var allOrders AllOrders
+var allOrdersMtx = new(sync.RWMutex)
 
 func Init(orderState AllOrders) {
+	allOrdersMtx.Lock()
+	defer allOrdersMtx.Unlock()
 	allOrders = orderState
 }
 
 func GetOrders() AllOrders {
+	allOrdersMtx.RLock()
+	defer allOrdersMtx.RUnlock()
 	return allOrders
 }
 
 func AcceptNewOrder(orderType hardware.ButtonType, floor int) {
+	allOrdersMtx.Lock()
+	defer allOrdersMtx.Unlock()
 	switch orderType {
 	case hardware.BT_HallUp:
 		allOrders.Up[floor].LastOrderTime = time.Now()
@@ -73,16 +81,22 @@ func CompleteOrderCab(floor int) {
 }
 
 func clearCabOrder(floor int) {
+	allOrdersMtx.Lock()
+	defer allOrdersMtx.Unlock()
 	hardware.SetButtonLamp(hardware.BT_Cab, floor, false)
 	allOrders.Cab[floor] = false
 }
 
 func clearUpOrder(floor int) {
+	allOrdersMtx.Lock()
+	defer allOrdersMtx.Unlock()
 	hardware.SetButtonLamp(hardware.BT_HallUp, floor, false)
 	allOrders.Up[floor].LastCompleteTime = time.Now()
 }
 
 func clearDownOrder(floor int) {
+	allOrdersMtx.Lock()
+	defer allOrdersMtx.Unlock()
 	hardware.SetButtonLamp(hardware.BT_HallDown, floor, false)
 	allOrders.Down[floor].LastCompleteTime = time.Now()
 }
@@ -92,7 +106,7 @@ func updateFloorOrderState(inputState OrderState, currentState *OrderState) Orde
 	if inputState.LastOrderTime.After(currentState.LastOrderTime) {
 		currentState.LastOrderTime = inputState.LastOrderTime
 	}
-	fmt.Println(currentState.LastOrderTime.String())
+	// fmt.Println(currentState.LastOrderTime.String())
 	if inputState.LastCompleteTime.After(currentState.LastCompleteTime) {
 		currentState.LastCompleteTime = inputState.LastCompleteTime
 	}

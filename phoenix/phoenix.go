@@ -8,19 +8,19 @@ import (
 )
 
 func Init() {
-	fmt.Println("Phoenix is waiting")
+	// fmt.Println("Phoenix is waiting")
 	filename := "phoenix/phoenix.txt"
 	for {
 		time.Sleep(time.Second)
 		file, _ := os.Stat(filename)
 		modifiedtime := file.ModTime()
-		// fmt.Println("Last modified time : ", modifiedtime)
+		// // fmt.Println("Last modified time : ", modifiedtime)
 
 		// data, _ := os.ReadFile(filename)
-		// fmt.Println("You recieved: ", string(data))
+		// // fmt.Println("You recieved: ", string(data))
 
 		if modifiedtime.Add(2 * time.Second).Before(time.Now()) {
-			fmt.Println("Spawning new program ")
+			// fmt.Println("Spawning new program ")
 			break
 		}
 	}

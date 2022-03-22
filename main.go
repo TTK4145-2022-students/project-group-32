@@ -7,13 +7,11 @@ import (
 	"elevators/hardware"
 	"time"
 	// "elevators/phoenix"
-	//"time"
 )
 
 func main() {
 	// phoenix.Init()
 	// go phoenix.Phoenix()
-
 	hardware.Init("localhost:15657", hardware.FloorCount)
 	controlunit.Init()
 

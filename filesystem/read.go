@@ -4,7 +4,6 @@ import (
 	"elevators/controlunit/cabstate"
 	"elevators/controlunit/orderstate"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
 )
@@ -22,12 +21,12 @@ func ReadOrders() orderstate.AllOrders {
 }
 
 func read(filepath string) []byte {
-	// fmt.Println("Filesystem/read.go")
+	// // fmt.Println("Filesystem/read.go")
 
 	jsonFile, err := os.Open(filepath)
 
 	if err != nil {
-		fmt.Println(err)
+		// fmt.Println(err)
 	}
 
 	defer jsonFile.Close()
