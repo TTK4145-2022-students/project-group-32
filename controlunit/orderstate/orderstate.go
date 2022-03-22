@@ -3,9 +3,10 @@ package orderstate
 import (
 	"elevators/controlunit/prioritize"
 	"elevators/hardware"
+
 	// "fmt"
-	"time"
 	"sync"
+	"time"
 )
 
 type OrderChange int
@@ -31,19 +32,21 @@ type AllOrders struct {
 var allOrders AllOrders
 var allOrdersMtx = new(sync.RWMutex)
 
+var MaxTime = time.Unix(1<<63-1, 999999999)
+
 func Init(orderState AllOrders) {
 	allOrdersMtx.Lock()
 	defer allOrdersMtx.Unlock()
 	allOrders = orderState
 	for floor := 0; floor < hardware.FloorCount; floor++ {
-		if allOrders.Cab[floor]{
+		if allOrders.Cab[floor] {
 			hardware.SetButtonLamp(hardware.BT_Cab, floor, true)
 		}
-		if floor < hardware.FloorCount-1{
-			if hasOrder(allOrders.Up[floor]){
+		if floor < hardware.FloorCount-1 {
+			if hasOrder(allOrders.Up[floor]) {
 				hardware.SetButtonLamp(hardware.BT_HallUp, floor, true)
 			}
-			if hasOrder(allOrders.Down[floor]){
+			if hasOrder(allOrders.Down[floor]) {
 				hardware.SetButtonLamp(hardware.BT_HallDown, floor, true)
 			}
 		}
@@ -153,30 +156,6 @@ func UpdateOrders(inputOrders AllOrders) [hardware.FloorCount]bool {
 		}
 	}
 	return newOrders
-}
-
-func UpdateETAs(
-	recentDirection hardware.MotorDirection,
-	currentFloor int) {
-	newDurations := ComputeDurations(currentFloor, recentDirection, allOrders, allETAs)
-	newETAs := ComputeInternalETAs(newDurations)
-	for floor := 0; floor < hardware.FloorCount; floor++ {
-		if newDurations.Up[floor] < allDurations.Up[floor] && newETAs.Up[floor].Before(allOrders.Up[floor].BestETA) {
-			allOrders.Up[floor].BestETA = newETAs.Up[floor]
-		} else if allETAs.Up[floor].Equal(allOrders.Up[floor].BestETA) {
-			// Make sure to keep ownership
-			newETAs.Up[floor] = allETAs.Up[floor]
-		}
-
-		if newDurations.Down[floor] < allDurations.Down[floor] && newETAs.Down[floor].Before(allOrders.Down[floor].BestETA) {
-			allOrders.Down[floor].BestETA = newETAs.Down[floor]
-		} else if allETAs.Down[floor].Equal(allOrders.Down[floor].BestETA) {
-			// Make sure to keep ownership
-			newETAs.Down[floor] = allETAs.Down[floor]
-		}
-	}
-	allDurations = newDurations
-	allETAs = newETAs
 }
 
 func OrdersBetween(orders AllOrders, startFloor int, destinationFloor int) int {

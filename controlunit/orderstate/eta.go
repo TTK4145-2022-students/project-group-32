@@ -63,7 +63,33 @@ func GetInternalETAs() AllETAs {
 // 	}
 // }
 
-func UpdateInternalETAs(
+func UpdateETAs(
+	recentDirection hardware.MotorDirection,
+	currentFloor int,
+	orders AllOrders) {
+
+	newDurations := ComputeDurations(currentFloor, recentDirection, allOrders, allETAs)
+	newETAs := ComputeInternalETAs(newDurations)
+
+	for floor := 0; floor < hardware.FloorCount; floor++ {
+		if newDurations.Up[floor] < allDurations.Up[floor] && newETAs.Up[floor].Before(allOrders.Up[floor].BestETA) {
+			allOrders.Up[floor].BestETA = newETAs.Up[floor]
+		} else if allETAs.Up[floor].Equal(allOrders.Up[floor].BestETA) {
+			// Make sure to keep ownership
+			newETAs.Up[floor] = allETAs.Up[floor]
+		}
+
+		if newDurations.Down[floor] < allDurations.Down[floor] && newETAs.Down[floor].Before(allOrders.Down[floor].BestETA) {
+			allOrders.Down[floor].BestETA = newETAs.Down[floor]
+		} else if allETAs.Down[floor].Equal(allOrders.Down[floor].BestETA) {
+			// Make sure to keep ownership
+			newETAs.Down[floor] = allETAs.Down[floor]
+		}
+	}
+	updateInternalETAs(newDurations, newETAs)
+}
+
+func updateInternalETAs(
 	simulatedDurations AllDurations,
 	simulatedETAs AllETAs) {
 
@@ -211,7 +237,7 @@ func ComputeDurations(
 	orders AllOrders,
 	allETAs AllETAs) AllDurations {
 
-	prioritizedDirection := PrioritizedDirection(
+	prioritizedDirection := ETADirection(
 		currentFloor,
 		recentDirection,
 		orders,
@@ -550,30 +576,34 @@ func simulateStep(
 		prioritizedDirection,
 		false,
 		GetOrderStatus(*orders, *floor))
+
 	switch doorAction {
 	case hardware.DS_Close:
 		newDirection := prioritize.MotorActionOnDoorClose(
 			prioritizedDirection,
 			GetOrderStatus(*orders, *floor))
 		if newDirection != prioritizedDirection {
-			return newDirection
+			return hardware.MD_Stop
 		}
 		*floor += int(newDirection)
 		*simTime += travelDuration
 
 	case hardware.DS_Open_Down:
 		durations.Down[*floor] = *simTime
+		orders.Down[*floor].LastCompleteTime = time.Now()
+		orders.Cab[*floor] = false
 	case hardware.DS_Open_Up:
 		durations.Up[*floor] = *simTime
+		orders.Up[*floor].LastCompleteTime = time.Now()
+		orders.Cab[*floor] = false
 	case hardware.DS_Open_Cab:
-		break
+		orders.Cab[*floor] = false
 	default:
 		panic("Invalid door action in eta simulation")
 	}
 
 	if doorAction != hardware.DS_Close {
 		*simTime += orderDuration
-		//Todo handle rest of simulation step
 	}
 	return prioritizedDirection
 }
@@ -614,6 +644,9 @@ func ETADirection(
 
 	switch recentDirection {
 	case hardware.MD_Up:
+		if hasOrder(orders.Up[currentFloor]) {
+			return hardware.MD_Stop
+		}
 		if orderAndInternalETABestAbove(currentFloor, orders, allETAs) {
 			return hardware.MD_Up
 		}
@@ -621,6 +654,9 @@ func ETADirection(
 			return hardware.MD_Down
 		}
 	case hardware.MD_Down:
+		if hasOrder(orders.Down[currentFloor]) {
+			return hardware.MD_Stop
+		}
 		if orderAndInternalETABestBelow(currentFloor, orders, allETAs) {
 			return hardware.MD_Down
 		}
