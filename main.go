@@ -4,10 +4,10 @@ import (
 
 	// "elevators/filesystem"
 	"elevators/controlunit"
+	"os"
 	//"elevators/filesystem"
 	"elevators/hardware"
 	// "fmt"
-	// "os"
 	"time"
 	// "io/ioutil"
 	// "elevators/phoenix"
@@ -16,7 +16,11 @@ import (
 func main() {
 	// phoenix.Init()
 	// go phoenix.Phoenix()
-	hardware.Init("localhost:15657", hardware.FloorCount)
+	if len(os.Args) > 1 {
+		hardware.Init("localhost:"+os.Args[1], hardware.FloorCount)
+	} else {
+		hardware.Init("localhost:15657", hardware.FloorCount)
+	}
 	controlunit.Init()
 
 	go controlunit.RunElevatorLoop()
