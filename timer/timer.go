@@ -9,12 +9,12 @@ const _pollRate = 20 * time.Millisecond
 var timerActive = false
 var timerEndTime time.Time
 
-func PollTimer(receiver chan<- bool) {
+func PollTimerOut(receiver chan<- bool) {
 	prev := false
 	for {
 		time.Sleep(_pollRate)
 		v := TimedOut()
-		if v != prev {
+		if v != prev && v {
 			receiver <- v
 		}
 		prev = v

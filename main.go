@@ -29,22 +29,22 @@ func main() {
 	orderstate.Init(filesystem.ReadOrders())
 	cabstate.Init(filesystem.ReadCabState())
 
-	drv_buttons := make(chan hardware.ButtonEvent)
-	drv_floor_arrival := make(chan int)
-	drv_floor_leave := make(chan bool)
-	drv_obstr := make(chan bool)
-	drv_stop := make(chan bool)
-	drv_timer := make(chan bool)
-	drv_recieve := make(chan orderstate.AllOrders)
+	buttonPress := make(chan hardware.ButtonEvent)
+	floorArrival := make(chan int)
+	floorLeft := make(chan bool)
+	obstructionChange := make(chan bool)
+	// stopChange := make(chan bool)
+	timedOut := make(chan bool)
+	ordersRecieved := make(chan orderstate.AllOrders)
 
-	go hardware.PollButtons(drv_buttons)
-	go hardware.PollFloorSensor(drv_floor_arrival, drv_floor_leave)
-	go hardware.PollObstructionSwitch(drv_obstr)
-	go hardware.PollStopButton(drv_stop)
+	go hardware.PollButtons(buttonPress)
+	go hardware.PollFloorSensor(floorArrival, floorLeft)
+	go hardware.PollObstructionSwitch(obstructionChange)
+	// go hardware.PollStopButton(stopChange)
 
-	go timer.PollTimer(drv_timer)
+	go timer.PollTimerOut(timedOut)
 
-	go network.PollReceiveOrderState(drv_recieve)
+	go network.PollReceiveOrderState(ordersRecieved)
 
 	go network.SendOrderStatePeriodically()
 
@@ -52,44 +52,41 @@ func main() {
 
 	for {
 		select {
-		case a := <-drv_buttons:
+		case buttonEvent := <-buttonPress:
 			// fmt.Printf("%+v\n", a)
-			orderstate.AcceptNewOrder(a.Button, a.Floor)
+			orderstate.AcceptNewOrder(buttonEvent.Button, buttonEvent.Floor)
 			orders := orderstate.GetOrders()
-			cabstate.FSMNewOrder(a.Floor, orders)
+			cabstate.FSMNewOrder(buttonEvent.Floor, orders)
 
-		case a := <-drv_floor_arrival:
+		case floor := <-floorArrival:
 			// fmt.Printf("%+v\n", a)
-			hardware.SetFloorIndicator(a)
+			hardware.SetFloorIndicator(floor)
 			orders := orderstate.GetOrders()
-			cabstate.FSMFloorArrival(a, orders)
+			cabstate.FSMFloorArrival(floor, orders)
 
-		case a := <-drv_floor_leave:
+		case <-floorLeft:
 			// fmt.Printf("%+v\n", a)
-			_ = a
 			cabstate.FSMFloorLeave()
 
-		case a := <-drv_obstr:
+		case obstruction := <-obstructionChange:
 			// fmt.Printf("%+v\n", a)
 			orders := orderstate.GetOrders()
-			cabstate.FSMObstructionChange(a, orders)
+			cabstate.FSMObstructionChange(obstruction, orders)
 
-		case a := <-drv_timer:
+		case <-timedOut:
 			// fmt.Printf("%+v\n", a)
-			if a {
-				orders := orderstate.GetOrders()
-				cabstate.FSMDoorTimeout(orders)
-			}
+			orders := orderstate.GetOrders()
+			cabstate.FSMDoorTimeout(orders)
 
-		case a := <-drv_stop:
-			_ = a
-			// fmt.Printf("%+v\n", a)
-			// for f := 0; f < hardware.FloorCount; f++ {
-			// 	for b := hardware.ButtonType(0); b < 3; b++ {
-			// 		hardware.SetButtonLamp(b, f, false)
-			// 	}
-			// }
-		case recievedOrderState := <-drv_recieve:
+		// case a := <-stopChange:
+		// 	_ = a
+		// fmt.Printf("%+v\n", a)
+		// for f := 0; f < hardware.FloorCount; f++ {
+		// 	for b := hardware.ButtonType(0); b < 3; b++ {
+		// 		hardware.SetButtonLamp(b, f, false)
+		// 	}
+		// }
+		case recievedOrderState := <-ordersRecieved:
 			// fmt.Printf("%+v\n", a)
 			// fmt.Println("updating orders")
 			// todo better handling of bunch update of new orders
