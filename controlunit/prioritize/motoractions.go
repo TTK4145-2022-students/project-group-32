@@ -18,6 +18,8 @@ func MotorActionOnDoorClose(
 		if currentOrders.BelowFloor {
 			return hardware.MD_Down
 		}
+	case hardware.MD_Stop:
+		return hardware.MD_Stop
 	default:
 		panic("Invalid recent direction on door close")
 	}
@@ -42,25 +44,33 @@ func MotorActionOnFloorArrival(
 	case hardware.MD_Up:
 		if currentOrders.UpAtFloor {
 			return hardware.MD_Stop
-		} else if currentOrders.AboveFloor {
+		}
+		if currentOrders.AboveFloor {
 			return hardware.MD_Up
-		} else if currentOrders.DownAtFloor {
+		}
+		if currentOrders.DownAtFloor {
 			// fmt.Println("last downorder")
 			return hardware.MD_Stop
-		} else if currentOrders.BelowFloor {
+		}
+		if currentOrders.BelowFloor {
 			return hardware.MD_Down
 		}
 	case hardware.MD_Down:
 		if currentOrders.DownAtFloor {
 			return hardware.MD_Stop
-		} else if currentOrders.BelowFloor {
+		}
+		if currentOrders.BelowFloor {
 			return hardware.MD_Down
-		} else if currentOrders.UpAtFloor {
+		}
+		if currentOrders.UpAtFloor {
 			// fmt.Println("last uporder")
 			return hardware.MD_Stop
-		} else if currentOrders.AboveFloor {
+		}
+		if currentOrders.AboveFloor {
 			return hardware.MD_Up
 		}
+	case hardware.MD_Stop:
+		return hardware.MD_Stop
 	default:
 		panic("Invalid recent direction on floor arrival")
 	}

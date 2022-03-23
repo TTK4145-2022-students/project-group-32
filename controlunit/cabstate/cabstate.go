@@ -4,6 +4,7 @@ import (
 	"elevators/controlunit/orderstate"
 	"elevators/controlunit/prioritize"
 	"elevators/hardware"
+	"fmt"
 	// "fmt"
 )
 
@@ -82,6 +83,10 @@ func FSMFloorArrival(floor int, orders orderstate.AllOrders) ElevatorBehaviour {
 	// fmt.Println("FSMFloorArrival")
 	switch Cab.Behaviour {
 	case Moving:
+		fmt.Printf("%+v\n", orderstate.PrioritizedDirection(Cab.AboveOrAtFloor,
+			Cab.RecentDirection,
+			orders,
+			orderstate.GetInternalETAs()))
 		motorAction := prioritize.MotorActionOnFloorArrival(
 			orderstate.PrioritizedDirection(Cab.AboveOrAtFloor,
 				Cab.RecentDirection,

@@ -23,6 +23,8 @@ func DoorActionOnDoorTimeout(
 		} else if currentOrders.UpAtFloor && !currentOrders.BelowFloor {
 			return hardware.DS_Open_Up
 		}
+	case hardware.MD_Stop:
+		break
 	default:
 		panic("Invalid recent direction on door close")
 	}
@@ -53,6 +55,8 @@ func DoorActionOnFloorStop(
 		} else if currentOrders.UpAtFloor {
 			return hardware.DS_Open_Up
 		}
+	case hardware.MD_Stop:
+		break
 	default:
 		panic("Invalid recent direction on floor stop")
 	}
