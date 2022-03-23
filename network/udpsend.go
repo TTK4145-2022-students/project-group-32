@@ -35,7 +35,7 @@ func broadcastMessage(message []byte, wconn *net.UDPConn) {
 	wconn.Write(message)
 }
 
-func Send() {
+func SendOrderStatePeriodically() {
 	_, wconn := InitUDPSendingSocket(UDPPort, broadcastAddr)
 	defer wconn.Close()
 
