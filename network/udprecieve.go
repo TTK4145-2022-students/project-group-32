@@ -4,7 +4,10 @@ import (
 	"elevators/controlunit/orderstate"
 	"encoding/json"
 	"net"
+	"time"
 )
+
+const _pollRate = 20 * time.Millisecond
 
 const bufferSize = 2048
 const listenAddr = "224.0.0.251"
@@ -40,11 +43,12 @@ func receiveUDPMessage(conn *net.UDPConn) []byte {
 	return buf[:rlen]
 }
 
-func Receive(receiver chan<- orderstate.AllOrders) {
+func PollReceiveOrderState(receiver chan<- orderstate.AllOrders) {
 	_, conn := InitUDPReceivingSocket(UDPPort)
 	defer conn.Close()
 
 	for {
+		time.Sleep(_pollRate)
 		state := ReceiveOrderState(conn)
 		// // fmt.Println("state recieve:", state, "\n\n", time.Now())
 		receiver <- state
