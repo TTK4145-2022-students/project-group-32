@@ -34,7 +34,8 @@ func main() {
 	floorLeft := make(chan bool)
 	obstructionChange := make(chan bool)
 	// stopChange := make(chan bool)
-	timedOut := make(chan bool)
+	doorTimedOut := make(chan bool)
+	decisionTimedOut := make(chan bool)
 	ordersRecieved := make(chan orderstate.AllOrders)
 
 	go hardware.PollButtons(buttonPress)
@@ -42,7 +43,7 @@ func main() {
 	go hardware.PollObstructionSwitch(obstructionChange)
 	// go hardware.PollStopButton(stopChange)
 
-	go timer.PollTimerOut(timedOut)
+	go timer.DoorTimer.PollTimerOut(doorTimedOut)
 
 	go network.PollReceiveOrderState(ordersRecieved)
 
@@ -73,10 +74,15 @@ func main() {
 			orders := orderstate.GetOrders()
 			cabstate.FSMObstructionChange(obstruction, orders)
 
-		case <-timedOut:
+		case <-doorTimedOut:
 			// fmt.Printf("%+v\n", a)
 			orders := orderstate.GetOrders()
 			cabstate.FSMDoorTimeout(orders)
+
+		case <-decisionTimedOut:
+			// fmt.Printf("%+v\n", a)
+			orders := orderstate.GetOrders()
+			cabstate.FSMDoorClose(orders)
 
 		// case a := <-stopChange:
 		// 	_ = a

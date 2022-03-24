@@ -5,15 +5,23 @@ import (
 )
 
 const _pollRate = 20 * time.Millisecond
+const _doorOpenTime = 3 * time.Second
+const _waitForDecisionTime = 100 * time.Millisecond
 
-var timerActive = false
-var timerEndTime time.Time
+type Timer struct {
+	isActive      bool
+	endTime       time.Time
+	timerDuration time.Duration
+}
 
-func PollTimerOut(receiver chan<- bool) {
+var DoorTimer = Timer{timerDuration: _doorOpenTime}
+var DecisionTimer = Timer{timerDuration: _waitForDecisionTime}
+
+func (timer *Timer) PollTimerOut(receiver chan<- bool) {
 	prev := false
 	for {
 		time.Sleep(_pollRate)
-		v := TimedOut()
+		v := timer.TimedOut()
 		if v != prev && v {
 			receiver <- v
 		}
@@ -21,15 +29,15 @@ func PollTimerOut(receiver chan<- bool) {
 	}
 }
 
-func TimerStart(secondsDuration int) {
-	timerEndTime = time.Now().Add(time.Second * time.Duration(secondsDuration))
-	timerActive = true
+func (timer *Timer) TimerStart() {
+	timer.endTime = time.Now().Add(timer.timerDuration)
+	timer.isActive = true
 }
 
-func TimerStop() {
-	timerActive = false
+func (timer *Timer) TimerStop() {
+	timer.isActive = false
 }
 
-func TimedOut() bool {
-	return timerActive && time.Now().After(timerEndTime)
+func (timer *Timer) TimedOut() bool {
+	return timer.isActive && time.Now().After(timer.endTime)
 }

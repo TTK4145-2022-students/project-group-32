@@ -57,7 +57,7 @@ func FSMInitBetweenFloors() ElevatorBehaviour {
 }
 
 func FSMNewOrder(orderFloor int, orders orderstate.AllOrders) ElevatorBehaviour {
-	orderstate.UpdateETAs(Cab.RecentDirection, Cab.AboveOrAtFloor, orders)
+	orderstate.UpdateETAs(Cab.RecentDirection, Cab.AboveOrAtFloor)
 	switch Cab.Behaviour {
 	case Idle:
 		if (Cab.AboveOrAtFloor == orderFloor) && !Cab.BetweenFloors {
@@ -79,6 +79,7 @@ func FSMNewOrder(orderFloor int, orders orderstate.AllOrders) ElevatorBehaviour 
 func FSMFloorArrival(floor int, orders orderstate.AllOrders) ElevatorBehaviour {
 	Cab.AboveOrAtFloor = floor
 	Cab.BetweenFloors = false
+	orderstate.UpdateETAs(Cab.RecentDirection, Cab.AboveOrAtFloor)
 	orderStatus := orderstate.GetOrderStatus(orders, floor)
 	// fmt.Println("FSMFloorArrival")
 	switch Cab.Behaviour {
@@ -128,7 +129,7 @@ func FSMFloorLeave() ElevatorBehaviour {
 }
 
 func FSMDoorClose(orders orderstate.AllOrders) ElevatorBehaviour {
-	orderstate.UpdateETAs(Cab.RecentDirection, Cab.AboveOrAtFloor, orders)
+	orderstate.UpdateETAs(Cab.RecentDirection, Cab.AboveOrAtFloor)
 	currentOrderStatus := orderstate.GetOrderStatus(orders, Cab.AboveOrAtFloor)
 	switch Cab.Behaviour {
 	case Idle:
