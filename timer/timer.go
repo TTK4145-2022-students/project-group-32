@@ -6,7 +6,8 @@ import (
 
 const _pollRate = 20 * time.Millisecond
 const _doorOpenTime = 3 * time.Second
-const _waitForDecisionTime = 150 * time.Millisecond
+const _waitForDecisionTime = 250 * time.Millisecond
+const _forceActionTime = 1 * time.Second
 
 type Timer struct {
 	isActive      bool
@@ -15,8 +16,9 @@ type Timer struct {
 }
 
 var DoorTimer = Timer{timerDuration: _doorOpenTime}
-var DoorCloseDecisionTimer = Timer{timerDuration: _waitForDecisionTime}
-var NewOrderDecisionTimer = Timer{timerDuration: _waitForDecisionTime}
+var DecisionTimer = Timer{timerDuration: _waitForDecisionTime}
+// var NewOrderDecisionTimer = Timer{timerDuration: _waitForDecisionTime}
+var ForceActionTimer = Timer{timerDuration: _forceActionTime}
 
 func (timer *Timer) PollTimerOut(receiver chan<- bool) {
 	prev := false
