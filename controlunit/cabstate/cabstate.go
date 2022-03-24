@@ -69,7 +69,7 @@ func FSMNewOrder(orderFloor int, orders orderstate.AllOrders) ElevatorBehaviour 
 		// } else {
 		// 	setMotorAndCabState(hardware.MD_Down)
 		// }
-		timer.DoorCloseDecisionTimer.TimerStart()
+		// timer.DoorCloseDecisionTimer.TimerStart()
 	case Moving:
 		if (Cab.AboveOrAtFloor == orderFloor) && !Cab.BetweenFloors {
 			setMotorAndCabState(hardware.MD_Stop)

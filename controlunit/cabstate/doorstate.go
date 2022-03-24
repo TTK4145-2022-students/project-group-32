@@ -62,6 +62,7 @@ func setDoorAndCabState(state hardware.DoorState) {
 		Cab.RecentDirection = hardware.MD_Down
 	case hardware.DS_Close:
 		closeDoor()
+
 	default:
 		panic("door state not implemented")
 	}
@@ -77,6 +78,7 @@ func closeDoor() {
 	hardware.SetDoorOpenLamp(false)
 	Cab.Behaviour = Idle
 	timer.DoorTimer.TimerStop()
+	timer.DoorCloseDecisionTimer.TimerStart() //Make decision before leaving floor
 }
 
 func FSMObstructionChange(obstructed bool, orders orderstate.AllOrders) {
