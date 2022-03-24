@@ -6,6 +6,7 @@ import (
 	"elevators/hardware"
 	"elevators/timer"
 	"fmt"
+	// "time"
 	// "fmt"
 )
 
@@ -33,6 +34,18 @@ func Init(cabState CabState) {
 	Cab = cabState
 	FSMInitBetweenFloors()
 }
+
+// func ForceActivationLoop(){
+// 	for{
+// 		if timer.ForceActionTimer.TimedOut(){
+// 			fmt.Println("Force action timed out ")
+// 			timer.ForceActionTimer.TimerStart()
+// 		}else{
+// 			timer.ForceActionTimer.TimerStop()
+// 		}
+// 		time.Sleep(time.Second)
+// 	}
+// }
 
 func setMotorAndCabState(state hardware.MotorDirection) {
 	hardware.SetMotorDirection(state)
@@ -69,7 +82,7 @@ func FSMNewOrder(orderFloor int, orders orderstate.AllOrders) ElevatorBehaviour 
 		// } else {
 		// 	setMotorAndCabState(hardware.MD_Down)
 		// }
-		// timer.DoorCloseDecisionTimer.TimerStart()
+		// timer.DecisionTimer.TimerStart()
 	case Moving:
 		if (Cab.AboveOrAtFloor == orderFloor) && !Cab.BetweenFloors {
 			setMotorAndCabState(hardware.MD_Stop)
@@ -131,7 +144,7 @@ func FSMFloorLeave() ElevatorBehaviour {
 	return Cab.Behaviour
 }
 
-func FSMDoorClose(orders orderstate.AllOrders) ElevatorBehaviour {
+func FSMDecisionTimeout(orders orderstate.AllOrders) ElevatorBehaviour {
 	orderstate.UpdateETAs(Cab.RecentDirection, Cab.AboveOrAtFloor)
 	currentOrderStatus := orderstate.GetOrderStatus(orders, Cab.AboveOrAtFloor)
 	switch Cab.Behaviour {
@@ -144,9 +157,9 @@ func FSMDoorClose(orders orderstate.AllOrders) ElevatorBehaviour {
 			currentOrderStatus)
 		setMotorAndCabState(motorAction)
 	}
-	timer.DoorCloseDecisionTimer.TimerStop()
+	timer.DecisionTimer.TimerStop()
 	// if orderstate.AnyOrders(orders) {
-	timer.DoorCloseDecisionTimer.TimerStart()
+	// timer.DecisionTimer.TimerStart()
 	// }
 	return Cab.Behaviour
 }

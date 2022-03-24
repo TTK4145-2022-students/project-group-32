@@ -36,8 +36,9 @@ func main() {
 	obstructionChange := make(chan bool)
 	stopChange := make(chan bool)
 	doorTimedOut := make(chan bool)
-	closeDoorDecisionTimedOut := make(chan bool)
+	decisionTimedOut := make(chan bool)
 	// newOrderDecisionTimedOut := make(chan bool)
+	forceAction := make(chan bool)
 	ordersRecieved := make(chan orderstate.AllOrders)
 
 	go hardware.PollButtons(buttonPress)
@@ -46,8 +47,10 @@ func main() {
 	go hardware.PollStopButton(stopChange)
 
 	go timer.DoorTimer.PollTimerOut(doorTimedOut)
-	go timer.DoorCloseDecisionTimer.PollTimerOut(closeDoorDecisionTimedOut)
+	go timer.DecisionTimer.PollTimerOut(decisionTimedOut)
 	// go timer.NewOrderDecisionTimer.PollTimerOut(newOrderDecisionTimedOut)
+	// go cabstate.ForceActivationLoop()
+	go timer.ForceActionTimer.PollTimerOut(forceAction)
 
 	go network.PollReceiveOrderState(ordersRecieved)
 
@@ -61,7 +64,8 @@ func main() {
 			// fmt.Printf("%+v\n", a)
 			orderstate.AcceptNewOrder(buttonEvent.Button, buttonEvent.Floor)
 			orders := orderstate.GetOrders()
-			timer.DoorCloseDecisionTimer.TimerStart() //Make decision before leaving floor
+			timer.DecisionTimer.TimerStart() //Make decision before leaving floor
+			// timer.ForceActionTimer.TimerStart()
 			cabstate.FSMNewOrder(buttonEvent.Floor, orders)
 
 		case floor := <-floorArrival:
@@ -84,10 +88,19 @@ func main() {
 			orders := orderstate.GetOrders()
 			cabstate.FSMDoorTimeout(orders)
 
-		case <-closeDoorDecisionTimedOut:
+		case <-decisionTimedOut:
 			// fmt.Printf("%+v\n", a)
 			orders := orderstate.GetOrders()
-			cabstate.FSMDoorClose(orders)
+			cabstate.FSMDecisionTimeout(orders)
+
+		case <-forceAction:
+			// fmt.Printf("%+v\n", a)
+			fmt.Println("Forcing action ")
+			orders := orderstate.GetOrders()
+			timer.DecisionTimer.TimerStart() //Make decision before leaving floor
+			cabstate.FSMDecisionTimeout(orders)
+			timer.ForceActionTimer.TimerStop()
+			timer.ForceActionTimer.TimerStart()
 
 		// case <-newOrderDecisionTimedOut:
 		// 	// fmt.Printf("%+v\n", a)
