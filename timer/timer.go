@@ -6,7 +6,7 @@ import (
 
 const _pollRate = 20 * time.Millisecond
 const _doorOpenTime = 3 * time.Second
-const _waitForDecisionTime = 100 * time.Millisecond
+const _waitForDecisionTime = 150 * time.Millisecond
 
 type Timer struct {
 	isActive      bool
