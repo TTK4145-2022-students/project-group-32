@@ -9,6 +9,7 @@ import (
 	"elevators/filesystem"
 	"elevators/network"
 	"elevators/timer"
+	"fmt"
 	"os"
 
 	//"elevators/filesystem"
@@ -33,16 +34,23 @@ func main() {
 	floorArrival := make(chan int)
 	floorLeft := make(chan bool)
 	obstructionChange := make(chan bool)
-	// stopChange := make(chan bool)
-	timedOut := make(chan bool)
+	stopChange := make(chan bool)
+	doorTimedOut := make(chan bool)
+	decisionTimedOut := make(chan bool)
+	// newOrderDecisionTimedOut := make(chan bool)
+	forceAction := make(chan bool)
 	ordersRecieved := make(chan orderstate.AllOrders)
 
 	go hardware.PollButtons(buttonPress)
 	go hardware.PollFloorSensor(floorArrival, floorLeft)
 	go hardware.PollObstructionSwitch(obstructionChange)
-	// go hardware.PollStopButton(stopChange)
+	go hardware.PollStopButton(stopChange)
 
-	go timer.PollTimerOut(timedOut)
+	go timer.DoorTimer.PollTimerOut(doorTimedOut)
+	go timer.DecisionTimer.PollTimerOut(decisionTimedOut)
+	// go timer.NewOrderDecisionTimer.PollTimerOut(newOrderDecisionTimedOut)
+	// go cabstate.ForceActivationLoop()
+	go timer.ForceActionTimer.PollTimerOut(forceAction)
 
 	go network.PollReceiveOrderState(ordersRecieved)
 
@@ -56,6 +64,8 @@ func main() {
 			// fmt.Printf("%+v\n", a)
 			orderstate.AcceptNewOrder(buttonEvent.Button, buttonEvent.Floor)
 			orders := orderstate.GetOrders()
+			timer.DecisionTimer.TimerStart() //Make decision before leaving floor
+			// timer.ForceActionTimer.TimerStart()
 			cabstate.FSMNewOrder(buttonEvent.Floor, orders)
 
 		case floor := <-floorArrival:
@@ -73,19 +83,39 @@ func main() {
 			orders := orderstate.GetOrders()
 			cabstate.FSMObstructionChange(obstruction, orders)
 
-		case <-timedOut:
+		case <-doorTimedOut:
 			// fmt.Printf("%+v\n", a)
 			orders := orderstate.GetOrders()
 			cabstate.FSMDoorTimeout(orders)
 
-		// case a := <-stopChange:
-		// 	_ = a
-		// fmt.Printf("%+v\n", a)
-		// for f := 0; f < hardware.FloorCount; f++ {
-		// 	for b := hardware.ButtonType(0); b < 3; b++ {
-		// 		hardware.SetButtonLamp(b, f, false)
-		// 	}
-		// }
+		case <-decisionTimedOut:
+			// fmt.Printf("%+v\n", a)
+			orders := orderstate.GetOrders()
+			cabstate.FSMDecisionTimeout(orders)
+
+		case <-forceAction:
+			// fmt.Printf("%+v\n", a)
+			fmt.Println("Forcing action ")
+			orders := orderstate.GetOrders()
+			timer.DecisionTimer.TimerStart() //Make decision before leaving floor
+			cabstate.FSMDecisionTimeout(orders)
+			timer.ForceActionTimer.TimerStop()
+			timer.ForceActionTimer.TimerStart()
+
+		// case <-newOrderDecisionTimedOut:
+		// 	// fmt.Printf("%+v\n", a)
+		// 	orders := orderstate.GetOrders()
+		// 	cabstate.FSMNewOrder(buttonEvent.Floor, orders)
+
+		case a := <-stopChange:
+			_ = a
+			fmt.Printf("%+v\n", a)
+			orderstate.ResetOrders()
+			for f := 0; f < hardware.FloorCount; f++ {
+				for b := hardware.ButtonType(0); b < 3; b++ {
+					hardware.SetButtonLamp(b, f, false)
+				}
+			}
 		case recievedOrderState := <-ordersRecieved:
 			// fmt.Printf("%+v\n", a)
 			// fmt.Println("updating orders")
@@ -94,6 +124,7 @@ func main() {
 			orders := orderstate.GetOrders()
 			for floor, newOrder := range newOrdersInFloors {
 				if newOrder {
+					fmt.Println("recieved new order")
 					cabstate.FSMNewOrder(floor, orders)
 				}
 			}

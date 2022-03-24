@@ -9,7 +9,7 @@ import (
 
 const _pollRate = 20 * time.Millisecond
 
-const bufferSize = 2048
+const bufferSize = 2 * 2048
 const listenAddr = "224.0.0.251"
 
 func InitUDPReceivingSocket(port int) (net.UDPAddr, *net.UDPConn) {

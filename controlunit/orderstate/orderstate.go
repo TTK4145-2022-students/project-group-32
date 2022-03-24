@@ -3,6 +3,7 @@ package orderstate
 import (
 	"elevators/controlunit/prioritize"
 	"elevators/hardware"
+	"fmt"
 
 	// "fmt"
 	"sync"
@@ -21,6 +22,7 @@ type OrderState struct {
 	LastOrderTime    time.Time
 	LastCompleteTime time.Time
 	BestETA          time.Time
+	LocalETA         time.Time
 }
 
 type AllOrders struct {
@@ -33,6 +35,12 @@ var allOrders AllOrders
 var allOrdersMtx = new(sync.RWMutex)
 
 var MaxTime = time.Unix(1<<63-1, 999999999)
+
+func ResetOrders() {
+	allOrdersMtx.Lock()
+	defer allOrdersMtx.Unlock()
+	allOrders = AllOrders{}
+}
 
 func Init(orderState AllOrders) {
 	allOrdersMtx.Lock()
@@ -101,6 +109,7 @@ func clearUpOrder(floor int) {
 	defer allOrdersMtx.Unlock()
 	hardware.SetButtonLamp(hardware.BT_HallUp, floor, false)
 	allOrders.Up[floor].LastCompleteTime = time.Now()
+	internalETAs.Up[floor] = time.Time{}
 }
 
 func clearDownOrder(floor int) {
@@ -108,6 +117,7 @@ func clearDownOrder(floor int) {
 	defer allOrdersMtx.Unlock()
 	hardware.SetButtonLamp(hardware.BT_HallDown, floor, false)
 	allOrders.Down[floor].LastCompleteTime = time.Now()
+	internalETAs.Down[floor] = time.Time{}
 }
 
 func updateFloorOrderState(inputState OrderState, currentState *OrderState) OrderChange {
@@ -119,7 +129,9 @@ func updateFloorOrderState(inputState OrderState, currentState *OrderState) Orde
 	if inputState.LastCompleteTime.After(currentState.LastCompleteTime) {
 		currentState.LastCompleteTime = inputState.LastCompleteTime
 	}
-	if inputState.BestETA.Before(currentState.BestETA) && inputState.BestETA.After(time.Now()) {
+	if (inputState.BestETA.Before(currentState.BestETA) ||
+		currentState.BestETA.Before(time.Now())) &&
+		inputState.BestETA.After(time.Now()) {
 		currentState.BestETA = inputState.BestETA
 	}
 
@@ -134,7 +146,17 @@ func updateFloorOrderState(inputState OrderState, currentState *OrderState) Orde
 }
 
 func hasOrder(inputState OrderState) bool {
+	//TODO: test (Possible riv ruskende here)
 	return inputState.LastOrderTime.After(inputState.LastCompleteTime)
+}
+
+func AnyOrders(orders AllOrders) bool {
+	for floor := 0; floor < hardware.FloorCount; floor++ {
+		if hasOrder(orders.Up[floor]) || hasOrder(orders.Down[floor]) || orders.Cab[floor] {
+			return true
+		}
+	}
+	return false
 }
 
 func UpdateOrders(inputOrders AllOrders) [hardware.FloorCount]bool {
@@ -222,5 +244,15 @@ func GetOrderStatus(orders AllOrders, floor int) prioritize.OrderStatus {
 	orderStatus.CabAtFloor = orders.Cab[floor]
 	orderStatus.AboveFloor = OrdersAbove(orders, floor)
 	orderStatus.BelowFloor = OrdersBelow(orders, floor)
+	if !AnyOrders(orders) && !AllInternalETAsBest(orders) {
+		fmt.Println("rearranging to prepare")
+		if 0 < floor && floor < hardware.FloorCount-1 &&
+			internalETABest(orders.Up[floor-1], internalETAs.Up[floor-1]) {
+			orderStatus.BelowFloor = true
+		} else if 0 < floor && floor < hardware.FloorCount-1 &&
+			internalETABest(orders.Down[floor+1], internalETAs.Down[floor+1]) {
+			orderStatus.AboveFloor = true
+		}
+	}
 	return orderStatus
 }

@@ -4,6 +4,9 @@ import (
 	"elevators/controlunit/orderstate"
 	"elevators/controlunit/prioritize"
 	"elevators/hardware"
+	"elevators/timer"
+	"fmt"
+	// "time"
 	// "fmt"
 )
 
@@ -32,6 +35,18 @@ func Init(cabState CabState) {
 	FSMInitBetweenFloors()
 }
 
+// func ForceActivationLoop(){
+// 	for{
+// 		if timer.ForceActionTimer.TimedOut(){
+// 			fmt.Println("Force action timed out ")
+// 			timer.ForceActionTimer.TimerStart()
+// 		}else{
+// 			timer.ForceActionTimer.TimerStop()
+// 		}
+// 		time.Sleep(time.Second)
+// 	}
+// }
+
 func setMotorAndCabState(state hardware.MotorDirection) {
 	hardware.SetMotorDirection(state)
 	Cab.MotorDirection = state
@@ -56,16 +71,18 @@ func FSMInitBetweenFloors() ElevatorBehaviour {
 }
 
 func FSMNewOrder(orderFloor int, orders orderstate.AllOrders) ElevatorBehaviour {
-	orderstate.UpdateETAs(Cab.RecentDirection, Cab.AboveOrAtFloor, orders)
+	orderstate.UpdateETAs(Cab.RecentDirection, Cab.AboveOrAtFloor)
 	switch Cab.Behaviour {
 	case Idle:
 		if (Cab.AboveOrAtFloor == orderFloor) && !Cab.BetweenFloors {
 			FSMFloorStop(orderFloor, orders)
-		} else if Cab.AboveOrAtFloor < orderFloor {
-			setMotorAndCabState(hardware.MD_Up)
-		} else {
-			setMotorAndCabState(hardware.MD_Down)
 		}
+		//  else if Cab.AboveOrAtFloor < orderFloor {
+		// 	setMotorAndCabState(hardware.MD_Up)
+		// } else {
+		// 	setMotorAndCabState(hardware.MD_Down)
+		// }
+		// timer.DecisionTimer.TimerStart()
 	case Moving:
 		if (Cab.AboveOrAtFloor == orderFloor) && !Cab.BetweenFloors {
 			setMotorAndCabState(hardware.MD_Stop)
@@ -78,10 +95,15 @@ func FSMNewOrder(orderFloor int, orders orderstate.AllOrders) ElevatorBehaviour 
 func FSMFloorArrival(floor int, orders orderstate.AllOrders) ElevatorBehaviour {
 	Cab.AboveOrAtFloor = floor
 	Cab.BetweenFloors = false
+	orderstate.UpdateETAs(Cab.RecentDirection, Cab.AboveOrAtFloor)
 	orderStatus := orderstate.GetOrderStatus(orders, floor)
 	// fmt.Println("FSMFloorArrival")
 	switch Cab.Behaviour {
 	case Moving:
+		fmt.Printf("%+v\n", orderstate.PrioritizedDirection(Cab.AboveOrAtFloor,
+			Cab.RecentDirection,
+			orders,
+			orderstate.GetInternalETAs()))
 		motorAction := prioritize.MotorActionOnFloorArrival(
 			orderstate.PrioritizedDirection(Cab.AboveOrAtFloor,
 				Cab.RecentDirection,
@@ -122,8 +144,8 @@ func FSMFloorLeave() ElevatorBehaviour {
 	return Cab.Behaviour
 }
 
-func FSMDoorClose(orders orderstate.AllOrders) ElevatorBehaviour {
-	orderstate.UpdateETAs(Cab.RecentDirection, Cab.AboveOrAtFloor, orders)
+func FSMDecisionTimeout(orders orderstate.AllOrders) ElevatorBehaviour {
+	orderstate.UpdateETAs(Cab.RecentDirection, Cab.AboveOrAtFloor)
 	currentOrderStatus := orderstate.GetOrderStatus(orders, Cab.AboveOrAtFloor)
 	switch Cab.Behaviour {
 	case Idle:
@@ -134,8 +156,10 @@ func FSMDoorClose(orders orderstate.AllOrders) ElevatorBehaviour {
 				orderstate.GetInternalETAs()),
 			currentOrderStatus)
 		setMotorAndCabState(motorAction)
-	default:
-		panic("Invalid cab state on door timeout")
 	}
+	timer.DecisionTimer.TimerStop()
+	// if orderstate.AnyOrders(orders) {
+	// timer.DecisionTimer.TimerStart()
+	// }
 	return Cab.Behaviour
 }

@@ -5,9 +5,9 @@ import (
 	"elevators/controlunit/prioritize"
 	"elevators/hardware"
 	"elevators/timer"
+	"fmt"
+	// "time"
 )
-
-const doorOpenSecs = 3
 
 // type DoorState struct {
 // 	Obstructed bool
@@ -62,6 +62,7 @@ func setDoorAndCabState(state hardware.DoorState) {
 		Cab.RecentDirection = hardware.MD_Down
 	case hardware.DS_Close:
 		closeDoor()
+
 	default:
 		panic("door state not implemented")
 	}
@@ -70,13 +71,14 @@ func setDoorAndCabState(state hardware.DoorState) {
 func openDoor() {
 	hardware.SetDoorOpenLamp(true)
 	Cab.Behaviour = DoorOpen
-	timer.TimerStart(doorOpenSecs)
+	timer.DoorTimer.TimerStart()
 }
 
 func closeDoor() {
 	hardware.SetDoorOpenLamp(false)
 	Cab.Behaviour = Idle
-	timer.TimerStop()
+	timer.DoorTimer.TimerStop()
+	timer.DecisionTimer.TimerStart() //Make decision before leaving floor
 }
 
 func FSMObstructionChange(obstructed bool, orders orderstate.AllOrders) {
@@ -91,7 +93,7 @@ func FSMObstructionChange(obstructed bool, orders orderstate.AllOrders) {
 		switch Cab.Behaviour {
 		case CabObstructed:
 			Cab.Behaviour = DoorOpen
-			if timer.TimedOut() {
+			if timer.DoorTimer.TimedOut() {
 				FSMDoorTimeout(orders)
 			}
 		}
@@ -112,11 +114,13 @@ func FSMDoorTimeout(orders orderstate.AllOrders) ElevatorBehaviour {
 		setDoorAndCabState(doorAction)
 
 		if doorAction == hardware.DS_Close {
-			return FSMDoorClose(orders)
+			orderstate.UpdateETAs(Cab.RecentDirection, Cab.AboveOrAtFloor)
+			timer.DecisionTimer.TimerStart()
 		}
 	case CabObstructed:
 		break
 	default:
+		fmt.Print(Cab.Behaviour)
 		panic("Invalid cab state on door timeout")
 	}
 	return Cab.Behaviour
