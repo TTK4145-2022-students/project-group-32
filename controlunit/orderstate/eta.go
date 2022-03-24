@@ -19,8 +19,8 @@ type InternalETAs struct {
 	Cab  [hardware.FloorCount]time.Time
 }
 
-const travelDuration = 3 * time.Second
-const orderDuration = 4 * time.Second
+const travelDuration = 4 * time.Second
+const orderDuration = 5 * time.Second
 
 // const directionChangeCost = 2*travelDuration + orderDuration
 
@@ -612,28 +612,38 @@ func orderAndInternalETABest(
 }
 
 func ETADirection(
-	currentFloor int,
+	floor int,
 	recentDirection hardware.MotorDirection,
 	orders AllOrders,
 	allETAs InternalETAs) hardware.MotorDirection {
 
 	switch recentDirection {
 	case hardware.MD_Up:
-		if orderAndInternalETABest(hardware.MD_Up, currentFloor, orders, allETAs) {
+		if orderAndInternalETABest(hardware.MD_Up, floor, orders, allETAs) {
 			fmt.Println("best above")
 			return hardware.MD_Up
 		}
-		if orderAndInternalETABest(hardware.MD_Down, currentFloor, orders, allETAs) {
+		if orderAndInternalETABest(hardware.MD_Down, floor, orders, allETAs) {
 			fmt.Println("best below")
 			return hardware.MD_Down
 		}
 	case hardware.MD_Down:
-		if orderAndInternalETABest(hardware.MD_Down, currentFloor, orders, allETAs) {
+		if orderAndInternalETABest(hardware.MD_Down, floor, orders, allETAs) {
 			fmt.Println("best below")
 			return hardware.MD_Down
 		}
-		if orderAndInternalETABest(hardware.MD_Up, currentFloor, orders, allETAs) {
+		if orderAndInternalETABest(hardware.MD_Up, floor, orders, allETAs) {
 			fmt.Println("best above")
+			return hardware.MD_Up
+		}
+	}
+	if !AnyOrders(orders) && !AllInternalETAsBest(orders) {
+		fmt.Println("prioritizing to prepare")
+		if 0 < floor && 2*floor < hardware.FloorCount &&
+			internalETABest(orders.Up[floor-1], allETAs.Up[floor-1]) {
+			return hardware.MD_Down
+		} else if floor < hardware.FloorCount-1 &&
+			internalETABest(orders.Down[floor+1], allETAs.Down[floor+1]) {
 			return hardware.MD_Up
 		}
 	}
@@ -651,4 +661,14 @@ func PrioritizedDirection(currentFloor int,
 	// } else {
 	return etaDirection
 	// }
+}
+
+func AllInternalETAsBest(orders AllOrders) bool {
+	for floor := 0; floor < hardware.FloorCount; floor++ {
+		if !internalETABest(orders.Down[floor], internalETAs.Down[floor]) ||
+			!internalETABest(orders.Up[floor], internalETAs.Up[floor]) {
+			return false
+		}
+	}
+	return true
 }
