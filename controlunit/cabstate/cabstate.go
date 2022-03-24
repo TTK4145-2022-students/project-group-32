@@ -139,6 +139,7 @@ func FSMDoorClose(orders orderstate.AllOrders) ElevatorBehaviour {
 		orders,
 		orderstate.GetInternalETAs()))
 	currentOrderStatus := orderstate.GetOrderStatus(orders, Cab.AboveOrAtFloor)
+	fmt.Println("Cab behavior: ", Cab.Behaviour)
 	switch Cab.Behaviour {
 	case Idle:
 		motorAction := prioritize.MotorActionOnDoorClose(
@@ -148,8 +149,12 @@ func FSMDoorClose(orders orderstate.AllOrders) ElevatorBehaviour {
 				orderstate.GetInternalETAs()),
 			currentOrderStatus)
 		setMotorAndCabState(motorAction)
+	case DoorOpen:
+		break
 	default:
-		panic("Invalid cab state on door timeout")
+		fmt.Println("Cab behavior: ", Cab.Behaviour)
+		panic("Invalid cab state on door close")
 	}
+	timer.DoorCloseDecisionTimer.TimerStop()
 	return Cab.Behaviour
 }
