@@ -5,6 +5,7 @@ import (
 	"elevators/controlunit/prioritize"
 	"elevators/hardware"
 	"elevators/timer"
+	"fmt"
 	// "time"
 )
 
@@ -117,6 +118,7 @@ func FSMDoorTimeout(orders orderstate.AllOrders) ElevatorBehaviour {
 	case CabObstructed:
 		break
 	default:
+		fmt.Print(Cab.Behaviour)
 		panic("Invalid cab state on door timeout")
 	}
 	return Cab.Behaviour

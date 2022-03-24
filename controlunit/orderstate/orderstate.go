@@ -21,6 +21,7 @@ type OrderState struct {
 	LastOrderTime    time.Time
 	LastCompleteTime time.Time
 	BestETA          time.Time
+	LocalETA	time.Time
 }
 
 type AllOrders struct {
@@ -33,6 +34,13 @@ var allOrders AllOrders
 var allOrdersMtx = new(sync.RWMutex)
 
 var MaxTime = time.Unix(1<<63-1, 999999999)
+
+func ResetOrders(){
+	allOrdersMtx.Lock()
+	defer allOrdersMtx.Unlock()
+	allOrders = AllOrders{}
+}
+
 
 func Init(orderState AllOrders) {
 	allOrdersMtx.Lock()

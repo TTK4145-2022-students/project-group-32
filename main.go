@@ -34,7 +34,7 @@ func main() {
 	floorArrival := make(chan int)
 	floorLeft := make(chan bool)
 	obstructionChange := make(chan bool)
-	// stopChange := make(chan bool)
+	stopChange := make(chan bool)
 	doorTimedOut := make(chan bool)
 	closeDoorDecisionTimedOut := make(chan bool)
 	// newOrderDecisionTimedOut := make(chan bool)
@@ -43,7 +43,7 @@ func main() {
 	go hardware.PollButtons(buttonPress)
 	go hardware.PollFloorSensor(floorArrival, floorLeft)
 	go hardware.PollObstructionSwitch(obstructionChange)
-	// go hardware.PollStopButton(stopChange)
+	go hardware.PollStopButton(stopChange)
 
 	go timer.DoorTimer.PollTimerOut(doorTimedOut)
 	go timer.DoorCloseDecisionTimer.PollTimerOut(closeDoorDecisionTimedOut)
@@ -93,14 +93,15 @@ func main() {
 		// 	orders := orderstate.GetOrders()
 		// 	cabstate.FSMNewOrder(buttonEvent.Floor, orders)
 
-		// case a := <-stopChange:
-		// 	_ = a
-		// fmt.Printf("%+v\n", a)
-		// for f := 0; f < hardware.FloorCount; f++ {
-		// 	for b := hardware.ButtonType(0); b < 3; b++ {
-		// 		hardware.SetButtonLamp(b, f, false)
-		// 	}
-		// }
+		case a := <-stopChange:
+			_ = a
+		fmt.Printf("%+v\n", a)
+		orderstate.ResetOrders()
+		for f := 0; f < hardware.FloorCount; f++ {
+			for b := hardware.ButtonType(0); b < 3; b++ {
+				hardware.SetButtonLamp(b, f, false)
+			}
+		}
 		case recievedOrderState := <-ordersRecieved:
 			// fmt.Printf("%+v\n", a)
 			// fmt.Println("updating orders")

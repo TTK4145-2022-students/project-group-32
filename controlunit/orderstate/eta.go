@@ -70,7 +70,7 @@ func UpdateETAs(
 
 	newDurations := ComputeDurations(currentFloor, recentDirection, allOrders, internalETAs)
 	newETAs := ComputeInternalETAs(newDurations)
-
+	
 	for floor := 0; floor < hardware.FloorCount; floor++ {
 		// if newDurations.Up[floor] < allDurations.Up[floor] &&
 		if !newETAs.Up[floor].IsZero() &&
@@ -79,11 +79,11 @@ func UpdateETAs(
 			fmt.Println("setting best up")
 			allOrders.Up[floor].BestETA = newETAs.Up[floor]
 		} else if internalETAs.Up[floor].Equal(allOrders.Up[floor].BestETA) &&
-			!allOrders.Up[floor].BestETA.IsZero() &&
-			internalETAs.Up[floor].After(time.Now()) {
+			!allOrders.Up[floor].BestETA.IsZero() { /*&& 
+				internalETAs.Down[floor].After(time.Now())*/ 
 			// Make sure to keep ownership
 			fmt.Println("has a best up")
-			newETAs.Up[floor] = internalETAs.Up[floor]
+			newETAs.Up[floor] = allOrders.Up[floor].BestETA
 		}
 
 		// if newDurations.Down[floor] < allDurations.Down[floor] &&
@@ -93,12 +93,14 @@ func UpdateETAs(
 			fmt.Println("setting best down")
 			allOrders.Down[floor].BestETA = newETAs.Down[floor]
 		} else if internalETAs.Down[floor].Equal(allOrders.Down[floor].BestETA) &&
-			!allOrders.Down[floor].BestETA.IsZero() &&
-			internalETAs.Down[floor].After(time.Now()) {
+			!allOrders.Down[floor].BestETA.IsZero() { /*&& 
+			internalETAs.Down[floor].After(time.Now())*/ 
 			// Make sure to keep ownership
 			fmt.Println("has a best down")
-			newETAs.Down[floor] = internalETAs.Down[floor]
+			newETAs.Down[floor] = allOrders.Down[floor].BestETA
 		}
+		allOrders.Up[floor].LocalETA = newETAs.Up[floor]
+		allOrders.Down[floor].LocalETA = newETAs.Up[floor]
 	}
 	// updateInternalETAs(newDurations, newETAs)
 	allDurations = newDurations
@@ -524,27 +526,22 @@ func internalETABest(orderState OrderState, internalETA time.Time) bool {
 	return orderState.BestETA.Equal(internalETA) && !internalETA.IsZero()
 }
 
-func orderAndInternalETABestAbove(
+func orderAndInternalETABest(
+	direction hardware.MotorDirection,
 	currentFloor int,
 	orders AllOrders,
 	allETAs InternalETAs) bool {
-	for floor := currentFloor + 1; floor < hardware.FloorCount; floor++ {
-		if (hasOrder(orders.Up[floor]) &&
-			internalETABest(orders.Up[floor], allETAs.Up[floor])) ||
-			(hasOrder(orders.Down[floor]) &&
-				internalETABest(orders.Down[floor], allETAs.Down[floor])) ||
-			orders.Cab[floor] {
+	switch direction {
+	case hardware.MD_Up:
+		if hasOrder(orders.Up[currentFloor]){
+			return true
+		}
+	case hardware.MD_Down:
+		if hasOrder(orders.Down[currentFloor]){
 			return true
 		}
 	}
-	return false
-}
-
-func orderAndInternalETABestBelow(
-	currentFloor int,
-	orders AllOrders,
-	allETAs InternalETAs) bool {
-	for floor := currentFloor - 1; floor >= 0; floor-- {
+	for floor := currentFloor + int(direction); 0 <= floor && floor < hardware.FloorCount; floor += int(direction) {
 		if (hasOrder(orders.Up[floor]) &&
 			internalETABest(orders.Up[floor], allETAs.Up[floor])) ||
 			(hasOrder(orders.Down[floor]) &&
@@ -564,33 +561,21 @@ func ETADirection(
 
 	switch recentDirection {
 	case hardware.MD_Up:
-		if hasOrder(orders.Up[currentFloor]) {
-			return hardware.MD_Up
-		}
-		if orderAndInternalETABestAbove(currentFloor, orders, allETAs) {
+		if orderAndInternalETABest(hardware.MD_Up, currentFloor, orders, allETAs) {
 			fmt.Println("best above")
 			return hardware.MD_Up
 		}
-		if orderAndInternalETABestBelow(currentFloor, orders, allETAs) {
+		if orderAndInternalETABest(hardware.MD_Down, currentFloor, orders, allETAs) {
 			fmt.Println("best below")
-			return hardware.MD_Down
-		}
-		if hasOrder(orders.Down[currentFloor]) {
 			return hardware.MD_Down
 		}
 	case hardware.MD_Down:
-		if hasOrder(orders.Down[currentFloor]) {
-			return hardware.MD_Down
-		}
-		if orderAndInternalETABestBelow(currentFloor, orders, allETAs) {
+		if orderAndInternalETABest(hardware.MD_Down, currentFloor, orders, allETAs) {
 			fmt.Println("best below")
 			return hardware.MD_Down
 		}
-		if orderAndInternalETABestAbove(currentFloor, orders, allETAs) {
+		if orderAndInternalETABest(hardware.MD_Up, currentFloor, orders, allETAs) {
 			fmt.Println("best above")
-			return hardware.MD_Up
-		}
-		if hasOrder(orders.Up[currentFloor]) {
 			return hardware.MD_Up
 		}
 	}

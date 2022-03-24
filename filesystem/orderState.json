@@ -1,0 +1,60 @@
+{
+ "Up": [
+  {
+   "LastOrderTime": "0001-01-01T00:00:00Z",
+   "LastCompleteTime": "0001-01-01T00:00:00Z",
+   "BestETA": "0001-01-01T00:00:00Z",
+   "LocalETA": "0001-01-01T00:00:00Z"
+  },
+  {
+   "LastOrderTime": "2022-03-24T12:29:03.2620009+01:00",
+   "LastCompleteTime": "0001-01-01T00:00:00Z",
+   "BestETA": "0001-01-01T00:00:00Z",
+   "LocalETA": "0001-01-01T00:00:00Z"
+  },
+  {
+   "LastOrderTime": "2022-03-24T12:28:44.9936233+01:00",
+   "LastCompleteTime": "2022-03-24T12:28:55.494834+01:00",
+   "BestETA": "2022-03-24T12:28:53.953332501+01:00",
+   "LocalETA": "2022-03-24T12:28:53.953332501+01:00"
+  },
+  {
+   "LastOrderTime": "0001-01-01T00:00:00Z",
+   "LastCompleteTime": "0001-01-01T00:00:00Z",
+   "BestETA": "0001-01-01T00:00:00Z",
+   "LocalETA": "0001-01-01T00:00:00Z"
+  }
+ ],
+ "Down": [
+  {
+   "LastOrderTime": "0001-01-01T00:00:00Z",
+   "LastCompleteTime": "0001-01-01T00:00:00Z",
+   "BestETA": "0001-01-01T00:00:00Z",
+   "LocalETA": "0001-01-01T00:00:00Z"
+  },
+  {
+   "LastOrderTime": "2022-03-24T12:29:15.5226055+01:00",
+   "LastCompleteTime": "0001-01-01T00:00:00Z",
+   "BestETA": "0001-01-01T00:00:00Z",
+   "LocalETA": "0001-01-01T00:00:00Z"
+  },
+  {
+   "LastOrderTime": "2022-03-24T12:29:15.9271639+01:00",
+   "LastCompleteTime": "0001-01-01T00:00:00Z",
+   "BestETA": "0001-01-01T00:00:00Z",
+   "LocalETA": "2022-03-24T12:28:53.953332501+01:00"
+  },
+  {
+   "LastOrderTime": "0001-01-01T00:00:00Z",
+   "LastCompleteTime": "0001-01-01T00:00:00Z",
+   "BestETA": "0001-01-01T00:00:00Z",
+   "LocalETA": "0001-01-01T00:00:00Z"
+  }
+ ],
+ "Cab": [
+  false,
+  false,
+  false,
+  false
+ ]
+}
