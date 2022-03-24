@@ -6,6 +6,7 @@ import (
 	"elevators/hardware"
 	"elevators/timer"
 	"fmt"
+	// "time"
 	// "fmt"
 )
 
@@ -33,6 +34,18 @@ func Init(cabState CabState) {
 	Cab = cabState
 	FSMInitBetweenFloors()
 }
+
+// func ForceActivationLoop(){
+// 	for{
+// 		if timer.ForceActionTimer.TimedOut(){
+// 			fmt.Println("Force action timed out ")
+// 			timer.ForceActionTimer.TimerStart()
+// 		}else{
+// 			timer.ForceActionTimer.TimerStop()
+// 		}
+// 		time.Sleep(time.Second)
+// 	}
+// }
 
 func setMotorAndCabState(state hardware.MotorDirection) {
 	hardware.SetMotorDirection(state)

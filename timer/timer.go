@@ -1,6 +1,7 @@
 package timer
 
 import (
+	// "fmt"
 	"time"
 )
 
@@ -17,8 +18,9 @@ type Timer struct {
 
 var DoorTimer = Timer{timerDuration: _doorOpenTime}
 var DecisionTimer = Timer{timerDuration: _waitForDecisionTime}
+
 // var NewOrderDecisionTimer = Timer{timerDuration: _waitForDecisionTime}
-var ForceActionTimer = Timer{timerDuration: _forceActionTime}
+var ForceActionTimer = Timer{timerDuration: _forceActionTime, isActive: true}
 
 func (timer *Timer) PollTimerOut(receiver chan<- bool) {
 	prev := false
@@ -29,6 +31,7 @@ func (timer *Timer) PollTimerOut(receiver chan<- bool) {
 			receiver <- v
 		}
 		prev = v
+		// fmt.Println(timer.timerDuration)
 	}
 }
 

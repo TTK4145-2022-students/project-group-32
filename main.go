@@ -49,6 +49,7 @@ func main() {
 	go timer.DoorTimer.PollTimerOut(doorTimedOut)
 	go timer.DecisionTimer.PollTimerOut(decisionTimedOut)
 	// go timer.NewOrderDecisionTimer.PollTimerOut(newOrderDecisionTimedOut)
+	// go cabstate.ForceActivationLoop()
 	go timer.ForceActionTimer.PollTimerOut(forceAction)
 
 	go network.PollReceiveOrderState(ordersRecieved)
@@ -64,7 +65,7 @@ func main() {
 			orderstate.AcceptNewOrder(buttonEvent.Button, buttonEvent.Floor)
 			orders := orderstate.GetOrders()
 			timer.DecisionTimer.TimerStart() //Make decision before leaving floor
-			timer.ForceActionTimer.TimerStart()
+			// timer.ForceActionTimer.TimerStart()
 			cabstate.FSMNewOrder(buttonEvent.Floor, orders)
 
 		case floor := <-floorArrival:
@@ -94,10 +95,12 @@ func main() {
 
 		case <-forceAction:
 			// fmt.Printf("%+v\n", a)
+			fmt.Println("Forcing action ")
 			orders := orderstate.GetOrders()
 			timer.DecisionTimer.TimerStart() //Make decision before leaving floor
 			cabstate.FSMDecisionTimeout(orders)
 			timer.ForceActionTimer.TimerStop()
+			timer.ForceActionTimer.TimerStart()
 
 		// case <-newOrderDecisionTimedOut:
 		// 	// fmt.Printf("%+v\n", a)
