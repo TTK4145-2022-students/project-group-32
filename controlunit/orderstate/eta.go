@@ -19,7 +19,7 @@ type InternalETAs struct {
 	Cab  [hardware.FloorCount]time.Time
 }
 
-const travelDuration = 2 * time.Second
+const travelDuration = 3 * time.Second
 const orderDuration = 4 * time.Second
 
 // const directionChangeCost = 2*travelDuration + orderDuration
@@ -78,7 +78,7 @@ func UpdateETAs(
 		// if newDurations.Up[floor] < allDurations.Up[floor] &&
 		if !newETAs.Up[floor].IsZero() &&
 			(newETAs.Up[floor].Before(allOrders.Up[floor].BestETA) ||
-				allOrders.Up[floor].BestETA.IsZero()) {
+				allOrders.Up[floor].BestETA.Before(time.Now())) {
 			fmt.Println("setting best up")
 			allOrders.Up[floor].BestETA = newETAs.Up[floor]
 		} else if internalETAs.Up[floor].Equal(allOrders.Up[floor].BestETA) &&
@@ -92,7 +92,7 @@ func UpdateETAs(
 		// if newDurations.Down[floor] < allDurations.Down[floor] &&
 		if !newETAs.Down[floor].IsZero() &&
 			(newETAs.Down[floor].Before(allOrders.Down[floor].BestETA) ||
-				allOrders.Down[floor].BestETA.IsZero()) {
+				allOrders.Down[floor].BestETA.Before(time.Now())) {
 			fmt.Println("setting best down")
 			allOrders.Down[floor].BestETA = newETAs.Down[floor]
 		} else if internalETAs.Down[floor].Equal(allOrders.Down[floor].BestETA) &&
@@ -135,15 +135,19 @@ func UpdateETAs(
 func ComputeInternalETAs(durations AllDurations) InternalETAs {
 	var newETAs InternalETAs
 	var now = time.Now()
+	fmt.Println("compute internal etas")
 	for floor := 0; floor < hardware.FloorCount; floor++ {
 		if durations.Cab[floor] != time.Duration(0) {
 			newETAs.Cab[floor] = now.Add(durations.Cab[floor])
+			fmt.Print("uc,")
 		}
 		if durations.Up[floor] != time.Duration(0) {
 			newETAs.Up[floor] = now.Add(durations.Up[floor])
+			fmt.Print("uu,")
 		}
 		if durations.Down[floor] != time.Duration(0) {
 			newETAs.Down[floor] = now.Add(durations.Down[floor])
+			fmt.Print("ud,")
 		}
 	}
 	return newETAs
@@ -365,8 +369,6 @@ func calculateETAforDirection(
 	simCabFloor := currentFloor
 	simCabDirection := int(direction)
 	currentTime := time.Duration(1)
-	fmt.Print("calculate dir")
-	fmt.Println(direction)
 	for {
 		simCabFloor += simCabDirection
 		currentTime += travelDuration
@@ -387,14 +389,10 @@ func calculateETAforDirection(
 			currentTime += orderDuration
 		}
 		if simCabDirection == int(hardware.MD_Down) {
-			fmt.Println("update compute dur down")
-			fmt.Println(currentTime)
 			computedDurations.Down[simCabFloor] = currentTime
 		}
 		if simCabDirection == int(hardware.MD_Up) {
-			fmt.Println("update compute dur up")
 			computedDurations.Up[simCabFloor] = currentTime
-			fmt.Println(currentTime)
 		}
 	}
 
@@ -415,15 +413,17 @@ func bestDurations(
 	aboveDir := 1
 
 	now := time.Now()
-
+	fmt.Println("Comparing durations")
+	fmt.Println(" ")
 	for {
 		belowFloor += belowDir
 		aboveFloor += aboveDir
-		if belowFloor == 0 {
+		if belowFloor <= 0 {
 			belowFloor = 0
 			belowDir = 1
 		}
-		if aboveFloor == hardware.FloorCount-1 {
+		if aboveFloor >= hardware.FloorCount-1 {
+			aboveFloor = hardware.FloorCount - 1
 			aboveDir = -1
 		}
 
@@ -440,17 +440,40 @@ func bestDurations(
 			orderETABelow = orders.Up[belowFloor].BestETA
 		}
 		floorETAAbove := ETAsAbove.Up[aboveFloor]
-		floorOrderETAAbove := hasOrder(orders.Up[belowFloor])
+		floorOrderETAAbove := hasOrder(orders.Up[aboveFloor])
 		orderETAAbove := orders.Up[aboveFloor].BestETA
 		if aboveDir == -1 {
 			floorETAAbove = ETAsAbove.Down[aboveFloor]
-			floorOrderETAAbove = hasOrder(orders.Down[belowFloor])
+			floorOrderETAAbove = hasOrder(orders.Down[aboveFloor])
 			orderETAAbove = orders.Down[aboveFloor].BestETA
 		}
 
+		if floorOrderETAAbove {
+			fmt.Print("sim has order in")
+			fmt.Println(aboveFloor)
+		}
+		if floorOrderETABelow {
+			fmt.Print("sim has order up in")
+			fmt.Println(belowFloor)
+		}
+		if floorETABelow.Before(orderETABelow) {
+			fmt.Println("below before order")
+		}
+		if floorOrderETABelow &&
+			now.After(orderETABelow) {
+			fmt.Println("below order and eta expired")
+		}
+		if floorETAAbove.Before(orderETAAbove) {
+			fmt.Println("above before order")
+		}
+		if floorOrderETAAbove &&
+			now.After(orderETAAbove) {
+			fmt.Println("above order and eta expired")
+		}
 		if (floorETABelow.Before(orderETABelow) ||
 			(floorOrderETABelow &&
 				now.After(orderETABelow))) &&
+
 			!(floorETAAbove.Before(orderETAAbove) ||
 				(floorOrderETAAbove &&
 					now.After(orderETAAbove))) {
@@ -626,7 +649,6 @@ func PrioritizedDirection(currentFloor int,
 	// if etaDirection == hardware.MD_Stop {
 	// 	return recentDirection
 	// } else {
-	// 	return etaDirection
-	// }
 	return etaDirection
+	// }
 }

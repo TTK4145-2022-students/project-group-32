@@ -21,7 +21,7 @@ type OrderState struct {
 	LastOrderTime    time.Time
 	LastCompleteTime time.Time
 	BestETA          time.Time
-	LocalETA	time.Time
+	LocalETA         time.Time
 }
 
 type AllOrders struct {
@@ -35,12 +35,11 @@ var allOrdersMtx = new(sync.RWMutex)
 
 var MaxTime = time.Unix(1<<63-1, 999999999)
 
-func ResetOrders(){
+func ResetOrders() {
 	allOrdersMtx.Lock()
 	defer allOrdersMtx.Unlock()
 	allOrders = AllOrders{}
 }
-
 
 func Init(orderState AllOrders) {
 	allOrdersMtx.Lock()
@@ -127,7 +126,9 @@ func updateFloorOrderState(inputState OrderState, currentState *OrderState) Orde
 	if inputState.LastCompleteTime.After(currentState.LastCompleteTime) {
 		currentState.LastCompleteTime = inputState.LastCompleteTime
 	}
-	if inputState.BestETA.Before(currentState.BestETA) && inputState.BestETA.After(time.Now()) {
+	if (inputState.BestETA.Before(currentState.BestETA) ||
+		currentState.BestETA.Before(time.Now())) &&
+		inputState.BestETA.After(time.Now()) {
 		currentState.BestETA = inputState.BestETA
 	}
 
@@ -142,7 +143,17 @@ func updateFloorOrderState(inputState OrderState, currentState *OrderState) Orde
 }
 
 func hasOrder(inputState OrderState) bool {
+	//TODO: test (Possible riv ruskende here)
 	return inputState.LastOrderTime.After(inputState.LastCompleteTime)
+}
+
+func AnyOrders(orders AllOrders) bool {
+	for floor := 0; floor < hardware.FloorCount; floor++ {
+		if hasOrder(orders.Up[floor]) || hasOrder(orders.Down[floor]) || orders.Cab[floor] {
+			return true
+		}
+	}
+	return false
 }
 
 func UpdateOrders(inputOrders AllOrders) [hardware.FloorCount]bool {

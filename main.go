@@ -61,6 +61,7 @@ func main() {
 			// fmt.Printf("%+v\n", a)
 			orderstate.AcceptNewOrder(buttonEvent.Button, buttonEvent.Floor)
 			orders := orderstate.GetOrders()
+			timer.DoorCloseDecisionTimer.TimerStart() //Make decision before leaving floor
 			cabstate.FSMNewOrder(buttonEvent.Floor, orders)
 
 		case floor := <-floorArrival:
@@ -95,13 +96,13 @@ func main() {
 
 		case a := <-stopChange:
 			_ = a
-		fmt.Printf("%+v\n", a)
-		orderstate.ResetOrders()
-		for f := 0; f < hardware.FloorCount; f++ {
-			for b := hardware.ButtonType(0); b < 3; b++ {
-				hardware.SetButtonLamp(b, f, false)
+			fmt.Printf("%+v\n", a)
+			orderstate.ResetOrders()
+			for f := 0; f < hardware.FloorCount; f++ {
+				for b := hardware.ButtonType(0); b < 3; b++ {
+					hardware.SetButtonLamp(b, f, false)
+				}
 			}
-		}
 		case recievedOrderState := <-ordersRecieved:
 			// fmt.Printf("%+v\n", a)
 			// fmt.Println("updating orders")
