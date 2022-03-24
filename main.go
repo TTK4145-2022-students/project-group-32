@@ -9,6 +9,7 @@ import (
 	"elevators/filesystem"
 	"elevators/network"
 	"elevators/timer"
+	"fmt"
 	"os"
 
 	//"elevators/filesystem"
@@ -35,7 +36,8 @@ func main() {
 	obstructionChange := make(chan bool)
 	// stopChange := make(chan bool)
 	doorTimedOut := make(chan bool)
-	decisionTimedOut := make(chan bool)
+	closeDoorDecisionTimedOut := make(chan bool)
+	// newOrderDecisionTimedOut := make(chan bool)
 	ordersRecieved := make(chan orderstate.AllOrders)
 
 	go hardware.PollButtons(buttonPress)
@@ -44,6 +46,8 @@ func main() {
 	// go hardware.PollStopButton(stopChange)
 
 	go timer.DoorTimer.PollTimerOut(doorTimedOut)
+	go timer.DoorCloseDecisionTimer.PollTimerOut(closeDoorDecisionTimedOut)
+	// go timer.NewOrderDecisionTimer.PollTimerOut(newOrderDecisionTimedOut)
 
 	go network.PollReceiveOrderState(ordersRecieved)
 
@@ -79,10 +83,15 @@ func main() {
 			orders := orderstate.GetOrders()
 			cabstate.FSMDoorTimeout(orders)
 
-		case <-decisionTimedOut:
+		case <-closeDoorDecisionTimedOut:
 			// fmt.Printf("%+v\n", a)
 			orders := orderstate.GetOrders()
 			cabstate.FSMDoorClose(orders)
+
+		// case <-newOrderDecisionTimedOut:
+		// 	// fmt.Printf("%+v\n", a)
+		// 	orders := orderstate.GetOrders()
+		// 	cabstate.FSMNewOrder(buttonEvent.Floor, orders)
 
 		// case a := <-stopChange:
 		// 	_ = a
@@ -100,6 +109,7 @@ func main() {
 			orders := orderstate.GetOrders()
 			for floor, newOrder := range newOrdersInFloors {
 				if newOrder {
+					fmt.Println("recieved new order")
 					cabstate.FSMNewOrder(floor, orders)
 				}
 			}

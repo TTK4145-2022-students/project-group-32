@@ -79,7 +79,8 @@ func UpdateETAs(
 			fmt.Println("setting best up")
 			allOrders.Up[floor].BestETA = newETAs.Up[floor]
 		} else if internalETAs.Up[floor].Equal(allOrders.Up[floor].BestETA) &&
-			!allOrders.Up[floor].BestETA.IsZero() {
+			!allOrders.Up[floor].BestETA.IsZero() &&
+			internalETAs.Up[floor].After(time.Now()) {
 			// Make sure to keep ownership
 			fmt.Println("has a best up")
 			newETAs.Up[floor] = internalETAs.Up[floor]
@@ -92,7 +93,8 @@ func UpdateETAs(
 			fmt.Println("setting best down")
 			allOrders.Down[floor].BestETA = newETAs.Down[floor]
 		} else if internalETAs.Down[floor].Equal(allOrders.Down[floor].BestETA) &&
-			!allOrders.Down[floor].BestETA.IsZero() {
+			!allOrders.Down[floor].BestETA.IsZero() &&
+			internalETAs.Down[floor].After(time.Now()) {
 			// Make sure to keep ownership
 			fmt.Println("has a best down")
 			newETAs.Down[floor] = internalETAs.Down[floor]
