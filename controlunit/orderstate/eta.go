@@ -135,7 +135,7 @@ func ComputeInternalETAs(durations AllDurations) AllETAs {
 		if durations.Up[floor] != time.Duration(0) {
 			newETAs.Up[floor] = now.Add(durations.Up[floor])
 		}
-		if durations.Cab[floor] != time.Duration(0) {
+		if durations.Down[floor] != time.Duration(0) {
 			newETAs.Down[floor] = now.Add(durations.Down[floor])
 		}
 	}
@@ -531,7 +531,7 @@ func orderAndInternalETABestAbove(
 		if (hasOrder(orders.Up[floor]) &&
 			internalETABest(orders.Up[floor], allETAs.Up[floor])) ||
 			(hasOrder(orders.Down[floor]) &&
-				internalETABest(orders.Down[floor], allETAs.Up[floor])) ||
+				internalETABest(orders.Down[floor], allETAs.Down[floor])) ||
 			orders.Cab[floor] {
 			return true
 		}
@@ -547,7 +547,7 @@ func orderAndInternalETABestBelow(
 		if (hasOrder(orders.Up[floor]) &&
 			internalETABest(orders.Up[floor], allETAs.Up[floor])) ||
 			(hasOrder(orders.Down[floor]) &&
-				internalETABest(orders.Down[floor], allETAs.Up[floor])) ||
+				internalETABest(orders.Down[floor], allETAs.Down[floor])) ||
 			orders.Cab[floor] {
 			return true
 		}
