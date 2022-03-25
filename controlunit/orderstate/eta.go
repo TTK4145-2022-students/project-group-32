@@ -587,7 +587,7 @@ func bestETA(
 // }
 
 func internalETABest(orderState OrderState, internalETA time.Time) bool {
-	return orderState.BestETA.Equal(internalETA) && !internalETA.IsZero()
+	return orderState.BestETA.Equal(internalETA) && internalETA.After(time.Now()) // && !internalETA.IsZero()
 }
 
 func orderAndInternalETABest(
