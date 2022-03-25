@@ -3,6 +3,7 @@ package orderstate
 import (
 	"elevators/controlunit/prioritize"
 	"elevators/hardware"
+	"fmt"
 	"time"
 )
 
@@ -626,20 +627,20 @@ func ETADirection(
 	switch recentDirection {
 	case hardware.MD_Up:
 		if orderAndInternalETABest(hardware.MD_Up, floor, orders, allETAs) {
-			// fmt.Println("best above")
+			fmt.Println("going up, best up")
 			return hardware.MD_Up
 		}
 		if orderAndInternalETABest(hardware.MD_Down, floor, orders, allETAs) {
-			// fmt.Println("best below")
+			fmt.Println("going up, best down")
 			return hardware.MD_Down
 		}
 	case hardware.MD_Down:
 		if orderAndInternalETABest(hardware.MD_Down, floor, orders, allETAs) {
-			// fmt.Println("best below")
+			fmt.Println("going deon, best down")
 			return hardware.MD_Down
 		}
 		if orderAndInternalETABest(hardware.MD_Up, floor, orders, allETAs) {
-			// fmt.Println("best above")
+			fmt.Println("going deon, best up")
 			return hardware.MD_Up
 		}
 	}
@@ -660,6 +661,11 @@ func PrioritizedDirection(currentFloor int,
 	recentDirection hardware.MotorDirection,
 	orders AllOrders,
 	allETAs InternalETAs) hardware.MotorDirection {
+
+	fmt.Println("Prioritizing direction")
+	fmt.Print(recentDirection)
+	fmt.Println(" is recent direction")
+	fmt.Println("")
 
 	etaDirection := ETADirection(currentFloor, recentDirection, orders, allETAs)
 	// if etaDirection == hardware.MD_Stop {

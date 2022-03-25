@@ -97,19 +97,27 @@ func FSMFloorArrival(floor int, orders orderstate.AllOrders) ElevatorBehaviour {
 	Cab.BetweenFloors = false
 	orderstate.UpdateETAs(Cab.RecentDirection, Cab.AboveOrAtFloor)
 	orderStatus := orderstate.GetOrderStatus(orders, floor)
-	// fmt.Println("FSMFloorArrival")
+	fmt.Println("")
+	fmt.Println("FSMFloorArrival")
+	fmt.Println("")
+	fmt.Println("")
 	switch Cab.Behaviour {
 	case Moving:
-		fmt.Printf("%+v\n", orderstate.PrioritizedDirection(Cab.AboveOrAtFloor,
+		var pridir = orderstate.PrioritizedDirection(Cab.AboveOrAtFloor,
 			Cab.RecentDirection,
 			orders,
-			orderstate.GetInternalETAs()))
+			orderstate.GetInternalETAs())
+		fmt.Print("Recent direction:")
+		fmt.Println(Cab.RecentDirection)
+		fmt.Print("Prioritized direction:")
+		fmt.Print(pridir)
+		fmt.Println("")
 		motorAction := prioritize.MotorActionOnFloorArrival(
-			orderstate.PrioritizedDirection(Cab.AboveOrAtFloor,
-				Cab.RecentDirection,
-				orders,
-				orderstate.GetInternalETAs()),
-			// Cab.RecentDirection,
+			// orderstate.PrioritizedDirection(Cab.AboveOrAtFloor,
+			// 	Cab.RecentDirection,
+			// 	orders,
+			// 	orderstate.GetInternalETAs()),
+			Cab.RecentDirection,
 			orderStatus)
 		// fmt.Println("Moving")
 		setMotorAndCabState(motorAction)
