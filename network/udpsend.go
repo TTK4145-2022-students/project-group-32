@@ -26,8 +26,8 @@ func InitUDPSendingSocket(port int, sendAddr string) (net.UDPAddr, *net.UDPConn)
 	return sendaddr, wconn
 }
 
-func BroadcastOrderState(orderState orderstate.AllOrders, wconn *net.UDPConn) {
-	message, _ := json.Marshal(orderState)
+func BroadcastOrders(orders orderstate.AllOrders, wconn *net.UDPConn) {
+	message, _ := json.Marshal(orders)
 	broadcastMessage(message, wconn)
 }
 
@@ -35,15 +35,13 @@ func broadcastMessage(message []byte, wconn *net.UDPConn) {
 	wconn.Write(message)
 }
 
-func SendOrderStatePeriodically() {
+func SendOrdersPeriodically() {
 	_, wconn := InitUDPSendingSocket(UDPPort, broadcastAddr)
 	defer wconn.Close()
 
 	for {
-		state := orderstate.GetOrders()
-
-		// // fmt.Println("state send:", state, "\n\n")
-		BroadcastOrderState(state, wconn)
+		orders := orderstate.GetOrders()
+		BroadcastOrders(orders, wconn)
 		time.Sleep(_sendRate)
 	}
 }

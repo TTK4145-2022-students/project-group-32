@@ -6,14 +6,15 @@ import (
 	"elevators/filesystem"
 	"elevators/hardware"
 	"elevators/network"
+	"elevators/phoenix"
 	"elevators/timer"
 	"fmt"
 	"os"
 )
 
 func main() {
-	// phoenix.Init()
-	// go phoenix.Phoenix()
+	phoenix.Init()
+	go phoenix.Phoenix()
 	if len(os.Args) > 1 {
 		hardware.Init("localhost:"+os.Args[1], hardware.FloorCount)
 	} else {
@@ -27,10 +28,11 @@ func main() {
 	floorLeft := make(chan bool)
 	obstructionChange := make(chan bool)
 	stopChange := make(chan bool)
+
 	doorTimedOut := make(chan bool)
-	decisionTimedOut := make(chan bool)
-	// newOrderDecisionTimedOut := make(chan bool)
-	forceAction := make(chan bool)
+	decisionDeadlineTimedOut := make(chan bool)
+	PokeCabTimedOut := make(chan bool)
+
 	ordersRecieved := make(chan orderstate.AllOrders)
 
 	go hardware.PollButtons(buttonPress)
@@ -39,54 +41,47 @@ func main() {
 	go hardware.PollStopButton(stopChange)
 
 	go timer.DoorTimer.PollTimerOut(doorTimedOut)
-	go timer.DecisionTimer.PollTimerOut(decisionTimedOut)
-	go timer.ForceActionTimer.PollTimerOut(forceAction)
+	go timer.DecisionDeadlineTimer.PollTimerOut(decisionDeadlineTimedOut)
+	go timer.PokeCabTimer.PollTimerOut(PokeCabTimedOut)
 
-	go network.PollReceiveOrderState(ordersRecieved)
-	go network.SendOrderStatePeriodically()
+	go network.PollReceiveOrders(ordersRecieved)
+	go network.SendOrdersPeriodically()
 
-	go filesystem.SaveStatePeriodically()
+	go filesystem.SaveStatesPeriodically()
 
 	for {
 		select {
 		case buttonEvent := <-buttonPress:
-			// fmt.Printf("%+v\n", a)
 			orderstate.AcceptNewOrder(buttonEvent.Button, buttonEvent.Floor)
 			orders := orderstate.GetOrders()
-			timer.DecisionTimer.TimerStart() //Make decision before leaving floor
+			timer.DecisionDeadlineTimer.TimerStart()
 			cabstate.FSMNewOrder(buttonEvent.Floor, orders)
 
 		case floor := <-floorArrival:
-			// fmt.Printf("%+v\n", a)
 			hardware.SetFloorIndicator(floor)
 			orders := orderstate.GetOrders()
 			cabstate.FSMFloorArrival(floor, orders)
 
 		case <-floorLeft:
-			// fmt.Printf("%+v\n", a)
 			cabstate.FSMFloorLeave()
 
 		case obstruction := <-obstructionChange:
-			// fmt.Printf("%+v\n", a)
 			orders := orderstate.GetOrders()
 			cabstate.FSMObstructionChange(obstruction, orders)
 
 		case <-doorTimedOut:
-			// fmt.Printf("%+v\n", a)
 			orders := orderstate.GetOrders()
 			cabstate.FSMDoorTimeout(orders)
 
-		case <-decisionTimedOut:
-			// fmt.Printf("%+v\n", a)
+		case <-decisionDeadlineTimedOut:
 			orders := orderstate.GetOrders()
 			cabstate.FSMDecisionTimeout(orders)
 
-		case <-forceAction:
-			// fmt.Printf("%+v\n", a)
+		case <-PokeCabTimedOut:
 			orders := orderstate.GetOrders()
-			timer.DecisionTimer.TimerStart() //Make decision before leaving floor
+			timer.DecisionDeadlineTimer.TimerStart()
 			cabstate.FSMDecisionTimeout(orders)
-			timer.ForceActionTimer.TimerStart()
+			timer.PokeCabTimer.TimerStart()
 
 		case a := <-stopChange:
 			_ = a
@@ -99,7 +94,6 @@ func main() {
 			}
 
 		case recievedOrderState := <-ordersRecieved:
-			// fmt.Printf("%+v\n", a)
 			newOrdersInFloors := orderstate.UpdateOrders(recievedOrderState)
 			orders := orderstate.GetOrders()
 			for floor, newOrder := range newOrdersInFloors {

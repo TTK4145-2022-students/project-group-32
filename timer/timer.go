@@ -7,8 +7,8 @@ import (
 
 const _pollRate = 20 * time.Millisecond
 const _doorOpenTime = 3 * time.Second
-const _waitForDecisionTime = 250 * time.Millisecond
-const _forceActionTime = 1 * time.Second
+const _decisionDeadline = 250 * time.Millisecond
+const _pokeRate = 1 * time.Second
 
 type Timer struct {
 	isActive      bool
@@ -17,10 +17,8 @@ type Timer struct {
 }
 
 var DoorTimer = Timer{timerDuration: _doorOpenTime}
-var DecisionTimer = Timer{timerDuration: _waitForDecisionTime}
-
-// var NewOrderDecisionTimer = Timer{timerDuration: _waitForDecisionTime}
-var ForceActionTimer = Timer{timerDuration: _forceActionTime, isActive: true}
+var DecisionDeadlineTimer = Timer{timerDuration: _decisionDeadline}
+var PokeCabTimer = Timer{timerDuration: _pokeRate, isActive: true}
 
 func (timer *Timer) PollTimerOut(receiver chan<- bool) {
 	prev := false

@@ -26,7 +26,7 @@ func InitUDPReceivingSocket(port int) (net.UDPAddr, *net.UDPConn) {
 	return addr, conn
 }
 
-func ReceiveOrderState(conn *net.UDPConn) orderstate.AllOrders {
+func ReceiveOrders(conn *net.UDPConn) orderstate.AllOrders {
 	var allOrders orderstate.AllOrders
 	buf := receiveUDPMessage(conn)
 	json.Unmarshal(buf, &allOrders)
@@ -43,14 +43,13 @@ func receiveUDPMessage(conn *net.UDPConn) []byte {
 	return buf[:rlen]
 }
 
-func PollReceiveOrderState(receiver chan<- orderstate.AllOrders) {
+func PollReceiveOrders(receiver chan<- orderstate.AllOrders) {
 	_, conn := InitUDPReceivingSocket(UDPPort)
 	defer conn.Close()
 
 	for {
 		time.Sleep(_pollRate)
-		state := ReceiveOrderState(conn)
-		// // fmt.Println("state recieve:", state, "\n\n", time.Now())
-		receiver <- state
+		orders := ReceiveOrders(conn)
+		receiver <- orders
 	}
 }
