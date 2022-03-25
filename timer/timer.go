@@ -18,7 +18,7 @@ type Timer struct {
 
 var DoorTimer = Timer{timerDuration: _doorOpenTime}
 var DecisionDeadlineTimer = Timer{timerDuration: _decisionDeadline}
-var PokeCabTimer = Timer{timerDuration: _pokeRate, isActive: true}
+var PokeCabTimer = Timer{timerDuration: _pokeRate}
 
 func (timer *Timer) PollTimerOut(receiver chan<- bool) {
 	prev := false

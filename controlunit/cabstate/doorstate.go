@@ -39,7 +39,7 @@ func closeDoor() {
 	hardware.SetDoorOpenLamp(false)
 	Cab.Behaviour = Idle
 	timer.DoorTimer.TimerStop()
-	timer.DecisionDeadlineTimer.TimerStart() //Make decision before leaving floor
+	timer.DecisionDeadlineTimer.TimerStart()
 }
 
 func FSMObstructionChange(obstructed bool, orders orderstate.AllOrders) {

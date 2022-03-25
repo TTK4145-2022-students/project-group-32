@@ -25,13 +25,19 @@ func GetInternalETAs() InternalETAs {
 
 func UpdateETAs(
 	recentDirection hardware.MotorDirection,
-	currentFloor int) {
+	currentFloor int) InternalETAs {
 	allOrdersMtx.Lock()
 	defer allOrdersMtx.Unlock()
-
-	// newDurations := ComputeDurations(currentFloor, recentDirection, allOrders, internalETAs)
-	// newETAs := ComputeInternalETAs(newDurations)
-	newETAs := ComputeETAs(currentFloor, recentDirection, allOrders, internalETAs)
+	prioritizedDirection := PrioritizedDirection(
+		currentFloor,
+		recentDirection,
+		allOrders,
+		internalETAs)
+	newETAs := ComputeETAs(
+		currentFloor,
+		recentDirection,
+		prioritizedDirection,
+		allOrders)
 
 	for floor := 0; floor < hardware.FloorCount; floor++ {
 		if !newETAs.Up[floor].IsZero() &&
@@ -57,19 +63,15 @@ func UpdateETAs(
 		allOrders.Down[floor].Now = time.Now()
 	}
 	internalETAs = newETAs
+	return internalETAs
 }
 
 func ComputeETAs(
 	currentFloor int,
+	prioritizedDirection hardware.MotorDirection,
 	recentDirection hardware.MotorDirection,
-	orders AllOrders,
-	internalETAs InternalETAs) InternalETAs {
+	orders AllOrders) InternalETAs {
 
-	prioritizedDirection := PrioritizedDirection(
-		currentFloor,
-		recentDirection,
-		orders,
-		internalETAs)
 	if prioritizedDirection != hardware.MD_Stop {
 		return SimulateETAs(
 			prioritizedDirection,
@@ -131,7 +133,7 @@ func simulateETAStep(
 
 	switch doorAction {
 	case hardware.DS_Close:
-		newDirection := prioritize.MotorActionOnDoorClose(
+		newDirection := prioritize.MotorActionOnDecisionDeadline(
 			prioritizedDirection,
 			GetOrderStatus(*orders, *floor))
 		if newDirection != prioritizedDirection {
@@ -139,7 +141,6 @@ func simulateETAStep(
 		}
 		*floor += int(newDirection)
 		*simulationTime = simulationTime.Add(travelDuration)
-
 	case hardware.DS_Open_Down:
 		etas.Down[*floor] = *simulationTime
 		orders.Down[*floor].LastCompleteTime = time.Now()

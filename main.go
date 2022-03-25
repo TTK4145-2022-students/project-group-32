@@ -6,15 +6,14 @@ import (
 	"elevators/filesystem"
 	"elevators/hardware"
 	"elevators/network"
-	"elevators/phoenix"
 	"elevators/timer"
 	"fmt"
 	"os"
 )
 
 func main() {
-	phoenix.Init()
-	go phoenix.Phoenix()
+	// phoenix.Init()
+	// go phoenix.Phoenix()
 	if len(os.Args) > 1 {
 		hardware.Init("localhost:"+os.Args[1], hardware.FloorCount)
 	} else {
@@ -49,12 +48,12 @@ func main() {
 
 	go filesystem.SaveStatesPeriodically()
 
+	timer.PokeCabTimer.TimerStart()
 	for {
 		select {
 		case buttonEvent := <-buttonPress:
 			orderstate.AcceptNewOrder(buttonEvent.Button, buttonEvent.Floor)
 			orders := orderstate.GetOrders()
-			timer.DecisionDeadlineTimer.TimerStart()
 			cabstate.FSMNewOrder(buttonEvent.Floor, orders)
 
 		case floor := <-floorArrival:
@@ -75,17 +74,18 @@ func main() {
 
 		case <-decisionDeadlineTimedOut:
 			orders := orderstate.GetOrders()
-			cabstate.FSMDecisionTimeout(orders)
+			cabstate.FSMDecisionDeadline(orders)
 
 		case <-PokeCabTimedOut:
 			orders := orderstate.GetOrders()
 			timer.DecisionDeadlineTimer.TimerStart()
-			cabstate.FSMDecisionTimeout(orders)
+			cabstate.FSMDecisionDeadline(orders)
+			// if !orderstate.AnyOrders(orders) {
+			// 	cabstate.FSMDistribute(orders)
+			// }
 			timer.PokeCabTimer.TimerStart()
 
-		case a := <-stopChange:
-			_ = a
-			fmt.Printf("%+v\n", a)
+		case <-stopChange:
 			orderstate.ResetOrders()
 			for f := 0; f < hardware.FloorCount; f++ {
 				for b := hardware.ButtonType(0); b < 3; b++ {

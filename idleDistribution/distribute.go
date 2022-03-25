@@ -1,39 +1,56 @@
 package idledistribution
 
 import (
-	"elevators/controlunit/cabstate"
 	"elevators/controlunit/orderstate"
 	"elevators/hardware"
 )
 
-func Distribute() {
-	orders := orderstate.GetOrders()
-	actualFloor := cabstate.Cab.AboveOrAtFloor
+func MotorActionOnDistribute(
+	currentFloor int,
+	recentDirection hardware.MotorDirection,
+	orders orderstate.AllOrders) hardware.MotorDirection {
 
-	if !orderstate.AnyOrders(orders) && cabstate.Cab.MotorDirection == hardware.MD_Stop {
+	if !orderstate.AnyOrders(orders) {
 		highestAttractiveness := 0
 		var bestFloor int
 		for simFloor := 0; simFloor < hardware.FloorCount; simFloor++ {
-			floorAttractiveness := getNumberOfBestETAsForFloor(simFloor)
+
+			direction := recentDirection
+			if simFloor < currentFloor {
+				direction = hardware.MD_Up
+			} else if simFloor > currentFloor {
+				direction = hardware.MD_Down
+			}
+			floorAttractiveness := getNumberOfBestETAsForFloor(
+				simFloor,
+				direction,
+				orders)
 			if highestAttractiveness <= floorAttractiveness {
 				highestAttractiveness = floorAttractiveness
 
-				if (abs(actualFloor-simFloor) < abs(actualFloor-bestFloor)) {
+				if abs(currentFloor-simFloor) < abs(currentFloor-bestFloor) {
 					bestFloor = simFloor
 				}
 			}
 		}
-		if bestFloor < actualFloor {
-			// gå ned
-		} else if bestFloor > actualFloor {
-			// gå opp
+		if bestFloor < currentFloor {
+			return hardware.MD_Down
+		} else if bestFloor > currentFloor {
+			return hardware.MD_Up
 		}
 	}
+	return hardware.MD_Stop
 }
 
-func getNumberOfBestETAsForFloor(floor int) int {
-	orders := orderstate.GetOrders()
-	internalETAs := orderstate.GetInternalETAs()
+func getNumberOfBestETAsForFloor(
+	floor int,
+	recentDirection hardware.MotorDirection,
+	orders orderstate.AllOrders) int {
+	internalETAs := orderstate.ComputeETAs(
+		floor,
+		hardware.MD_Stop,
+		recentDirection,
+		orders)
 
 	numBestETAs := 0
 	for floor := 0; floor < hardware.FloorCount; floor++ {
@@ -44,7 +61,7 @@ func getNumberOfBestETAsForFloor(floor int) int {
 			numBestETAs++
 		}
 	}
-	
+
 	return numBestETAs
 }
 
