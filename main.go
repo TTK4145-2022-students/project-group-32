@@ -95,11 +95,11 @@ func main() {
 
 		case <-forceAction:
 			// fmt.Printf("%+v\n", a)
-			fmt.Println("Forcing action ")
+			// fmt.Println("Forcing action ")
 			orders := orderstate.GetOrders()
 			timer.DecisionTimer.TimerStart() //Make decision before leaving floor
 			cabstate.FSMDecisionTimeout(orders)
-			timer.ForceActionTimer.TimerStop()
+			// timer.ForceActionTimer.TimerStop()
 			timer.ForceActionTimer.TimerStart()
 
 		// case <-newOrderDecisionTimedOut:
