@@ -3,7 +3,6 @@ package orderstate
 import (
 	"elevators/controlunit/prioritize"
 	"elevators/hardware"
-	"fmt"
 
 	// "fmt"
 	"sync"
@@ -245,15 +244,15 @@ func GetOrderStatus(orders AllOrders, floor int) prioritize.OrderStatus {
 	orderStatus.CabAtFloor = orders.Cab[floor]
 	orderStatus.AboveFloor = OrdersAbove(orders, floor)
 	orderStatus.BelowFloor = OrdersBelow(orders, floor)
-	if !AnyOrders(orders) && !AllInternalETAsBest(orders) {
-		fmt.Println("rearranging to prepare")
-		if 0 < floor && floor < hardware.FloorCount-1 &&
-			internalETABest(orders.Up[floor-1], internalETAs.Up[floor-1]) {
-			orderStatus.BelowFloor = true
-		} else if 0 < floor && floor < hardware.FloorCount-1 &&
-			internalETABest(orders.Down[floor+1], internalETAs.Down[floor+1]) {
-			orderStatus.AboveFloor = true
-		}
-	}
+	// if !AnyOrders(orders) && !AllInternalETAsBest(orders) {
+	// 	fmt.Println("rearranging to prepare")
+	// 	if 0 < floor && floor < hardware.FloorCount-1 &&
+	// 		internalETABest(orders.Up[floor-1], internalETAs.Up[floor-1]) {
+	// 		orderStatus.BelowFloor = true
+	// 	} else if 0 < floor && floor < hardware.FloorCount-1 &&
+	// 		internalETABest(orders.Down[floor+1], internalETAs.Down[floor+1]) {
+	// 		orderStatus.AboveFloor = true
+	// 	}
+	// }
 	return orderStatus
 }

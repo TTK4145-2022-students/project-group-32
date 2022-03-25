@@ -145,10 +145,10 @@ func FSMFloorLeave() ElevatorBehaviour {
 }
 
 func FSMDecisionTimeout(orders orderstate.AllOrders) ElevatorBehaviour {
-	orderstate.UpdateETAs(Cab.RecentDirection, Cab.AboveOrAtFloor)
-	currentOrderStatus := orderstate.GetOrderStatus(orders, Cab.AboveOrAtFloor)
 	switch Cab.Behaviour {
 	case Idle:
+		orderstate.UpdateETAs(Cab.RecentDirection, Cab.AboveOrAtFloor)
+		currentOrderStatus := orderstate.GetOrderStatus(orders, Cab.AboveOrAtFloor)
 		motorAction := prioritize.MotorActionOnDoorClose(
 			orderstate.PrioritizedDirection(Cab.AboveOrAtFloor,
 				Cab.RecentDirection,
