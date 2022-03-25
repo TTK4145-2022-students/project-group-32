@@ -69,6 +69,10 @@ func FSMNewOrder(orderFloor int, orders orderstate.AllOrders) ElevatorBehaviour 
 			setMotorAndCabState(hardware.MD_Stop)
 			FSMFloorStop(orderFloor, orders)
 		}
+	case DoorOpen:
+		orderStatus := orderstate.GetOrderStatus(orders, Cab.AboveOrAtFloor)
+		doorAction := prioritize.DoorActionOnNewOrder(Cab.RecentDirection, orderStatus)
+		setDoorAndCabState(doorAction)
 	}
 	return Cab.Behaviour
 }

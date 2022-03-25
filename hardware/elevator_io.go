@@ -21,13 +21,14 @@ const (
 	MD_Stop MotorDirection = 0
 )
 
-type DoorState int
+type DoorAction int
 
 const (
-	DS_Close DoorState = iota
+	DS_Close DoorAction = iota
 	DS_Open_Up
 	DS_Open_Down
 	DS_Open_Cab
+	DS_Do_Nothing
 )
 
 type ButtonType int
