@@ -103,7 +103,9 @@ func UpdateETAs(
 			newETAs.Down[floor] = allOrders.Down[floor].BestETA
 		}
 		allOrders.Up[floor].LocalETA = newETAs.Up[floor]
-		allOrders.Down[floor].LocalETA = newETAs.Up[floor]
+		allOrders.Down[floor].LocalETA = newETAs.Down[floor]
+		allOrders.Up[floor].Now = time.Now()
+		allOrders.Down[floor].Now = time.Now()
 		// fmt.Print(newETAs)
 	}
 	// updateInternalETAs(newDurations, newETAs)

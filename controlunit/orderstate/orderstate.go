@@ -23,6 +23,7 @@ type OrderState struct {
 	LastCompleteTime time.Time
 	BestETA          time.Time
 	LocalETA         time.Time
+	Now              time.Time
 }
 
 type AllOrders struct {
