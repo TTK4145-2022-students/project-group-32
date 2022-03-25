@@ -1,27 +1,20 @@
 package main
 
 import (
-
-	// "elevators/filesystem"
-
 	"elevators/controlunit/cabstate"
 	"elevators/controlunit/orderstate"
 	"elevators/filesystem"
+	"elevators/hardware"
 	"elevators/network"
+	"elevators/phoenix"
 	"elevators/timer"
 	"fmt"
 	"os"
-
-	//"elevators/filesystem"
-	"elevators/hardware"
-	// "fmt"
-	// "io/ioutil"
-	// "elevators/phoenix"
 )
 
 func main() {
-	// phoenix.Init()
-	// go phoenix.Phoenix()
+	phoenix.Init()
+	go phoenix.Phoenix()
 	if len(os.Args) > 1 {
 		hardware.Init("localhost:"+os.Args[1], hardware.FloorCount)
 	} else {
