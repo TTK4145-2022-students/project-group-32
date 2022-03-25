@@ -19,9 +19,9 @@ type InternalETAs struct {
 	Cab  [hardware.FloorCount]time.Time
 }
 
-const travelDuration = 5 * time.Second
+const travelDuration = 3 * time.Second
 const orderDuration = 4 * time.Second
-const offsetDuration = 2 * time.Second
+const offsetDuration = 1 * time.Second
 
 // const directionChangeCost = 2*travelDuration + orderDuration
 
