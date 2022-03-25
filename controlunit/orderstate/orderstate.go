@@ -80,7 +80,6 @@ func AcceptNewOrder(orderType hardware.ButtonType, floor int) {
 	default:
 		panic("order type not implemented " + string(rune(orderType)))
 	}
-	//Let som time pass before turning on light
 	go waitForOrderGuarantee(orderType, floor)
 }
 
