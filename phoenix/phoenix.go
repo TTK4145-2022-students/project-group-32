@@ -16,22 +16,20 @@ func Init() {
 
 	if _, err := os.Stat(filename); err == nil {
 		for {
-			time.Sleep(time.Second)
 			file, _ := os.Stat(filename)
 			modifiedtime := file.ModTime()
 			// // fmt.Println("Last modified time : ", modifiedtime)
-	
+
 			// data, _ := os.ReadFile(filename)
 			// // fmt.Println("You recieved: ", string(data))
-	
+
 			if modifiedtime.Add(2 * time.Second).Before(time.Now()) {
 				fmt.Println("Spawning new program ")
 				break
 			}
+			time.Sleep(time.Second)
 		}
 	}
-
-
 
 	cmnd := exec.Command("gnome-terminal", "--", "go", "run", "./main.go")
 
