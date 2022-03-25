@@ -1,3 +1,3 @@
 package hardware
 
-const FloorCount = 8
+const FloorCount = 4
