@@ -21,7 +21,7 @@ type InternalETAs struct {
 
 const travelDuration = 5 * time.Second
 const orderDuration = 4 * time.Second
-const offsetDuration = 1 * time.Second
+const offsetDuration = 2 * time.Second
 
 // const directionChangeCost = 2*travelDuration + orderDuration
 
@@ -51,13 +51,16 @@ func GetInternalETAs() InternalETAs {
 // 			durationSecs += (floor - destinationFloor) * secsPerFloor
 // 		}
 // 	}
-// 	return time.Duration(durationSecs) * time.Second
+// 	return time.Duration(durationSecs) * time.Secders(orders) && !AllInternalETAsBest(orders) {
+// 	fmt.Println("prioritizing to prepare")
+// 	if 0 < floor && 2*floor < hardware.FloorCount &&
+// 		internalETABest(orders.Up[floor-1], allETAs.Up[floor-1]) {
+// 		return hardware.MD_Down
+// 	} else if floor < hardware.FloorCount-1 &&
+// 		internalETABest(orders.Down[floor+1], allETAs.Down[floor+1]) {
+// 		return hardware.MD_Up
+// 	}
 // }
-
-// func travelDuration() time.Duration{
-// 	return time.Duration(secsPerFloor) * time.Second
-// }
-
 // func stopDuration(caborder bool) time.Duration {
 // 	if caborder {
 // 		return time.Duration(secsPerOrder) * time.Second
@@ -175,11 +178,11 @@ func ComputeDurations(
 			recentDirection,
 			orders)
 	} else {
-		durationsBelow := calculateETAforDirection(
+		durationsBelow := calculateDurationforDirection(
 			currentFloor,
 			hardware.MD_Down,
 			orders)
-		durationsAbove := calculateETAforDirection(
+		durationsAbove := calculateDurationforDirection(
 			currentFloor,
 			hardware.MD_Up,
 			orders)
@@ -362,7 +365,7 @@ func simulateStep(
 	}
 */
 
-func calculateETAforDirection(
+func calculateDurationforDirection(
 	currentFloor int,
 	direction hardware.MotorDirection,
 	orders AllOrders) AllDurations {
@@ -372,6 +375,12 @@ func calculateETAforDirection(
 	simCabFloor := currentFloor
 	simCabDirection := int(direction)
 	currentTime := offsetDuration
+	if simCabDirection == int(hardware.MD_Down) {
+		computedDurations.Down[simCabFloor] = currentTime
+	}
+	if simCabDirection == int(hardware.MD_Up) {
+		computedDurations.Up[simCabFloor] = currentTime
+	}
 	for {
 		simCabFloor += simCabDirection
 		currentTime += travelDuration
