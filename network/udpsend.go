@@ -9,7 +9,7 @@ import (
 
 const UDPPort = 20014
 const broadcastAddr = "255.255.255.255"
-const _sendRate = 40 * time.Millisecond
+const _sendRate = orderstate.WaitBeforeGuaranteeTime / 5
 
 func InitUDPSendingSocket(port int, sendAddr string) (net.UDPAddr, *net.UDPConn) {
 	sendaddr := net.UDPAddr{

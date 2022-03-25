@@ -646,10 +646,10 @@ func ETADirection(
 	}
 	if !AnyOrders(orders) && !AllInternalETAsBest(orders) {
 		fmt.Println("prioritizing to prepare")
-		if 0 < floor && 2*floor < hardware.FloorCount &&
+		if 0 < floor && floor < hardware.FloorCount-1 &&
 			internalETABest(orders.Up[floor-1], allETAs.Up[floor-1]) {
 			return hardware.MD_Down
-		} else if floor < hardware.FloorCount-1 &&
+		} else if 0 < floor && floor < hardware.FloorCount-1 &&
 			internalETABest(orders.Down[floor+1], allETAs.Down[floor+1]) {
 			return hardware.MD_Up
 		}

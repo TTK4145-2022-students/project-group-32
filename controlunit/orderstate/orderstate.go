@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+const WaitBeforeGuaranteeTime = 200 * time.Millisecond
+
 type OrderChange int
 
 const (
@@ -81,7 +83,29 @@ func AcceptNewOrder(orderType hardware.ButtonType, floor int) {
 	default:
 		panic("order type not implemented " + string(rune(orderType)))
 	}
-	hardware.SetButtonLamp(orderType, floor, true)
+	go waitForOrderGuarantee(orderType, floor)
+}
+
+func waitForOrderGuarantee(orderType hardware.ButtonType, floor int) {
+	allOrdersMtx.Lock()
+	defer allOrdersMtx.Unlock()
+	time.Sleep(WaitBeforeGuaranteeTime)
+	switch orderType {
+	case hardware.BT_HallUp:
+		if hasOrder(allOrders.Up[floor]) {
+			hardware.SetButtonLamp(orderType, floor, true)
+		}
+	case hardware.BT_HallDown:
+		if hasOrder(allOrders.Down[floor]) {
+			hardware.SetButtonLamp(orderType, floor, true)
+		}
+	case hardware.BT_Cab:
+		if allOrders.Cab[floor] {
+			hardware.SetButtonLamp(orderType, floor, true)
+		}
+	default:
+		panic("order type not implemented " + string(rune(orderType)))
+	}
 }
 
 func CompleteOrderCabAndUp(floor int) {
