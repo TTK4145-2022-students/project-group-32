@@ -375,13 +375,14 @@ func calculateDurationforDirection(
 	simCabFloor := currentFloor
 	simCabDirection := int(direction)
 	currentTime := offsetDuration
-	if simCabDirection == int(hardware.MD_Down) {
-		computedDurations.Down[simCabFloor] = currentTime
-	}
-	if simCabDirection == int(hardware.MD_Up) {
-		computedDurations.Up[simCabFloor] = currentTime
-	}
 	for {
+		if simCabDirection == int(hardware.MD_Down) {
+			computedDurations.Down[simCabFloor] = currentTime
+		}
+		if simCabDirection == int(hardware.MD_Up) {
+			computedDurations.Up[simCabFloor] = currentTime
+		}
+		
 		simCabFloor += simCabDirection
 		currentTime += travelDuration
 		if simCabFloor < 0 || simCabFloor >= hardware.FloorCount {
@@ -399,12 +400,6 @@ func calculateDurationforDirection(
 			(simCabDirection == int(hardware.MD_Up) &&
 				hasOrder(orders.Up[simCabFloor])) {
 			currentTime += orderDuration
-		}
-		if simCabDirection == int(hardware.MD_Down) {
-			computedDurations.Down[simCabFloor] = currentTime
-		}
-		if simCabDirection == int(hardware.MD_Up) {
-			computedDurations.Up[simCabFloor] = currentTime
 		}
 	}
 
