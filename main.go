@@ -40,12 +40,9 @@ func main() {
 
 	go timer.DoorTimer.PollTimerOut(doorTimedOut)
 	go timer.DecisionTimer.PollTimerOut(decisionTimedOut)
-	// go timer.NewOrderDecisionTimer.PollTimerOut(newOrderDecisionTimedOut)
-	// go cabstate.ForceActivationLoop()
 	go timer.ForceActionTimer.PollTimerOut(forceAction)
 
 	go network.PollReceiveOrderState(ordersRecieved)
-
 	go network.SendOrderStatePeriodically()
 
 	go filesystem.SaveStatePeriodically()
@@ -57,7 +54,6 @@ func main() {
 			orderstate.AcceptNewOrder(buttonEvent.Button, buttonEvent.Floor)
 			orders := orderstate.GetOrders()
 			timer.DecisionTimer.TimerStart() //Make decision before leaving floor
-			// timer.ForceActionTimer.TimerStart()
 			cabstate.FSMNewOrder(buttonEvent.Floor, orders)
 
 		case floor := <-floorArrival:
@@ -87,17 +83,10 @@ func main() {
 
 		case <-forceAction:
 			// fmt.Printf("%+v\n", a)
-			// fmt.Println("Forcing action ")
 			orders := orderstate.GetOrders()
 			timer.DecisionTimer.TimerStart() //Make decision before leaving floor
 			cabstate.FSMDecisionTimeout(orders)
-			// timer.ForceActionTimer.TimerStop()
 			timer.ForceActionTimer.TimerStart()
-
-		// case <-newOrderDecisionTimedOut:
-		// 	// fmt.Printf("%+v\n", a)
-		// 	orders := orderstate.GetOrders()
-		// 	cabstate.FSMNewOrder(buttonEvent.Floor, orders)
 
 		case a := <-stopChange:
 			_ = a
@@ -108,10 +97,9 @@ func main() {
 					hardware.SetButtonLamp(b, f, false)
 				}
 			}
+
 		case recievedOrderState := <-ordersRecieved:
 			// fmt.Printf("%+v\n", a)
-			// fmt.Println("updating orders")
-			// todo better handling of bunch update of new orders
 			newOrdersInFloors := orderstate.UpdateOrders(recievedOrderState)
 			orders := orderstate.GetOrders()
 			for floor, newOrder := range newOrdersInFloors {

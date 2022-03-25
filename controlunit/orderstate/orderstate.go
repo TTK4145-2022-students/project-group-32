@@ -4,8 +4,6 @@ import (
 	"elevators/controlunit/prioritize"
 	"elevators/hardware"
 	"fmt"
-
-	// "fmt"
 	"sync"
 	"time"
 )
@@ -35,15 +33,9 @@ type AllOrders struct {
 }
 
 var allOrders AllOrders
+
 var allOrdersMtx = new(sync.RWMutex)
 
-var MaxTime = time.Unix(1<<63-1, 999999999)
-
-func ResetOrders() {
-	allOrdersMtx.Lock()
-	defer allOrdersMtx.Unlock()
-	allOrders = AllOrders{}
-}
 
 func Init(orderState AllOrders) {
 	allOrdersMtx.Lock()
@@ -62,6 +54,12 @@ func Init(orderState AllOrders) {
 			}
 		}
 	}
+}
+
+func ResetOrders() {
+	allOrdersMtx.Lock()
+	defer allOrdersMtx.Unlock()
+	allOrders = AllOrders{}
 }
 
 func GetOrders() AllOrders {
@@ -83,6 +81,7 @@ func AcceptNewOrder(orderType hardware.ButtonType, floor int) {
 	default:
 		panic("order type not implemented " + string(rune(orderType)))
 	}
+	//Let som time pass before turning on light
 	go waitForOrderGuarantee(orderType, floor)
 }
 
@@ -150,7 +149,6 @@ func updateFloorOrderState(inputState OrderState, currentState *OrderState) Orde
 	if inputState.LastOrderTime.After(currentState.LastOrderTime) {
 		currentState.LastOrderTime = inputState.LastOrderTime
 	}
-	// fmt.Println(currentState.LastOrderTime.String())
 	if inputState.LastCompleteTime.After(currentState.LastCompleteTime) {
 		currentState.LastCompleteTime = inputState.LastCompleteTime
 	}
@@ -171,7 +169,6 @@ func updateFloorOrderState(inputState OrderState, currentState *OrderState) Orde
 }
 
 func hasOrder(inputState OrderState) bool {
-	//TODO: test (Possible riv ruskende here)
 	return inputState.LastOrderTime.After(inputState.LastCompleteTime)
 }
 

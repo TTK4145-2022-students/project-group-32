@@ -5,46 +5,7 @@ import (
 	"elevators/controlunit/prioritize"
 	"elevators/hardware"
 	"elevators/timer"
-	// "time"
 )
-
-// type DoorState struct {
-// 	Obstructed bool
-// 	DoorBehaviour hardware.DoorState
-// }
-
-// var Door DoorState
-
-// func InitDoorState() {
-// 	Door := new(DoorState)
-// 	_ = Door
-// }
-
-// func setDoorState(state hardware.DoorState) {
-// 	hardware.SetDoorOpenLamp(bool(state))
-// 	switch state {
-// 	case hardware.DS_Open:
-// 		.Open = true
-// 		timer.TimerStart(doorOpenSecs)
-// 	case hardware.DS_Close:
-// 		Door.Open = false
-// 		timer.TimerStop()
-// 	default:
-// 		panic("door state not implemented")
-// 	}
-// }
-
-// func FSMCloseDoor() DoorState {
-// 	switch Door.Obstructed {
-// 	case true:
-// 		break
-// 	case false:
-// 		setDoorState(hardware.DS_Open)
-// 	default:
-// 		panic("door obstruction not boolean on input")
-// 	}
-// 	return Door
-// }
 
 func setDoorAndCabState(state hardware.DoorState) {
 	switch state {
@@ -61,7 +22,6 @@ func setDoorAndCabState(state hardware.DoorState) {
 		Cab.RecentDirection = hardware.MD_Down
 	case hardware.DS_Close:
 		closeDoor()
-
 	default:
 		panic("door state not implemented")
 	}
@@ -84,13 +44,11 @@ func FSMObstructionChange(obstructed bool, orders orderstate.AllOrders) {
 	Cab.DoorObstructed = obstructed
 	switch obstructed {
 	case true:
-		switch Cab.Behaviour {
-		case DoorOpen:
+		if Cab.Behaviour == DoorOpen {
 			Cab.Behaviour = CabObstructed
 		}
 	case false:
-		switch Cab.Behaviour {
-		case CabObstructed:
+		if Cab.Behaviour == CabObstructed {
 			Cab.Behaviour = DoorOpen
 			if timer.DoorTimer.TimedOut() {
 				FSMDoorTimeout(orders)
@@ -110,6 +68,7 @@ func FSMDoorTimeout(orders orderstate.AllOrders) ElevatorBehaviour {
 				orderstate.GetInternalETAs()),
 			Cab.DoorObstructed,
 			currentOrderStatus)
+
 		setDoorAndCabState(doorAction)
 
 		if doorAction == hardware.DS_Close {
@@ -129,11 +88,13 @@ func FSMFloorStop(floor int, orders orderstate.AllOrders) ElevatorBehaviour {
 	switch Cab.Behaviour {
 	case Idle:
 		doorAction := prioritize.DoorActionOnFloorStop(
-			orderstate.PrioritizedDirection(Cab.AboveOrAtFloor,
+			orderstate.PrioritizedDirection(
+				Cab.AboveOrAtFloor,
 				Cab.RecentDirection,
 				orders,
 				orderstate.GetInternalETAs()),
 			currentOrderStatus)
+
 		setDoorAndCabState(doorAction)
 	default:
 		panic("Invalid cab state on door timeout")
