@@ -7,7 +7,7 @@ import (
 	"elevators/timer"
 )
 
-func setDoorAndCabState(state hardware.DoorState) {
+func setDoorAndCabState(state hardware.DoorAction) {
 	switch state {
 	case hardware.DS_Open_Cab:
 		openDoor()
@@ -22,6 +22,8 @@ func setDoorAndCabState(state hardware.DoorState) {
 		Cab.RecentDirection = hardware.MD_Down
 	case hardware.DS_Close:
 		closeDoor()
+	case hardware.DS_Do_Nothing:
+		break
 	default:
 		panic("door state not implemented")
 	}
