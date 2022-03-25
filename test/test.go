@@ -21,6 +21,8 @@ func testHasOrder() {
 		orderstate.OrderState{},
 		orderstate.OrderState{LastOrderTime: time.Time{}, LastCompleteTime: time.Time{}},
 		orderstate.OrderState{LastOrderTime: time.Now(), LastCompleteTime: time.Time{}},
+		orderstate.OrderState{LastOrderTime: time.Now(), LastCompleteTime: time.Now().Add(-1)},
+		orderstate.OrderState{LastOrderTime: time.Now(), LastCompleteTime: time.Now().Add(-1 * time.Second)},
 		orderstate.OrderState{LastOrderTime: time.Now(), LastCompleteTime: time.Now()}}
 	for _, order := range orders {
 		fmt.Print("Last order: ")
