@@ -21,6 +21,7 @@ type InternalETAs struct {
 
 const travelDuration = 5 * time.Second
 const orderDuration = 4 * time.Second
+const offsetDuration = 1 * time.Second
 
 // const directionChangeCost = 2*travelDuration + orderDuration
 
@@ -209,7 +210,7 @@ func SimulateDurations(
 	simulationFloor := currentFloor
 	simulationDirection := recentDirection
 	simulationOrders := orders
-	simulationTime := time.Duration(1)
+	simulationTime := offsetDuration
 	var simulatedDurations AllDurations
 	for prioritizedDirection != hardware.MD_Stop {
 		prioritizedDirection = simulateStep(
@@ -276,7 +277,7 @@ func simulateStep(
 // 	direction hardware.MotorDirection,
 // 	orders AllOrders){
 // 		var computedDurations AllDurations
-// 		testTime := time.Duration(1)
+// 		testTime := offsetDuration
 // 		floor := currentFloor
 // 		for 0 < floor && floor < hardware.FloorCount - 1 {
 // 			switch direction {
@@ -370,7 +371,7 @@ func calculateETAforDirection(
 
 	simCabFloor := currentFloor
 	simCabDirection := int(direction)
-	currentTime := time.Duration(1)
+	currentTime := offsetDuration
 	for {
 		simCabFloor += simCabDirection
 		currentTime += travelDuration
