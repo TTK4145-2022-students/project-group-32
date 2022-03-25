@@ -8,7 +8,6 @@ import (
 	"os"
 )
 
-
 func ReadCabState() cabstate.CabState {
 	var cabState cabstate.CabState
 	json.Unmarshal(read("filesystem/cabState.json"), &cabState)
@@ -22,16 +21,10 @@ func ReadOrders() orderstate.AllOrders {
 }
 
 func read(filepath string) []byte {
-	// // fmt.Println("Filesystem/read.go")
-
-	jsonFile, err := os.Open(filepath)
-
-	if err != nil {
-		// fmt.Println(err)
-	}
+	jsonFile, _ := os.Open(filepath)
 
 	defer jsonFile.Close()
-	
+
 	byteValue, _ := ioutil.ReadAll(jsonFile)
 
 	return byteValue

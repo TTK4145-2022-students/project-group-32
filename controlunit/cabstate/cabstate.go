@@ -66,8 +66,7 @@ func FSMNewOrder(orderFloor int, orders orderstate.AllOrders) ElevatorBehaviour 
 		}
 	case Moving:
 		if (Cab.AboveOrAtFloor == orderFloor) && !Cab.BetweenFloors {
-			setMotorAndCabState(hardware.MD_Stop)
-			FSMFloorStop(orderFloor, orders)
+			FSMFloorArrival(Cab.AboveOrAtFloor, orders)
 		}
 	case DoorOpen:
 		orderStatus := orderstate.GetOrderStatus(orders, Cab.AboveOrAtFloor)
@@ -91,8 +90,6 @@ func FSMFloorArrival(floor int, orders orderstate.AllOrders) ElevatorBehaviour {
 		if motorAction == hardware.MD_Stop {
 			return FSMFloorStop(floor, orders)
 		}
-	default:
-		// panic("Invalid cab state on floor arrival")
 	}
 	return Cab.Behaviour
 }
@@ -129,6 +126,6 @@ func FSMDecisionTimeout(orders orderstate.AllOrders) ElevatorBehaviour {
 
 		setMotorAndCabState(motorAction)
 	}
-	timer.DecisionTimer.TimerStop()
+	timer.DecisionDeadlineTimer.TimerStop()
 	return Cab.Behaviour
 }

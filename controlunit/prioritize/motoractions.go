@@ -49,7 +49,6 @@ func MotorActionOnFloorArrival(
 			return hardware.MD_Up
 		}
 		if currentOrders.DownAtFloor {
-			// fmt.Println("last downorder")
 			return hardware.MD_Stop
 		}
 		if currentOrders.BelowFloor {
@@ -63,7 +62,6 @@ func MotorActionOnFloorArrival(
 			return hardware.MD_Down
 		}
 		if currentOrders.UpAtFloor {
-			// fmt.Println("last uporder")
 			return hardware.MD_Stop
 		}
 		if currentOrders.AboveFloor {
