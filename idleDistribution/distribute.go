@@ -3,9 +3,13 @@ package idledistribution
 import (
 	"elevators/controlunit/orderstate"
 	"elevators/hardware"
+	"fmt"
+	"time"
 )
 
-func MotorActionOnDistribute(
+// const maxDurationDiffFromFloor = orderstate.OffsetDuration
+
+func MotorActionOnDistributeTrygve(
 	currentFloor int,
 	recentDirection hardware.MotorDirection,
 	orders orderstate.AllOrders) hardware.MotorDirection {
@@ -42,6 +46,42 @@ func MotorActionOnDistribute(
 	return hardware.MD_Stop
 }
 
+func MotorActionOnDistribute(
+	currentFloor int,
+	recentDirection hardware.MotorDirection,
+	orders orderstate.AllOrders,
+	internalETAs orderstate.InternalETAs) hardware.MotorDirection {
+
+	if !orderstate.AnyOrders(orders) &&
+		!orderstate.AllInternalETAsBest(orders) {
+		if currentFloor == 0 &&
+			orderstate.InternalETABest(orders.Up[currentFloor+1], internalETAs.Up[currentFloor+1]) {
+			fmt.Println("preparing bottom up")
+			return hardware.MD_Up
+		} else if currentFloor == hardware.FloorCount-1 &&
+			orderstate.InternalETABest(orders.Down[currentFloor-1], internalETAs.Down[currentFloor-1]) {
+			fmt.Println("preparing top down")
+			return hardware.MD_Down
+		} else if 0 < currentFloor && currentFloor < hardware.FloorCount-1 &&
+			(!orderstate.InternalETABest(orders.Up[currentFloor], internalETAs.Up[currentFloor]) &&
+				time.Until(orders.Up[currentFloor].BestETA) < orderstate.OffsetDuration) &&
+			orderstate.InternalETABest(orders.Up[currentFloor-1], internalETAs.Up[currentFloor-1]) {
+			fmt.Println("preparing middle down")
+			return hardware.MD_Down
+		} else if 0 < currentFloor && currentFloor < hardware.FloorCount-1 &&
+			(!orderstate.InternalETABest(orders.Down[currentFloor], internalETAs.Down[currentFloor]) &&
+				time.Until(orders.Up[currentFloor].BestETA) < orderstate.OffsetDuration) &&
+			orderstate.InternalETABest(orders.Down[currentFloor+1], internalETAs.Down[currentFloor+1]) {
+			fmt.Println("preparing middle up")
+			return hardware.MD_Up
+		}
+		// if currentFloor == hardware.FloorCount-1{
+
+		// }
+	}
+	return hardware.MD_Stop
+}
+
 func getNumberOfBestETAsForFloor(
 	floor int,
 	recentDirection hardware.MotorDirection,
@@ -71,3 +111,21 @@ func abs(x int) int {
 	}
 	return x
 }
+
+// func AssumeCabPositionsFromETAs(
+// 	orders orderstate.AllOrders,
+// 	internalETAs orderstate.InternalETAs) [hardware.FloorCount]bool {
+// 	var cabPositions [hardware.FloorCount]bool
+// 	now := time.Now()
+// 	for floor := 0; floor < hardware.FloorCount; floor++ {
+// 		if (!orderstate.InternalETABest(orders.Up[floor], internalETAs.Up[floor]) &&
+// 			orders.Up[floor].BestETA.Sub(now) < maxDurationDiffFromFloor &&
+// 			orders.Up[floor].BestETA.Sub(now) > -maxDurationDiffFromFloor) ||
+// 			(!orderstate.InternalETABest(orders.Down[floor], internalETAs.Down[floor]) &&
+// 				orders.Down[floor].BestETA.Sub(now) < maxDurationDiffFromFloor &&
+// 				orders.Down[floor].BestETA.Sub(now) > -maxDurationDiffFromFloor) {
+// 			cabPositions[floor] = true
+// 		}
+// 	}
+// 	return cabPositions
+// }

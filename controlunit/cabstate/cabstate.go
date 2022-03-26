@@ -6,8 +6,6 @@ import (
 	"elevators/hardware"
 	idledistribution "elevators/idleDistribution"
 	"elevators/timer"
-	// "fmt"
-	// "time"
 )
 
 type ElevatorBehaviour int
@@ -59,7 +57,7 @@ func FSMInitBetweenFloors() ElevatorBehaviour {
 }
 
 func FSMNewOrder(orderFloor int, orders orderstate.AllOrders) ElevatorBehaviour {
-	orderstate.UpdateETAs(Cab.RecentDirection, Cab.AboveOrAtFloor)
+	orderstate.UpdateOrderAndInternalETAs(Cab.RecentDirection, Cab.AboveOrAtFloor)
 	switch Cab.Behaviour {
 	case Idle:
 		if (Cab.AboveOrAtFloor == orderFloor) && !Cab.BetweenFloors {
@@ -82,7 +80,7 @@ func FSMNewOrder(orderFloor int, orders orderstate.AllOrders) ElevatorBehaviour 
 func FSMFloorArrival(floor int, orders orderstate.AllOrders) ElevatorBehaviour {
 	Cab.AboveOrAtFloor = floor
 	Cab.BetweenFloors = false
-	orderstate.UpdateETAs(Cab.RecentDirection, Cab.AboveOrAtFloor)
+	// orderstate.UpdateETAs(Cab.RecentDirection, Cab.AboveOrAtFloor)
 	orderStatus := orderstate.GetOrderStatus(orders, floor)
 	switch Cab.Behaviour {
 	case Moving:
@@ -115,34 +113,44 @@ func FSMFloorLeave() ElevatorBehaviour {
 	return Cab.Behaviour
 }
 
-func FSMDecisionDeadline(orders orderstate.AllOrders) ElevatorBehaviour {
+func FSMDecisionDeadline() ElevatorBehaviour {
 	switch Cab.Behaviour {
 	case Idle:
-		orderstate.UpdateETAs(Cab.RecentDirection, Cab.AboveOrAtFloor)
+		orders, internalETAs := orderstate.UpdateOrderAndInternalETAs(Cab.RecentDirection, Cab.AboveOrAtFloor)
 		currentOrderStatus := orderstate.GetOrderStatus(orders, Cab.AboveOrAtFloor)
 		motorAction := prioritize.MotorActionOnDecisionDeadline(
-			// orderstate.PrioritizedDirection(Cab.AboveOrAtFloor,
-			// 	Cab.RecentDirection,
-			// 	orders,
-			// 	orderstate.GetInternalETAs()),
-			Cab.RecentDirection,
+			orderstate.PrioritizedDirection(Cab.AboveOrAtFloor,
+				Cab.RecentDirection,
+				orders,
+				internalETAs),
+			// Cab.RecentDirection,
 			currentOrderStatus)
 
 		setMotorAndCabState(motorAction)
+		if motorAction == hardware.MD_Stop && orderstate.AnyOrders(orders) {
+			timer.ETAExpiredAlarm.SetAlarm(orderstate.FirstBestETAexpirationWithOrder(orders))
+		}
 	}
 	timer.DecisionDeadlineTimer.TimerStop()
 	return Cab.Behaviour
 }
 
-func FSMDistribute(orders orderstate.AllOrders) ElevatorBehaviour {
+func FSMDistribute(
+	orders orderstate.AllOrders,
+	internalETAs orderstate.InternalETAs) ElevatorBehaviour {
 	switch Cab.Behaviour {
 	case Idle:
+		// orders, internalETAs = orderstate.UpdateOrderAndInternalETAs(Cab.RecentDirection, Cab.AboveOrAtFloor)
 		motorAction := idledistribution.MotorActionOnDistribute(
 			Cab.AboveOrAtFloor,
 			Cab.RecentDirection,
-			orders)
+			orders,
+			internalETAs)
 
 		setMotorAndCabState(motorAction)
+
+		orderstate.UpdateOrderAndInternalETAs(Cab.RecentDirection, Cab.AboveOrAtFloor)
+
 	}
 	return Cab.Behaviour
 }

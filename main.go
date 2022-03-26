@@ -7,7 +7,6 @@ import (
 	"elevators/hardware"
 	"elevators/network"
 	"elevators/timer"
-	"fmt"
 	"os"
 )
 
@@ -19,6 +18,7 @@ func main() {
 	} else {
 		hardware.Init("localhost:15657", hardware.FloorCount)
 	}
+	filesystem.Init()
 	orderstate.Init(filesystem.ReadOrders())
 	cabstate.Init(filesystem.ReadCabState())
 
@@ -31,6 +31,7 @@ func main() {
 	doorTimedOut := make(chan bool)
 	decisionDeadlineTimedOut := make(chan bool)
 	PokeCabTimedOut := make(chan bool)
+	etaExpiredAlarmRinging := make(chan bool)
 
 	ordersRecieved := make(chan orderstate.AllOrders)
 
@@ -41,7 +42,8 @@ func main() {
 
 	go timer.DoorTimer.PollTimerOut(doorTimedOut)
 	go timer.DecisionDeadlineTimer.PollTimerOut(decisionDeadlineTimedOut)
-	// go timer.PokeCabTimer.PollTimerOut(PokeCabTimedOut)
+	go timer.PokeCabTimer.PollTimerOut(PokeCabTimedOut)
+	go timer.ETAExpiredAlarm.PollAlarm(etaExpiredAlarmRinging)
 
 	go network.PollReceiveOrders(ordersRecieved)
 	go network.SendOrdersPeriodically()
@@ -73,17 +75,20 @@ func main() {
 			cabstate.FSMDoorTimeout(orders)
 
 		case <-decisionDeadlineTimedOut:
-			orders := orderstate.GetOrders()
-			cabstate.FSMDecisionDeadline(orders)
+			cabstate.FSMDecisionDeadline()
 
 		case <-PokeCabTimedOut:
 			orders := orderstate.GetOrders()
-			timer.DecisionDeadlineTimer.TimerStart()
-			cabstate.FSMDecisionDeadline(orders)
+			internalETAs := orderstate.GetInternalETAs()
+			// fmt.Println(idledistribution.AssumeCabPositionsFromETAs(orders, internalETAs))
+			// 	cabstate.FSMDecisionDeadline(orders)
 			// if !orderstate.AnyOrders(orders) {
-			// 	cabstate.FSMDistribute(orders)
+			cabstate.FSMDistribute(orders, internalETAs)
 			// }
 			timer.PokeCabTimer.TimerStart()
+
+		case <-etaExpiredAlarmRinging:
+			cabstate.FSMDecisionDeadline()
 
 		case <-stopChange:
 			orderstate.ResetOrders()
@@ -98,7 +103,6 @@ func main() {
 			orders := orderstate.GetOrders()
 			for floor, newOrder := range newOrdersInFloors {
 				if newOrder {
-					fmt.Println("recieved new order")
 					cabstate.FSMNewOrder(floor, orders)
 				}
 			}
