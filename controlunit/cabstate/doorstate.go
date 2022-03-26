@@ -39,7 +39,7 @@ func closeDoor() {
 	hardware.SetDoorOpenLamp(false)
 	Cab.Behaviour = Idle
 	timer.DoorTimer.TimerStop()
-	timer.DecisionDeadlineTimer.TimerStart() //Make decision before leaving floor
+	timer.DecisionDeadlineTimer.TimerStart()
 }
 
 func FSMObstructionChange(obstructed bool, orders orderstate.AllOrders) {
@@ -68,13 +68,14 @@ func FSMDoorTimeout(orders orderstate.AllOrders) ElevatorBehaviour {
 				Cab.RecentDirection,
 				orders,
 				orderstate.GetInternalETAs()),
+			// Cab.RecentDirection,
 			Cab.DoorObstructed,
 			currentOrderStatus)
 
 		setDoorAndCabState(doorAction)
 
 		if doorAction == hardware.DS_Close {
-			orderstate.UpdateETAs(Cab.RecentDirection, Cab.AboveOrAtFloor)
+			orderstate.UpdateOrderAndInternalETAs(Cab.RecentDirection, Cab.AboveOrAtFloor)
 			timer.DecisionDeadlineTimer.TimerStart()
 		}
 	case CabObstructed:
@@ -95,6 +96,7 @@ func FSMFloorStop(floor int, orders orderstate.AllOrders) ElevatorBehaviour {
 				Cab.RecentDirection,
 				orders,
 				orderstate.GetInternalETAs()),
+			// Cab.RecentDirection,
 			currentOrderStatus)
 
 		setDoorAndCabState(doorAction)

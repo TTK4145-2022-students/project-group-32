@@ -141,15 +141,16 @@ func clearDownOrder(floor int) {
 
 func updateFloorOrderState(inputState OrderState, currentState *OrderState) OrderChange {
 	currentOrder := hasOrder(*currentState)
+	now := time.Now()
 	if inputState.LastOrderTime.After(currentState.LastOrderTime) {
 		currentState.LastOrderTime = inputState.LastOrderTime
 	}
 	if inputState.LastCompleteTime.After(currentState.LastCompleteTime) {
 		currentState.LastCompleteTime = inputState.LastCompleteTime
 	}
-	if (inputState.BestETA.Before(currentState.BestETA) ||
-		currentState.BestETA.Before(time.Now())) &&
-		inputState.BestETA.After(time.Now()) {
+	if inputState.BestETA.After(now) &&
+		(inputState.BestETA.Before(currentState.BestETA) ||
+			currentState.BestETA.Before(now)) {
 		currentState.BestETA = inputState.BestETA
 	}
 
@@ -177,6 +178,8 @@ func AnyOrders(orders AllOrders) bool {
 }
 
 func UpdateOrders(inputOrders AllOrders) [hardware.FloorCount]bool {
+	allOrdersMtx.Lock()
+	defer allOrdersMtx.Unlock()
 	var newOrders [hardware.FloorCount]bool
 	for floor := 0; floor < hardware.FloorCount; floor++ {
 		switch updateFloorOrderState(inputOrders.Down[floor], &allOrders.Down[floor]) {
@@ -261,15 +264,5 @@ func GetOrderStatus(orders AllOrders, floor int) prioritize.OrderStatus {
 	orderStatus.CabAtFloor = orders.Cab[floor]
 	orderStatus.AboveFloor = OrdersAbove(orders, floor)
 	orderStatus.BelowFloor = OrdersBelow(orders, floor)
-	// if !AnyOrders(orders) && !AllInternalETAsBest(orders) {
-	// 	fmt.Println("rearranging to prepare")
-	// 	if 0 < floor && floor < hardware.FloorCount-1 &&
-	// 		internalETABest(orders.Up[floor-1], internalETAs.Up[floor-1]) {
-	// 		orderStatus.BelowFloor = true
-	// 	} else if 0 < floor && floor < hardware.FloorCount-1 &&
-	// 		internalETABest(orders.Down[floor+1], internalETAs.Down[floor+1]) {
-	// 		orderStatus.AboveFloor = true
-	// 	}
-	// }
 	return orderStatus
 }

@@ -1,4 +1,5 @@
 # Project exclude paths
-filesystem/cabState.json
-filesystem/orderState.json
+filesystem/cabState*.json
+filesystem/orderState*.json
 phoenix/phoenix*.txt
+*.json

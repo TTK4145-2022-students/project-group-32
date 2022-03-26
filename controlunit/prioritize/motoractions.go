@@ -2,10 +2,9 @@ package prioritize
 
 import (
 	"elevators/hardware"
-	// "fmt"
 )
 
-func MotorActionOnDoorClose(
+func MotorActionOnDecisionDeadline(
 	prioritizedDirection hardware.MotorDirection,
 	currentOrders OrderStatus) hardware.MotorDirection {
 
