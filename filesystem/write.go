@@ -17,14 +17,28 @@ func SaveStatesPeriodically() {
 }
 
 func SaveCabState(cabState cabstate.CabState) {
-	Write(cabFile, cabState)
+	Write(
+		cabFile,
+		cabState)
 }
 
 func SaveOrders(orders orderstate.AllOrders) {
-	Write(orderFile, orders)
+	Write(
+		orderFile,
+		orders)
 }
 
-func Write(filepath string, state interface{}) {
-	file, _ := json.MarshalIndent(state, "", " ")
-	_ = ioutil.WriteFile(filepath, file, 0644)
+func Write(
+	filepath string,
+	state interface{}) {
+
+	file,
+		_ := json.MarshalIndent(
+		state,
+		"",
+		" ")
+	_ = ioutil.WriteFile(
+		filepath,
+		file,
+		0644)
 }

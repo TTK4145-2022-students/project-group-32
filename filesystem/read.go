@@ -10,22 +10,28 @@ import (
 
 func ReadCabState() cabstate.CabState {
 	var cabState cabstate.CabState
-	json.Unmarshal(read(cabFile), &cabState)
+	json.Unmarshal(
+		read(cabFile),
+		&cabState)
 	return cabState
 }
 
 func ReadOrders() orderstate.AllOrders {
 	var orderState orderstate.AllOrders
-	json.Unmarshal(read(orderFile), &orderState)
+	json.Unmarshal(
+		read(orderFile),
+		&orderState)
 	return orderState
 }
 
 func read(filepath string) []byte {
-	jsonFile, _ := os.Open(filepath)
+	jsonFile,
+		_ := os.Open(filepath)
 
 	defer jsonFile.Close()
 
-	byteValue, _ := ioutil.ReadAll(jsonFile)
+	byteValue,
+		_ := ioutil.ReadAll(jsonFile)
 
 	return byteValue
 }
