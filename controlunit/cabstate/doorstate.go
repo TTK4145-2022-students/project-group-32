@@ -11,14 +11,14 @@ func setDoorAndCabState(state hardware.DoorAction) {
 	switch state {
 	case hardware.DS_Open_Cab:
 		openDoor()
-		orderstate.CompleteOrderCab(Cab.AboveOrAtFloor)
+		orderstate.CompleteCabOrder(Cab.AboveOrAtFloor)
 	case hardware.DS_Open_Up:
 		openDoor()
-		orderstate.CompleteOrderCabAndUp(Cab.AboveOrAtFloor)
+		orderstate.CompleteCabAndUpOrder(Cab.AboveOrAtFloor)
 		Cab.RecentDirection = hardware.MD_Up
 	case hardware.DS_Open_Down:
 		openDoor()
-		orderstate.CompleteOrderCabAndDown(Cab.AboveOrAtFloor)
+		orderstate.CompleteCabAndDownOrder(Cab.AboveOrAtFloor)
 		Cab.RecentDirection = hardware.MD_Down
 	case hardware.DS_Close:
 		closeDoor()
