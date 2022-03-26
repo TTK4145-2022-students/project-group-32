@@ -12,24 +12,33 @@ const _pollRate = 20 * time.Millisecond
 const bufferSize = 2 * 2048
 const listenAddr = "224.0.0.251"
 
-func InitUDPReceivingSocket(port int) (net.UDPAddr, *net.UDPConn) {
+func InitUDPReceivingSocket(port int) (
+	net.UDPAddr,
+	*net.UDPConn) {
+
 	addr := net.UDPAddr{
-		IP:   net.ParseIP(listenAddr),
+		IP: net.ParseIP(
+			listenAddr),
 		Port: port,
 	}
 
-	conn, err := net.ListenUDP("udp", &addr)
+	conn, err := net.ListenUDP(
+		"udp",
+		&addr)
 	if err != nil {
 		panic(err)
 	}
 
-	return addr, conn
+	return addr,
+		conn
 }
 
 func ReceiveOrders(conn *net.UDPConn) orderstate.AllOrders {
 	var allOrders orderstate.AllOrders
 	buf := receiveUDPMessage(conn)
-	json.Unmarshal(buf, &allOrders)
+	json.Unmarshal(
+		buf,
+		&allOrders)
 	return allOrders
 }
 

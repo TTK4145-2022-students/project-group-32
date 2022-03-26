@@ -1,6 +1,6 @@
 package prioritize
 
-type OrderStatus struct {
+type OrderSummary struct {
 	UpAtFloor   bool
 	DownAtFloor bool
 	CabAtFloor  bool

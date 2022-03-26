@@ -45,7 +45,10 @@ type ButtonEvent struct {
 	Button ButtonType
 }
 
-func Init(addr string, numFloors int) {
+func Init(
+	addr string,
+	numFloors int) {
+
 	if _initialized {
 		fmt.Println("Driver already initialized!")
 		return
@@ -53,7 +56,9 @@ func Init(addr string, numFloors int) {
 	_numFloors = numFloors
 	_mtx = sync.Mutex{}
 	var err error
-	_conn, err = net.Dial("tcp", addr)
+	_conn, err = net.Dial(
+		"tcp",
+		addr)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -64,7 +69,10 @@ func Init(addr string, numFloors int) {
 func TurnOffAllLamps() {
 	for f := 0; f < FloorCount; f++ {
 		for b := ButtonType(0); b < 3; b++ {
-			SetButtonLamp(b, f, false)
+			SetButtonLamp(
+				b,
+				f,
+				false)
 		}
 	}
 	SetDoorOpenLamp(false)
@@ -75,42 +83,72 @@ func TurnOffAllLamps() {
 func SetMotorDirection(dir MotorDirection) {
 	_mtx.Lock()
 	defer _mtx.Unlock()
-	_conn.Write([]byte{1, byte(dir), 0, 0})
+	_conn.Write(
+		[]byte{1,
+			byte(dir),
+			0,
+			0})
 }
 
-func SetButtonLamp(button ButtonType, floor int, value bool) {
+func SetButtonLamp(
+	button ButtonType,
+	floor int,
+	value bool) {
+
 	_mtx.Lock()
 	defer _mtx.Unlock()
-	_conn.Write([]byte{2, byte(button), byte(floor), toByte(value)})
+	_conn.Write(
+		[]byte{2,
+			byte(button),
+			byte(floor),
+			toByte(value)})
 }
 
 func SetFloorIndicator(floor int) {
 	_mtx.Lock()
 	defer _mtx.Unlock()
-	_conn.Write([]byte{3, byte(floor), 0, 0})
+	_conn.Write(
+		[]byte{3,
+			byte(floor),
+			0,
+			0})
 }
 
 func SetDoorOpenLamp(value bool) {
 	_mtx.Lock()
 	defer _mtx.Unlock()
-	_conn.Write([]byte{4, toByte(value), 0, 0})
+	_conn.Write(
+		[]byte{4,
+			toByte(value),
+			0,
+			0})
 }
 
 func SetStopLamp(value bool) {
 	_mtx.Lock()
 	defer _mtx.Unlock()
-	_conn.Write([]byte{5, toByte(value), 0, 0})
+	_conn.Write(
+		[]byte{5,
+			toByte(value),
+			0,
+			0})
 }
 
 func PollButtons(receiver chan<- ButtonEvent) {
-	prev := make([][3]bool, _numFloors)
+	prev := make(
+		[][3]bool,
+		_numFloors)
 	for {
 		time.Sleep(_pollRate)
 		for f := 0; f < _numFloors; f++ {
 			for b := ButtonType(0); b < 3; b++ {
-				v := getButton(b, f)
-				if v != prev[f][b] && v {
-					receiver <- ButtonEvent{f, ButtonType(b)}
+				v := getButton(
+					b,
+					f)
+				if v != prev[f][b] &&
+					v {
+					receiver <- ButtonEvent{f,
+						ButtonType(b)}
 				}
 				prev[f][b] = v
 			}
@@ -118,7 +156,10 @@ func PollButtons(receiver chan<- ButtonEvent) {
 	}
 }
 
-func PollFloorSensor(arrival_receiver chan<- int, leave_reciever chan<- bool) {
+func PollFloorSensor(
+	arrival_receiver chan<- int,
+	leave_reciever chan<- bool) {
+
 	prev := -1
 	for {
 		time.Sleep(_pollRate)
@@ -158,10 +199,17 @@ func PollObstructionSwitch(receiver chan<- bool) {
 	}
 }
 
-func getButton(button ButtonType, floor int) bool {
+func getButton(
+	button ButtonType,
+	floor int) bool {
+
 	_mtx.Lock()
 	defer _mtx.Unlock()
-	_conn.Write([]byte{6, byte(button), byte(floor), 0})
+	_conn.Write(
+		[]byte{6,
+			byte(button),
+			byte(floor),
+			0})
 	var buf [4]byte
 	_conn.Read(buf[:])
 	return toBool(buf[1])
@@ -170,7 +218,11 @@ func getButton(button ButtonType, floor int) bool {
 func getFloor() int {
 	_mtx.Lock()
 	defer _mtx.Unlock()
-	_conn.Write([]byte{7, 0, 0, 0})
+	_conn.Write(
+		[]byte{7,
+			0,
+			0,
+			0})
 	var buf [4]byte
 	_conn.Read(buf[:])
 	if buf[1] != 0 {
@@ -183,7 +235,11 @@ func getFloor() int {
 func getStop() bool {
 	_mtx.Lock()
 	defer _mtx.Unlock()
-	_conn.Write([]byte{8, 0, 0, 0})
+	_conn.Write(
+		[]byte{8,
+			0,
+			0,
+			0})
 	var buf [4]byte
 	_conn.Read(buf[:])
 	return toBool(buf[1])
@@ -192,7 +248,11 @@ func getStop() bool {
 func getObstruction() bool {
 	_mtx.Lock()
 	defer _mtx.Unlock()
-	_conn.Write([]byte{9, 0, 0, 0})
+	_conn.Write(
+		[]byte{9,
+			0,
+			0,
+			0})
 	var buf [4]byte
 	_conn.Read(buf[:])
 	return toBool(buf[1])

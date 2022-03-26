@@ -14,9 +14,13 @@ func main() {
 	// phoenix.Init()
 	// go phoenix.Phoenix()
 	if len(os.Args) > 1 {
-		hardware.Init("localhost:"+os.Args[1], hardware.FloorCount)
+		hardware.Init(
+			"localhost:"+os.Args[1],
+			hardware.FloorCount)
 	} else {
-		hardware.Init("localhost:15657", hardware.FloorCount)
+		hardware.Init(
+			"localhost:15657",
+			hardware.FloorCount)
 	}
 	filesystem.Init()
 	orderstate.Init(filesystem.ReadOrders())
@@ -30,19 +34,19 @@ func main() {
 
 	doorTimedOut := make(chan bool)
 	decisionDeadlineTimedOut := make(chan bool)
-	PokeCabTimedOut := make(chan bool)
 	etaExpiredAlarmRinging := make(chan bool)
 
 	ordersRecieved := make(chan orderstate.AllOrders)
 
 	go hardware.PollButtons(buttonPress)
-	go hardware.PollFloorSensor(floorArrival, floorLeft)
+	go hardware.PollFloorSensor(
+		floorArrival,
+		floorLeft)
 	go hardware.PollObstructionSwitch(obstructionChange)
 	go hardware.PollStopButton(stopChange)
 
 	go timer.DoorTimer.PollTimerOut(doorTimedOut)
 	go timer.DecisionDeadlineTimer.PollTimerOut(decisionDeadlineTimedOut)
-	go timer.PokeCabTimer.PollTimerOut(PokeCabTimedOut)
 	go timer.ETAExpiredAlarm.PollAlarm(etaExpiredAlarmRinging)
 
 	go network.PollReceiveOrders(ordersRecieved)
@@ -50,25 +54,32 @@ func main() {
 
 	go filesystem.SaveStatesPeriodically()
 
-	timer.PokeCabTimer.TimerStart()
 	for {
 		select {
 		case buttonEvent := <-buttonPress:
-			orderstate.AcceptNewOrder(buttonEvent.Button, buttonEvent.Floor)
+			orderstate.AcceptNewOrder(
+				buttonEvent.Button,
+				buttonEvent.Floor)
 			orders := orderstate.GetOrders()
-			cabstate.FSMNewOrder(buttonEvent.Floor, orders)
+			cabstate.FSMNewOrder(
+				buttonEvent.Floor,
+				orders)
 
 		case floor := <-floorArrival:
 			hardware.SetFloorIndicator(floor)
 			orders := orderstate.GetOrders()
-			cabstate.FSMFloorArrival(floor, orders)
+			cabstate.FSMFloorArrival(
+				floor,
+				orders)
 
 		case <-floorLeft:
 			cabstate.FSMFloorLeave()
 
 		case obstruction := <-obstructionChange:
 			orders := orderstate.GetOrders()
-			cabstate.FSMObstructionChange(obstruction, orders)
+			cabstate.FSMObstructionChange(
+				obstruction,
+				orders)
 
 		case <-doorTimedOut:
 			orders := orderstate.GetOrders()
@@ -77,16 +88,6 @@ func main() {
 		case <-decisionDeadlineTimedOut:
 			cabstate.FSMDecisionDeadline()
 
-		case <-PokeCabTimedOut:
-			orders := orderstate.GetOrders()
-			internalETAs := orderstate.GetInternalETAs()
-			// fmt.Println(idledistribution.AssumeCabPositionsFromETAs(orders, internalETAs))
-			// 	cabstate.FSMDecisionDeadline(orders)
-			// if !orderstate.AnyOrders(orders) {
-			cabstate.FSMDistribute(orders, internalETAs)
-			// }
-			timer.PokeCabTimer.TimerStart()
-
 		case <-etaExpiredAlarmRinging:
 			cabstate.FSMDecisionDeadline()
 
@@ -94,7 +95,10 @@ func main() {
 			orderstate.ResetOrders()
 			for f := 0; f < hardware.FloorCount; f++ {
 				for b := hardware.ButtonType(0); b < 3; b++ {
-					hardware.SetButtonLamp(b, f, false)
+					hardware.SetButtonLamp(
+						b,
+						f,
+						false)
 				}
 			}
 
@@ -103,7 +107,9 @@ func main() {
 			orders := orderstate.GetOrders()
 			for floor, newOrder := range newOrdersInFloors {
 				if newOrder {
-					cabstate.FSMNewOrder(floor, orders)
+					cabstate.FSMNewOrder(
+						floor,
+						orders)
 				}
 			}
 		}

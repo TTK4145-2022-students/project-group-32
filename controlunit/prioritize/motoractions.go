@@ -6,7 +6,7 @@ import (
 
 func MotorActionOnDecisionDeadline(
 	prioritizedDirection hardware.MotorDirection,
-	currentOrders OrderStatus) hardware.MotorDirection {
+	currentOrders OrderSummary) hardware.MotorDirection {
 
 	switch prioritizedDirection {
 	case hardware.MD_Up:
@@ -34,7 +34,7 @@ func MotorActionOnDecisionDeadline(
 
 func MotorActionOnFloorArrival(
 	prioritizedDirection hardware.MotorDirection,
-	currentOrders OrderStatus) hardware.MotorDirection {
+	currentOrders OrderSummary) hardware.MotorDirection {
 
 	if currentOrders.CabAtFloor {
 		return hardware.MD_Stop
