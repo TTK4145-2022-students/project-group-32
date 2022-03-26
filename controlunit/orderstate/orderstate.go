@@ -82,8 +82,10 @@ func AcceptNewOrder(
 	switch orderType {
 	case hardware.BT_HallUp:
 		allOrders.Up[floor].LastOrderTime = time.Now()
+
 	case hardware.BT_HallDown:
 		allOrders.Down[floor].LastOrderTime = time.Now()
+
 	case hardware.BT_Cab:
 		allOrders.Cab[floor] = true
 	}
@@ -107,6 +109,7 @@ func waitForOrderGuarantee(
 				floor,
 				true)
 		}
+
 	case hardware.BT_HallDown:
 		if allOrders.Down[floor].hasOrder() {
 			hardware.SetButtonLamp(
@@ -114,6 +117,7 @@ func waitForOrderGuarantee(
 				floor,
 				true)
 		}
+
 	case hardware.BT_Cab:
 		if allOrders.Cab[floor] {
 			hardware.SetButtonLamp(
@@ -191,12 +195,12 @@ func UpdateOrders(inputOrders AllOrders) [hardware.FloorCount]bool {
 		switch updateFloorOrderState(
 			inputOrders.Down[floor],
 			&allOrders.Down[floor]) {
-
 		case OrderCleared:
 			hardware.SetButtonLamp(
 				hardware.BT_HallDown,
 				floor,
 				false)
+
 		case OrderPlaced:
 			hardware.SetButtonLamp(
 				hardware.BT_HallDown,
@@ -208,12 +212,12 @@ func UpdateOrders(inputOrders AllOrders) [hardware.FloorCount]bool {
 		switch updateFloorOrderState(
 			inputOrders.Up[floor],
 			&allOrders.Up[floor]) {
-
 		case OrderCleared:
 			hardware.SetButtonLamp(
 				hardware.BT_HallUp,
 				floor,
 				false)
+
 		case OrderPlaced:
 			hardware.SetButtonLamp(
 				hardware.BT_HallUp,
