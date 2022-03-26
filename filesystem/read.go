@@ -25,13 +25,11 @@ func ReadOrders() orderstate.AllOrders {
 }
 
 func read(filepath string) []byte {
-	jsonFile,
-		_ := os.Open(filepath)
+	jsonFile, _ := os.Open(filepath)
 
 	defer jsonFile.Close()
 
-	byteValue,
-		_ := ioutil.ReadAll(jsonFile)
+	byteValue, _ := ioutil.ReadAll(jsonFile)
 
 	return byteValue
 }

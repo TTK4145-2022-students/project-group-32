@@ -32,8 +32,7 @@ func Write(
 	filepath string,
 	state interface{}) {
 
-	file,
-		_ := json.MarshalIndent(
+	file, _ := json.MarshalIndent(
 		state,
 		"",
 		" ")

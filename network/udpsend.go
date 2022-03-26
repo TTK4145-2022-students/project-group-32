@@ -16,14 +16,14 @@ func InitUDPSendingSocket(
 	sendAddr string) (
 	net.UDPAddr,
 	*net.UDPConn) {
+
 	sendaddr := net.UDPAddr{
 		Port: port,
 		IP: net.ParseIP(
 			sendAddr),
 	}
 
-	wconn,
-		err := net.DialUDP(
+	wconn, err := net.DialUDP(
 		"udp",
 		nil,
 		&sendaddr)
@@ -40,8 +40,7 @@ func BroadcastOrders(
 	orders orderstate.AllOrders,
 	wconn *net.UDPConn) {
 
-	message,
-		_ := json.Marshal(orders)
+	message, _ := json.Marshal(orders)
 	broadcastMessage(
 		message,
 		wconn)
@@ -55,8 +54,7 @@ func broadcastMessage(
 }
 
 func SendOrdersPeriodically() {
-	_,
-		wconn := InitUDPSendingSocket(
+	_, wconn := InitUDPSendingSocket(
 		UDPPort,
 		broadcastAddr)
 	defer wconn.Close()

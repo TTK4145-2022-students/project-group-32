@@ -14,11 +14,9 @@ func Init() {
 		filename = "phoenix/phoenix_" + os.Args[1] + ".txt"
 	}
 
-	if _,
-		err := os.Stat(filename); err == nil {
+	if _, err := os.Stat(filename); err == nil {
 		for {
-			file,
-				_ := os.Stat(filename)
+			file, _ := os.Stat(filename)
 			modifiedtime := file.ModTime()
 
 			if modifiedtime.Add(2 * time.Second).Before(time.Now()) {
@@ -53,10 +51,10 @@ func Phoenix() {
 		msg := fmt.Sprintln(
 			"Writing to file",
 			time.Now())
+
 		os.WriteFile(
 			filename,
-			[]byte(
-				msg),
+			[]byte(msg),
 			0666)
 
 		time.Sleep(time.Second)

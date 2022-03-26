@@ -76,6 +76,7 @@ func GetOrders() AllOrders {
 func AcceptNewOrder(
 	orderType hardware.ButtonType,
 	floor int) {
+
 	allOrdersMtx.Lock()
 	defer allOrdersMtx.Unlock()
 	switch orderType {
@@ -94,6 +95,7 @@ func AcceptNewOrder(
 func waitForOrderGuarantee(
 	orderType hardware.ButtonType,
 	floor int) {
+
 	allOrdersMtx.Lock()
 	defer allOrdersMtx.Unlock()
 	time.Sleep(WaitBeforeGuaranteeTime)
@@ -226,6 +228,7 @@ func UpdateOrders(inputOrders AllOrders) [hardware.FloorCount]bool {
 func updateFloorOrderState(
 	inputState OrderState,
 	currentState *OrderState) OrderChange {
+
 	currentOrder := currentState.hasOrder()
 	now := time.Now()
 	if inputState.LastOrderTime.After(currentState.LastOrderTime) {
@@ -256,6 +259,7 @@ func OrdersBetween(
 	orders AllOrders,
 	startFloor int,
 	destinationFloor int) int {
+
 	if startFloor == destinationFloor {
 		return 0
 	}
@@ -281,21 +285,11 @@ func OrdersBetween(
 func OrdersAbove(
 	orders AllOrders,
 	currentFloor int) bool {
+
 	for floor := currentFloor + 1; floor < hardware.FloorCount; floor++ {
 		if orders.Up[floor].hasOrder() ||
 			orders.Down[floor].hasOrder() ||
 			orders.Cab[floor] {
-			return true
-		}
-	}
-	return false
-}
-
-func CabOrdersAbove(
-	cabOrders [hardware.FloorCount]bool,
-	currentFloor int) bool {
-	for floor := currentFloor + 1; floor < hardware.FloorCount; floor++ {
-		if cabOrders[floor] {
 			return true
 		}
 	}
@@ -316,9 +310,22 @@ func OrdersBelow(
 	return false
 }
 
+func CabOrdersAbove(
+	cabOrders [hardware.FloorCount]bool,
+	currentFloor int) bool {
+
+	for floor := currentFloor + 1; floor < hardware.FloorCount; floor++ {
+		if cabOrders[floor] {
+			return true
+		}
+	}
+	return false
+}
+
 func CabOrdersBelow(
 	cabOrders [hardware.FloorCount]bool,
 	currentFloor int) bool {
+
 	for floor := currentFloor - 1; floor >= 0; floor-- {
 		if cabOrders[floor] {
 			return true
@@ -327,18 +334,19 @@ func CabOrdersBelow(
 	return false
 }
 
-func GetOrderStatus(
+func GetOrderSummary(
 	orders AllOrders,
-	floor int) prioritize.OrderStatus {
-	var orderStatus prioritize.OrderStatus
-	orderStatus.UpAtFloor = orders.Up[floor].hasOrder()
-	orderStatus.DownAtFloor = orders.Down[floor].hasOrder()
-	orderStatus.CabAtFloor = orders.Cab[floor]
-	orderStatus.AboveFloor = OrdersAbove(
+	floor int) prioritize.OrderSummary {
+
+	var orderSummary prioritize.OrderSummary
+	orderSummary.UpAtFloor = orders.Up[floor].hasOrder()
+	orderSummary.DownAtFloor = orders.Down[floor].hasOrder()
+	orderSummary.CabAtFloor = orders.Cab[floor]
+	orderSummary.AboveFloor = OrdersAbove(
 		orders,
 		floor)
-	orderStatus.BelowFloor = OrdersBelow(
+	orderSummary.BelowFloor = OrdersBelow(
 		orders,
 		floor)
-	return orderStatus
+	return orderSummary
 }

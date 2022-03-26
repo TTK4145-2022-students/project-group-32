@@ -7,7 +7,8 @@ import (
 func DoorActionOnDoorTimeout(
 	prioritizedDirection hardware.MotorDirection,
 	doorObstructed bool,
-	currentOrders OrderStatus) hardware.DoorAction {
+	currentOrders OrderSummary) hardware.DoorAction {
+
 	switch prioritizedDirection {
 	case hardware.MD_Up:
 		if currentOrders.UpAtFloor ||
@@ -42,7 +43,7 @@ func DoorActionOnDoorTimeout(
 
 func DoorActionOnFloorStop(
 	prioritizedDirection hardware.MotorDirection,
-	currentOrders OrderStatus) hardware.DoorAction {
+	currentOrders OrderSummary) hardware.DoorAction {
 
 	switch prioritizedDirection {
 	case hardware.MD_Up:
@@ -74,7 +75,7 @@ func DoorActionOnFloorStop(
 
 func DoorActionOnNewOrder(
 	prioritizedDirection hardware.MotorDirection,
-	currentOrders OrderStatus) hardware.DoorAction {
+	currentOrders OrderSummary) hardware.DoorAction {
 
 	switch prioritizedDirection {
 	case hardware.MD_Up:

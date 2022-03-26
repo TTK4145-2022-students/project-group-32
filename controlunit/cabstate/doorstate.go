@@ -63,7 +63,7 @@ func FSMObstructionChange(
 }
 
 func FSMDoorTimeout(orders orderstate.AllOrders) ElevatorBehaviour {
-	currentOrderStatus := orderstate.GetOrderStatus(
+	currentOrderStatus := orderstate.GetOrderSummary(
 		orders,
 		Cab.AboveOrAtFloor)
 	switch Cab.Behaviour {
@@ -74,7 +74,6 @@ func FSMDoorTimeout(orders orderstate.AllOrders) ElevatorBehaviour {
 				Cab.RecentDirection,
 				orders,
 				orderstate.GetInternalETAs()),
-			// Cab.RecentDirection,
 			Cab.DoorObstructed,
 			currentOrderStatus)
 
@@ -98,7 +97,7 @@ func FSMFloorStop(
 	floor int,
 	orders orderstate.AllOrders) ElevatorBehaviour {
 
-	currentOrderStatus := orderstate.GetOrderStatus(
+	currentOrderStatus := orderstate.GetOrderSummary(
 		orders,
 		Cab.AboveOrAtFloor)
 	switch Cab.Behaviour {
@@ -109,7 +108,6 @@ func FSMFloorStop(
 				Cab.RecentDirection,
 				orders,
 				orderstate.GetInternalETAs()),
-			// Cab.RecentDirection,
 			currentOrderStatus)
 
 		setDoorAndCabState(doorAction)

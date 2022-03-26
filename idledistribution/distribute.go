@@ -95,6 +95,7 @@ func getNumberOfBestETAsForFloor(
 	floor int,
 	recentDirection hardware.MotorDirection,
 	orders orderstate.AllOrders) int {
+
 	internalETAs := orderstate.ComputeETAs(
 		floor,
 		hardware.MD_Stop,

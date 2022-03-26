@@ -56,8 +56,7 @@ func Init(
 	_numFloors = numFloors
 	_mtx = sync.Mutex{}
 	var err error
-	_conn,
-		err = net.Dial(
+	_conn, err = net.Dial(
 		"tcp",
 		addr)
 	if err != nil {
@@ -86,8 +85,7 @@ func SetMotorDirection(dir MotorDirection) {
 	defer _mtx.Unlock()
 	_conn.Write(
 		[]byte{1,
-			byte(
-				dir),
+			byte(dir),
 			0,
 			0})
 }
@@ -96,14 +94,13 @@ func SetButtonLamp(
 	button ButtonType,
 	floor int,
 	value bool) {
+
 	_mtx.Lock()
 	defer _mtx.Unlock()
 	_conn.Write(
 		[]byte{2,
-			byte(
-				button),
-			byte(
-				floor),
+			byte(button),
+			byte(floor),
 			toByte(value)})
 }
 
@@ -112,8 +109,7 @@ func SetFloorIndicator(floor int) {
 	defer _mtx.Unlock()
 	_conn.Write(
 		[]byte{3,
-			byte(
-				floor),
+			byte(floor),
 			0,
 			0})
 }
@@ -123,8 +119,7 @@ func SetDoorOpenLamp(value bool) {
 	defer _mtx.Unlock()
 	_conn.Write(
 		[]byte{4,
-			toByte(
-				value),
+			toByte(value),
 			0,
 			0})
 }
@@ -134,8 +129,7 @@ func SetStopLamp(value bool) {
 	defer _mtx.Unlock()
 	_conn.Write(
 		[]byte{5,
-			toByte(
-				value),
+			toByte(value),
 			0,
 			0})
 }
@@ -213,10 +207,8 @@ func getButton(
 	defer _mtx.Unlock()
 	_conn.Write(
 		[]byte{6,
-			byte(
-				button),
-			byte(
-				floor),
+			byte(button),
+			byte(floor),
 			0})
 	var buf [4]byte
 	_conn.Read(buf[:])
