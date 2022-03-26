@@ -64,10 +64,11 @@ func FSMDoorTimeout(orders orderstate.AllOrders) ElevatorBehaviour {
 	switch Cab.Behaviour {
 	case DoorOpen:
 		doorAction := prioritize.DoorActionOnDoorTimeout(
-			orderstate.PrioritizedDirection(Cab.AboveOrAtFloor,
-				Cab.RecentDirection,
-				orders,
-				orderstate.GetInternalETAs()),
+			// orderstate.PrioritizedDirection(Cab.AboveOrAtFloor,
+			// 	Cab.RecentDirection,
+			// 	orders,
+			// 	orderstate.GetInternalETAs()),
+			Cab.RecentDirection,
 			Cab.DoorObstructed,
 			currentOrderStatus)
 
@@ -90,11 +91,12 @@ func FSMFloorStop(floor int, orders orderstate.AllOrders) ElevatorBehaviour {
 	switch Cab.Behaviour {
 	case Idle:
 		doorAction := prioritize.DoorActionOnFloorStop(
-			orderstate.PrioritizedDirection(
-				Cab.AboveOrAtFloor,
-				Cab.RecentDirection,
-				orders,
-				orderstate.GetInternalETAs()),
+			// orderstate.PrioritizedDirection(
+			// 	Cab.AboveOrAtFloor,
+			// 	Cab.RecentDirection,
+			// 	orders,
+			// 	orderstate.GetInternalETAs()),
+			Cab.RecentDirection,
 			currentOrderStatus)
 
 		setDoorAndCabState(doorAction)

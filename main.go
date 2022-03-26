@@ -41,7 +41,7 @@ func main() {
 
 	go timer.DoorTimer.PollTimerOut(doorTimedOut)
 	go timer.DecisionDeadlineTimer.PollTimerOut(decisionDeadlineTimedOut)
-	go timer.PokeCabTimer.PollTimerOut(PokeCabTimedOut)
+	// go timer.PokeCabTimer.PollTimerOut(PokeCabTimedOut)
 
 	go network.PollReceiveOrders(ordersRecieved)
 	go network.SendOrdersPeriodically()
