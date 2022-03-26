@@ -19,6 +19,7 @@ func DoorActionOnDoorTimeout(
 			!currentOrders.AboveFloor {
 			return hardware.DS_Open_Down
 		}
+
 	case hardware.MD_Down:
 		if currentOrders.DownAtFloor ||
 			(currentOrders.CabAtFloor &&
@@ -28,6 +29,7 @@ func DoorActionOnDoorTimeout(
 			!currentOrders.BelowFloor {
 			return hardware.DS_Open_Up
 		}
+
 	case hardware.MD_Stop:
 		break
 	default:
@@ -54,6 +56,7 @@ func DoorActionOnFloorStop(
 		} else if currentOrders.DownAtFloor {
 			return hardware.DS_Open_Down
 		}
+
 	case hardware.MD_Down:
 		if currentOrders.DownAtFloor ||
 			(currentOrders.CabAtFloor &&
@@ -62,6 +65,7 @@ func DoorActionOnFloorStop(
 		} else if currentOrders.UpAtFloor {
 			return hardware.DS_Open_Up
 		}
+
 	case hardware.MD_Stop:
 		break
 	default:
@@ -82,10 +86,12 @@ func DoorActionOnNewOrder(
 		if currentOrders.DownAtFloor {
 			return hardware.DS_Open_Down
 		}
+
 	case hardware.MD_Down:
 		if currentOrders.UpAtFloor {
 			return hardware.DS_Open_Up
 		}
+
 	case hardware.MD_Stop:
 		break
 	default:

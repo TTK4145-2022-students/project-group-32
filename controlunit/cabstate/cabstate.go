@@ -40,9 +40,11 @@ func setMotorAndCabState(state hardware.MotorDirection) {
 	case hardware.MD_Up:
 		Cab.Behaviour = Moving
 		Cab.RecentDirection = state
+
 	case hardware.MD_Down:
 		Cab.Behaviour = Moving
 		Cab.RecentDirection = state
+
 	case hardware.MD_Stop:
 		Cab.Behaviour = Idle
 	default:
@@ -70,6 +72,7 @@ func FSMNewOrder(
 		} else {
 			timer.DecisionDeadlineTimer.TimerStart()
 		}
+
 	case Moving:
 		if (Cab.AboveOrAtFloor == orderFloor) &&
 			!Cab.BetweenFloors {
@@ -77,6 +80,7 @@ func FSMNewOrder(
 				Cab.AboveOrAtFloor,
 				orders)
 		}
+
 	case DoorOpen:
 		orderSummary := orderstate.GetOrderSummary(
 			orders,
@@ -123,6 +127,7 @@ func FSMFloorLeave() ElevatorBehaviour {
 		switch Cab.MotorDirection {
 		case hardware.MD_Up:
 			break
+
 		case hardware.MD_Down:
 			Cab.AboveOrAtFloor = Cab.AboveOrAtFloor - 1
 		default:

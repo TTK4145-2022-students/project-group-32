@@ -12,16 +12,20 @@ func setDoorAndCabState(state hardware.DoorAction) {
 	case hardware.DS_Open_Cab:
 		openDoor()
 		orderstate.CompleteCabOrder(Cab.AboveOrAtFloor)
+
 	case hardware.DS_Open_Up:
 		openDoor()
 		orderstate.CompleteCabAndUpOrder(Cab.AboveOrAtFloor)
 		Cab.RecentDirection = hardware.MD_Up
+
 	case hardware.DS_Open_Down:
 		openDoor()
 		orderstate.CompleteCabAndDownOrder(Cab.AboveOrAtFloor)
 		Cab.RecentDirection = hardware.MD_Down
+
 	case hardware.DS_Close:
 		closeDoor()
+
 	case hardware.DS_Do_Nothing:
 		break
 	default:
@@ -52,6 +56,7 @@ func FSMObstructionChange(
 		if Cab.Behaviour == DoorOpen {
 			Cab.Behaviour = CabObstructed
 		}
+
 	case false:
 		if Cab.Behaviour == CabObstructed {
 			Cab.Behaviour = DoorOpen
@@ -85,6 +90,7 @@ func FSMDoorTimeout(orders orderstate.AllOrders) ElevatorBehaviour {
 				Cab.AboveOrAtFloor)
 			timer.DecisionDeadlineTimer.TimerStart()
 		}
+
 	case CabObstructed:
 		break
 	default:

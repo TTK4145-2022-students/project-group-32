@@ -41,33 +41,48 @@ func UpdateOrderAndInternalETAs(
 		prioritizedDirection,
 		recentDirection,
 		allOrders)
+	now := time.Now()
 
 	for floor := 0; floor < hardware.FloorCount; floor++ {
-		if !newETAs.Up[floor].IsZero() &&
-			(newETAs.Up[floor].Before(allOrders.Up[floor].BestETA) ||
-				allOrders.Up[floor].BestETA.Before(time.Now())) {
+
+		if newETABetter(
+			newETAs.Up[floor],
+			allOrders.Up[floor],
+			now) {
+
 			allOrders.Up[floor].BestETA = newETAs.Up[floor]
-		} else if internalETAs.Up[floor].Equal(allOrders.Up[floor].BestETA) &&
-			!allOrders.Up[floor].BestETA.Before(time.Now()) {
+
+		} else if InternalETABestAndNotExpired(
+			newETAs.Up[floor],
+			allOrders.Up[floor],
+			now) {
+
 			newETAs.Up[floor] = allOrders.Up[floor].BestETA
+
 		}
 
-		if !newETAs.Down[floor].IsZero() &&
-			(newETAs.Down[floor].Before(allOrders.Down[floor].BestETA) ||
-				allOrders.Down[floor].BestETA.Before(time.Now())) {
+		if newETABetter(
+			newETAs.Down[floor],
+			allOrders.Down[floor],
+			now) {
+
 			allOrders.Down[floor].BestETA = newETAs.Down[floor]
-		} else if internalETAs.Down[floor].Equal(allOrders.Down[floor].BestETA) &&
-			!allOrders.Down[floor].BestETA.Before(time.Now()) {
+
+		} else if InternalETABestAndNotExpired(
+			newETAs.Down[floor],
+			allOrders.Down[floor],
+			now) {
+
 			newETAs.Down[floor] = allOrders.Down[floor].BestETA
+
 		}
-		allOrders.Up[floor].LocalETA = newETAs.Up[floor]
-		allOrders.Down[floor].LocalETA = newETAs.Down[floor]
-		allOrders.Up[floor].Now = time.Now()
-		allOrders.Down[floor].Now = time.Now()
+		// allOrders.Up[floor].LocalETA = newETAs.Up[floor]
+		// allOrders.Down[floor].LocalETA = newETAs.Down[floor]
+		// allOrders.Up[floor].Now = now
+		// allOrders.Down[floor].Now = now
 	}
 	internalETAs = newETAs
-	return allOrders,
-		internalETAs
+	return allOrders, internalETAs
 }
 
 func ComputeETAs(
@@ -105,6 +120,7 @@ func SimulateETAs(
 	recentDirection hardware.MotorDirection,
 	orders AllOrders) InternalETAs {
 
+	now := time.Now()
 	simulationFloor := currentFloor
 	simulationDirection := recentDirection
 	simulationOrders := orders
@@ -117,7 +133,8 @@ func SimulateETAs(
 			&simulationDirection,
 			&simulationOrders,
 			&simulationTime,
-			&simulatedDurations)
+			&simulatedDurations,
+			now)
 	}
 	return simulatedDurations
 }
@@ -128,7 +145,8 @@ func simulateETAStep(
 	direction *hardware.MotorDirection,
 	orders *AllOrders,
 	simulationTime *time.Time,
-	etas *InternalETAs) hardware.MotorDirection {
+	etas *InternalETAs,
+	now time.Time) hardware.MotorDirection {
 
 	if etas.Cab[*floor].Equal(time.Time{}) {
 		etas.Cab[*floor] = *simulationTime
@@ -154,14 +172,17 @@ func simulateETAStep(
 		}
 		*floor += int(newDirection)
 		*simulationTime = simulationTime.Add(travelDuration)
+
 	case hardware.DS_Open_Down:
 		etas.Down[*floor] = *simulationTime
-		orders.Down[*floor].LastCompleteTime = time.Now()
+		orders.Down[*floor].LastCompleteTime = now
 		orders.Cab[*floor] = false
+
 	case hardware.DS_Open_Up:
 		etas.Up[*floor] = *simulationTime
-		orders.Up[*floor].LastCompleteTime = time.Now()
+		orders.Up[*floor].LastCompleteTime = now
 		orders.Cab[*floor] = false
+
 	case hardware.DS_Open_Cab:
 		orders.Cab[*floor] = false
 	default:
@@ -194,22 +215,26 @@ func calculateETAforDirection(
 
 		simulationFloor += int(simulationDirection)
 		currentTime = currentTime.Add(travelDuration)
-		if simulationFloor < 0 ||
-			simulationFloor >= hardware.FloorCount {
+
+		if invalidFloor(simulationFloor) {
 			simulationDirection = -simulationDirection
 			simulationFloor += int(simulationDirection)
-			currentTime = currentTime.Add(-travelDuration).Add(directionChangeDuration)
+			currentTime = currentTime.Add(-travelDuration)
+			currentTime = currentTime.Add(directionChangeDuration)
 		}
 
 		if simulationFloor == currentFloor {
 			return calculatedETAs
 		}
 
-		if simulationDirection == hardware.MD_Down &&
-			orders.Down[simulationFloor].hasOrder() ||
-			(simulationDirection == hardware.MD_Up &&
-				orders.Up[simulationFloor].hasOrder()) {
+		if orderToServe(
+			simulationDirection,
+			orders.Up[simulationFloor],
+			orders.Down[simulationDirection],
+			orders.Cab[simulationFloor]) {
+
 			currentTime = currentTime.Add(orderDuration)
+
 		}
 	}
 
@@ -253,6 +278,7 @@ func bestETA(
 			ETAsBelowFloorBestETA = orders.Up[ETAsBelowFloor].BestETA
 			ETAsBelowFloorOrder = orders.Up[ETAsBelowFloor].hasOrder()
 		}
+
 		ETAsAboveFloorETA := ETAsAbove.Up[ETAsAboveFloor]
 		ETAsAboveFloorBestETA := orders.Up[ETAsAboveFloor].BestETA
 		ETAsAboveFloorOrder := orders.Up[ETAsAboveFloor].hasOrder()
@@ -262,6 +288,7 @@ func bestETA(
 			ETAsAboveFloorOrder = orders.Down[ETAsAboveFloor].hasOrder()
 		}
 
+		//Todo: util below
 		if (ETAsBelowFloorETA.Before(ETAsBelowFloorBestETA) ||
 			(ETAsBelowFloorOrder &&
 				now.After(ETAsBelowFloorBestETA))) &&
@@ -289,14 +316,6 @@ func bestETA(
 	}
 }
 
-func InternalETABest(
-	orderState OrderState,
-	internalETA time.Time) bool {
-
-	return orderState.BestETA.Equal(internalETA) &&
-		!internalETA.IsZero()
-}
-
 func orderAndInternalETABest(
 	direction hardware.MotorDirection,
 	currentFloor int,
@@ -308,6 +327,7 @@ func orderAndInternalETABest(
 		if orders.Up[currentFloor].hasOrder() {
 			return true
 		}
+
 	case hardware.MD_Down:
 		if orders.Down[currentFloor].hasOrder() {
 			return true
@@ -352,6 +372,7 @@ func PrioritizedDirection(
 			allETAs) {
 			return hardware.MD_Down
 		}
+
 	case hardware.MD_Down:
 		if orderAndInternalETABest(
 			hardware.MD_Down,
