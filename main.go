@@ -34,7 +34,6 @@ func main() {
 
 	doorTimedOut := make(chan bool)
 	decisionDeadlineTimedOut := make(chan bool)
-	PokeCabTimedOut := make(chan bool)
 	etaExpiredAlarmRinging := make(chan bool)
 
 	ordersRecieved := make(chan orderstate.AllOrders)
@@ -48,7 +47,6 @@ func main() {
 
 	go timer.DoorTimer.PollTimerOut(doorTimedOut)
 	go timer.DecisionDeadlineTimer.PollTimerOut(decisionDeadlineTimedOut)
-	go timer.PokeCabTimer.PollTimerOut(PokeCabTimedOut)
 	go timer.ETAExpiredAlarm.PollAlarm(etaExpiredAlarmRinging)
 
 	go network.PollReceiveOrders(ordersRecieved)
@@ -56,7 +54,6 @@ func main() {
 
 	go filesystem.SaveStatesPeriodically()
 
-	timer.PokeCabTimer.TimerStart()
 	for {
 		select {
 		case buttonEvent := <-buttonPress:
@@ -90,20 +87,6 @@ func main() {
 
 		case <-decisionDeadlineTimedOut:
 			cabstate.FSMDecisionDeadline()
-
-		case <-PokeCabTimedOut:
-			orders := orderstate.GetOrders()
-			internalETAs := orderstate.GetInternalETAs()
-			// fmt.Println(
-			// idledistribution.AssumeCabPositionsFromETAs(orders,
-			// internalETAs))
-			// 	cabstate.FSMDecisionDeadline(orders)
-			// if !orderstate.AnyOrders(orders) {
-			cabstate.FSMDistribute(
-				orders,
-				internalETAs)
-			// }
-			// timer.PokeCabTimer.TimerStart()
 
 		case <-etaExpiredAlarmRinging:
 			cabstate.FSMDecisionDeadline()
