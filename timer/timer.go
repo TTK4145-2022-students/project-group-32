@@ -4,8 +4,9 @@ import (
 	"time"
 )
 
+const DoorOpenTime = 3 * time.Second
+const UpdateETAMargin = -1 * time.Second
 const _pollRate = 20 * time.Millisecond
-const _doorOpenTime = 3 * time.Second
 const _decisionDeadline = 250 * time.Millisecond
 const _etaExpirationMargin = 50 * time.Millisecond
 
@@ -23,12 +24,13 @@ type Alarm struct {
 	alarmOffset time.Duration
 }
 
-var DoorTimer = Timer{timerDuration: _doorOpenTime}
+var DoorTimer = Timer{timerDuration: DoorOpenTime}
 var DecisionDeadlineTimer = Timer{timerDuration: _decisionDeadline}
 
 var PokeCabTimer = Timer{timerDuration: _pokeRate}
 
 var ETAExpiredAlarm = Alarm{alarmOffset: _etaExpirationMargin}
+var InternalETAExpiringAlarm = Alarm{alarmOffset: UpdateETAMargin}
 
 func (timer *Timer) PollTimerOut(receiver chan<- bool) {
 	prev := false

@@ -22,7 +22,10 @@ type OrderState struct {
 	LastCompleteTime time.Time
 	BestETA          time.Time
 	LocalETA         time.Time
+	LastRecievedETA  time.Time
 	Now              time.Time
+	ETAOwn           bool
+	LocalETABest     bool
 }
 
 type AllOrders struct {
@@ -194,7 +197,10 @@ func UpdateOrders(inputOrders AllOrders) [hardware.FloorCount]bool {
 	for _, floor := range hardware.ValidFloors() {
 		switch updateFloorOrderState(
 			inputOrders.Down[floor],
-			&allOrders.Down[floor]) {
+			&allOrders.Down[floor],
+			&internalETAs.Down[floor],
+			&previousETAs.Down[floor]) {
+
 		case OrderCleared:
 			hardware.SetButtonLamp(
 				hardware.BT_HallDown,
@@ -211,7 +217,10 @@ func UpdateOrders(inputOrders AllOrders) [hardware.FloorCount]bool {
 
 		switch updateFloorOrderState(
 			inputOrders.Up[floor],
-			&allOrders.Up[floor]) {
+			&allOrders.Up[floor],
+			&internalETAs.Up[floor],
+			&previousETAs.Up[floor]) {
+
 		case OrderCleared:
 			hardware.SetButtonLamp(
 				hardware.BT_HallUp,
@@ -231,7 +240,9 @@ func UpdateOrders(inputOrders AllOrders) [hardware.FloorCount]bool {
 
 func updateFloorOrderState(
 	inputState OrderState,
-	currentState *OrderState) OrderChange {
+	currentState *OrderState,
+	currentETA *time.Time,
+	previousETA *time.Time) OrderChange {
 
 	currentOrder := currentState.hasOrder()
 	now := time.Now()
@@ -241,20 +252,71 @@ func updateFloorOrderState(
 	if inputState.LastCompleteTime.After(currentState.LastCompleteTime) {
 		currentState.LastCompleteTime = inputState.LastCompleteTime
 	}
-	if inputState.BestETA.After(now) &&
-		(inputState.BestETA.Before(currentState.BestETA) ||
-			currentState.BestETA.Before(now)) {
+	if !inputBestETABetterOrBestETAExpired(
+		inputState,
+		*currentState,
+		now) {
+		// internalBest := InternalETABest(
+		// 	*currentState,
+		// 	*currentETA)
+
+		// if !inputBestETAExpired(
+		// 	inputState,
+		// 	now) &&
+		// 	!(internalBest &&
+		// 		newETABetterOrBestETAExpired(
+		// 			inputState,
+		// 			*currentETA,
+		// 			now)) {
+
 		currentState.BestETA = inputState.BestETA
+		currentState.ETAOwn = true
+	} else {
+		currentState.ETAOwn = false
+
 	}
+
+	// if inputState.BestETA.Before(now) {
+	// 	currentState.BestETA = time.Time{}
+	// }
+
+	// if inputState.BestETA.Equal(*previousETA) {
+	// 	// fmt.Println("Got old own ETA")
+	// } else if inputState.BestETA.Equal(*currentETA) {
+	// 	// fmt.Println("Got own ETA")
+	// } else if inputState.BestETA.IsZero() {
+	// 	// fmt.Println("Got no ETA")
+	// } else {
+	// 	fmt.Println("Got other ETA")
+	// 	fmt.Println(inputState.BestETA)
+	// 	currentState.BestETA = inputState.BestETA
+	// }
+	// if internalBest {
+	// 	*currentETA = currentState.BestETA
+	// 	currentState.LocalETABest = true
+	// } else {
+	// 	currentState.LocalETABest = false
+
+	// }
+	// if !inputState.BestETA.Equal(*currentETA) {
+	// 	fmt.Println("recieved not equal to local")
+	// }
+	// currentState.LastRecievedETA = inputState.BestETA
+	// currentState.LocalETA = *currentETA
+	// currentState.Now = now
 
 	newCurrentOrder := currentState.hasOrder()
 	orderChange := NoChange
 	if newCurrentOrder &&
 		!currentOrder {
+
 		orderChange = OrderPlaced
+
 	} else if !newCurrentOrder &&
 		currentOrder {
+
 		orderChange = OrderCleared
+
 	}
 	return orderChange
 }

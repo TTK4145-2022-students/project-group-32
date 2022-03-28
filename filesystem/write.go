@@ -12,7 +12,7 @@ func SaveStatesPeriodically() {
 	for {
 		SaveCabState(cabstate.Cab)
 		SaveOrders(orderstate.GetOrders())
-		time.Sleep(time.Millisecond * 50)
+		time.Sleep(_saveToFileRate)
 	}
 }
 

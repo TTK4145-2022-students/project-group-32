@@ -87,7 +87,8 @@ func FSMDoorTimeout(orders orderstate.AllOrders) ElevatorBehaviour {
 		if doorAction == hardware.DS_Close {
 			orderstate.UpdateOrderAndInternalETAs(
 				Cab.RecentDirection,
-				Cab.AboveOrAtFloor)
+				Cab.AboveOrAtFloor,
+				false)
 			timer.DecisionDeadlineTimer.TimerStart()
 		}
 
