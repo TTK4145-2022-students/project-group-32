@@ -100,6 +100,7 @@ func getNumberOfBestETAsForFloor(
 		floor,
 		hardware.MD_Stop,
 		recentDirection,
+		false,
 		orders)
 
 	numBestETAs := 0

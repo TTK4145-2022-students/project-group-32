@@ -3,6 +3,7 @@ package orderstate
 import (
 	"elevators/controlunit/prioritize"
 	"elevators/hardware"
+	"elevators/timer"
 	"time"
 )
 
@@ -14,10 +15,12 @@ type InternalETAs struct {
 
 const travelDuration = 5 * time.Second
 const orderDuration = 4 * time.Second
-const OffsetDuration = 1 * time.Second
+const OffsetDuration = 2 * timer.UpdateETAMargin
+const DoorDuration = timer.DoorOpenTime - OffsetDuration
 const directionChangeDuration = 200 * time.Millisecond
 
 var internalETAs InternalETAs
+var previousETAs InternalETAs
 
 func GetInternalETAs() InternalETAs {
 	return internalETAs
@@ -25,62 +28,83 @@ func GetInternalETAs() InternalETAs {
 
 func UpdateOrderAndInternalETAs(
 	recentDirection hardware.MotorDirection,
-	currentFloor int) (
+	currentFloor int,
+	doorOpen bool) (
 	AllOrders,
 	InternalETAs) {
 
 	allOrdersMtx.Lock()
 	defer allOrdersMtx.Unlock()
-	prioritizedDirection := PrioritizedDirection(
-		currentFloor,
-		recentDirection,
-		allOrders,
-		internalETAs)
-	newETAs := ComputeETAs(
-		currentFloor,
-		prioritizedDirection,
-		recentDirection,
-		allOrders)
+	previousETAs = internalETAs
+	// prioritizedDirection := PrioritizedDirection(
+	// 	currentFloor,
+	// 	recentDirection,
+	// 	allOrders,
+	// 	internalETAs)
+	// newETAs := ComputeETAs(
+	// 	currentFloor,
+	// 	prioritizedDirection,
+	// 	recentDirection,
+	// 	doorOpen,
+	// 	allOrders)
 	now := time.Now()
+	var newETAs InternalETAs
+	eta := now.Add(OffsetDuration)
+	newETAs.setETA(
+		recentDirection,
+		currentFloor,
+		eta)
+	allOrders.setOrderETA(
+		recentDirection,
+		currentFloor,
+		eta)
 
-	for _, floor := range hardware.ValidFloors() {
+	// for _, floor := range hardware.ValidFloors() {
 
-		if newETABetterOrBestETAExpired(
-			newETAs.Up[floor],
-			allOrders.Up[floor],
-			now) {
+	// 	if newETABetterOrBestETAExpired(
+	// 		allOrders.Up[floor],
+	// 		newETAs.Up[floor],
+	// 		now) ||
+	// 		InternalETABest(
+	// 			allOrders.Up[floor],
+	// 			internalETAs.Up[floor]) {
 
-			allOrders.Up[floor].BestETA = newETAs.Up[floor]
+	// 		allOrders.Up[floor].BestETA = newETAs.Up[floor]
+	// 		// allOrders.Up[floor].Now = now
+	// 	}
+	// 	// } else if InternalETABestAndNotExpired(
+	// 	// 	newETAs.Up[floor],
+	// 	// 	allOrders.Up[floor],
+	// 	// 	now) {
 
-		} else if InternalETABestAndNotExpired(
-			newETAs.Up[floor],
-			allOrders.Up[floor],
-			now) {
+	// 	// 	newETAs.Up[floor] = allOrders.Up[floor].BestETA
 
-			newETAs.Up[floor] = allOrders.Up[floor].BestETA
+	// 	// }
 
-		}
+	// 	if newETABetterOrBestETAExpired(
+	// 		allOrders.Down[floor],
+	// 		newETAs.Down[floor],
+	// 		now) ||
+	// 		InternalETABest(
+	// 			allOrders.Down[floor],
+	// 			internalETAs.Down[floor]) {
 
-		if newETABetterOrBestETAExpired(
-			newETAs.Down[floor],
-			allOrders.Down[floor],
-			now) {
+	// 		allOrders.Down[floor].BestETA = newETAs.Down[floor]
+	// 		// allOrders.Down[floor].Now = now
+	// 	}
+	// 	// } else if InternalETABestAndNotExpired(
+	// 	// 	newETAs.Down[floor],
+	// 	// 	allOrders.Down[floor],
+	// 	// 	now) {
 
-			allOrders.Down[floor].BestETA = newETAs.Down[floor]
+	// 	// 	newETAs.Down[floor] = allOrders.Down[floor].BestETA
 
-		} else if InternalETABestAndNotExpired(
-			newETAs.Down[floor],
-			allOrders.Down[floor],
-			now) {
-
-			newETAs.Down[floor] = allOrders.Down[floor].BestETA
-
-		}
-		// allOrders.Up[floor].LocalETA = newETAs.Up[floor]
-		// allOrders.Down[floor].LocalETA = newETAs.Down[floor]
-		// allOrders.Up[floor].Now = now
-		// allOrders.Down[floor].Now = now
-	}
+	// 	// }
+	// 	// allOrders.Up[floor].LocalETA = newETAs.Up[floor]
+	// 	// allOrders.Down[floor].LocalETA = newETAs.Down[floor]
+	// 	// allOrders.Up[floor].Now = now
+	// 	// allOrders.Down[floor].Now = now
+	// }
 	internalETAs = newETAs
 	return allOrders, internalETAs
 }
@@ -89,6 +113,7 @@ func ComputeETAs(
 	currentFloor int,
 	prioritizedDirection hardware.MotorDirection,
 	recentDirection hardware.MotorDirection,
+	doorOpen bool,
 	orders AllOrders) InternalETAs {
 
 	if prioritizedDirection != hardware.MD_Stop {
@@ -96,15 +121,18 @@ func ComputeETAs(
 			prioritizedDirection,
 			currentFloor,
 			recentDirection,
+			doorOpen,
 			orders)
 	} else {
 		ETAsBelow := calculateETAforDirection(
 			currentFloor,
 			hardware.MD_Down,
+			doorOpen,
 			orders)
 		ETAsAbove := calculateETAforDirection(
 			currentFloor,
 			hardware.MD_Up,
+			doorOpen,
 			orders)
 		return bestETA(
 			currentFloor,
@@ -118,6 +146,7 @@ func SimulateETAs(
 	prioritizedDirection hardware.MotorDirection,
 	currentFloor int,
 	recentDirection hardware.MotorDirection,
+	doorOpen bool,
 	orders AllOrders) InternalETAs {
 
 	now := time.Now()
@@ -125,6 +154,9 @@ func SimulateETAs(
 	simulationDirection := recentDirection
 	simulationOrders := orders
 	simulationTime := time.Now().Add(OffsetDuration)
+	if doorOpen {
+		simulationTime = simulationTime.Add(DoorDuration)
+	}
 	var simulatedDurations InternalETAs
 	for prioritizedDirection != hardware.MD_Stop {
 		prioritizedDirection = simulateETAStep(
@@ -198,6 +230,7 @@ func simulateETAStep(
 func calculateETAforDirection(
 	currentFloor int,
 	direction hardware.MotorDirection,
+	doorOpen bool,
 	orders AllOrders) InternalETAs {
 
 	var calculatedETAs InternalETAs
@@ -205,6 +238,9 @@ func calculateETAforDirection(
 	simulationFloor := currentFloor
 	simulationDirection := direction
 	currentTime := time.Now().Add(OffsetDuration)
+	if doorOpen {
+		currentTime = currentTime.Add(DoorDuration)
+	}
 	for {
 		calculatedETAs.setETA(
 			simulationDirection,
@@ -284,13 +320,13 @@ func bestETA(
 			ETAsAboveFloor)
 
 		if newETABetterOrBestETAExpiredWithOrder(
-			ETAsBelowFloorETA,
 			ETAsBelowFloorOrderState,
+			ETAsBelowFloorETA,
 			now) &&
 
 			!newETABetterOrBestETAExpiredWithOrder(
-				ETAsAboveFloorETA,
 				ETAsAboveFloorOrderState,
+				ETAsAboveFloorETA,
 				now) {
 
 			return ETAsBelow
@@ -298,13 +334,13 @@ func bestETA(
 		}
 
 		if newETABetterOrBestETAExpiredWithOrder(
-			ETAsAboveFloorETA,
 			ETAsAboveFloorOrderState,
+			ETAsAboveFloorETA,
 			now) &&
 
 			!newETABetterOrBestETAExpiredWithOrder(
-				ETAsBelowFloorETA,
 				ETAsBelowFloorOrderState,
+				ETAsBelowFloorETA,
 				now) {
 
 			return ETAsAbove
@@ -418,24 +454,57 @@ func AllInternalETAsBest(orders AllOrders) bool {
 	return true
 }
 
-func FirstBestETAexpirationWithOrder(orders AllOrders) time.Time {
+// func FirstBestETAExpirationWithOrder(orders AllOrders) time.Time {
+// 	now := time.Now()
+// 	etaExpiration := maxTime()
+// 	for _, floor := range hardware.ValidFloors() {
+// 		if hasOrderAndBestETABetweenTimes(
+// 			orders.Down[floor],
+// 			now,
+// 			etaExpiration) {
+
+// 			etaExpiration = orders.Down[floor].BestETA
+
+// 		}
+// 		if hasOrderAndBestETABetweenTimes(
+// 			orders.Up[floor],
+// 			now,
+// 			etaExpiration) {
+
+// 			etaExpiration = orders.Up[floor].BestETA
+
+// 		}
+// 	}
+// 	if etaExpiration.Equal(maxTime()) {
+// 		etaExpiration = now
+// 	}
+// 	return etaExpiration
+// }
+
+func FirstInternalETAExpiration(currentETAs InternalETAs) time.Time {
 	now := time.Now()
 	etaExpiration := maxTime()
 	for _, floor := range hardware.ValidFloors() {
-		if hasOrderAndBestETABetweenTimes(
-			orders.Down[floor],
+		if currentETAs.ETABetweenTimes(
+			hardware.MD_Up,
+			floor,
 			now,
 			etaExpiration) {
 
-			etaExpiration = orders.Down[floor].BestETA
+			etaExpiration = currentETAs.getETA(
+				hardware.MD_Up,
+				floor)
 
 		}
-		if hasOrderAndBestETABetweenTimes(
-			orders.Up[floor],
+		if internalETAs.ETABetweenTimes(
+			hardware.MD_Down,
+			floor,
 			now,
 			etaExpiration) {
 
-			etaExpiration = orders.Up[floor].BestETA
+			etaExpiration = internalETAs.getETA(
+				hardware.MD_Down,
+				floor)
 
 		}
 	}

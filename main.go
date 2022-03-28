@@ -35,6 +35,7 @@ func main() {
 	doorTimedOut := make(chan bool)
 	decisionDeadlineTimedOut := make(chan bool)
 	etaExpiredAlarmRinging := make(chan bool)
+	// internalETAExpiringAlarmRinging := make(chan bool)
 
 	ordersRecieved := make(chan orderstate.AllOrders)
 
@@ -48,6 +49,7 @@ func main() {
 	go timer.DoorTimer.PollTimerOut(doorTimedOut)
 	go timer.DecisionDeadlineTimer.PollTimerOut(decisionDeadlineTimedOut)
 	go timer.ETAExpiredAlarm.PollAlarm(etaExpiredAlarmRinging)
+	go timer.InternalETAExpiringAlarm.PollAlarm(etaExpiredAlarmRinging)
 
 	go network.PollReceiveOrders(ordersRecieved)
 	go network.SendOrdersPeriodically()
@@ -103,14 +105,18 @@ func main() {
 			}
 
 		case recievedOrderState := <-ordersRecieved:
-			newOrdersInFloors := orderstate.UpdateOrders(recievedOrderState)
-			orders := orderstate.GetOrders()
-			for floor, newOrder := range newOrdersInFloors {
-				if newOrder {
-					cabstate.FSMNewOrder(
-						floor,
-						orders)
+
+			if recievedOrderState != orderstate.GetOrders() {
+				newOrdersInFloors := orderstate.UpdateOrders(recievedOrderState)
+				orders := orderstate.GetOrders()
+				for floor, newOrder := range newOrdersInFloors {
+					if newOrder {
+						cabstate.FSMNewOrder(
+							floor,
+							orders)
+					}
 				}
+
 			}
 		}
 	}

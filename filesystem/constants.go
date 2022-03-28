@@ -1,9 +1,13 @@
 package filesystem
 
-import "os"
+import (
+	"os"
+	"time"
+)
 
 var cabFile = "filesystem/cabState.json"
 var orderFile = "filesystem/orderState.json"
+var _saveToFileRate = time.Millisecond * 500
 
 func Init() {
 	if len(os.Args) > 1 {

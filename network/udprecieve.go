@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-const _pollRate = 20 * time.Millisecond
+const _pollRate = _sendRate / 3
 
 const bufferSize = 2 * 2048
 const listenAddr = "224.0.0.251"
