@@ -8,43 +8,6 @@ import (
 	// "time"
 )
 
-// type DoorState struct {
-// 	Obstructed bool
-// 	DoorBehaviour hardware.DoorState
-// }
-
-// var Door DoorState
-
-// func InitDoorState() {
-// 	Door := new(DoorState)
-// 	_ = Door
-// }
-
-// func setDoorState(state hardware.DoorState) {
-// 	hardware.SetDoorOpenLamp(bool(state))
-// 	switch state {
-// 	case hardware.DS_Open:
-// 		.Open = true
-// 		timer.TimerStart(doorOpenSecs)
-// 	case hardware.DS_Close:
-// 		Door.Open = false
-// 		timer.TimerStop()
-// 	default:
-// 		panic("door state not implemented")
-// 	}
-// }
-
-// func FSMCloseDoor() DoorState {
-// 	switch Door.Obstructed {
-// 	case true:
-// 		break
-// 	case false:
-// 		setDoorState(hardware.DS_Open)
-// 	default:
-// 		panic("door obstruction not boolean on input")
-// 	}
-// 	return Door
-// }
 
 func setDoorAndCabState(state hardware.DoorState) {
 	switch state {
@@ -77,7 +40,7 @@ func closeDoor() {
 	hardware.SetDoorOpenLamp(false)
 	Cab.Behaviour = Idle
 	timer.DoorTimer.TimerStop()
-	timer.DecisionTimer.TimerStart() //Make decision before leaving floor
+	timer.DecisionTimer.TimerStart()
 }
 
 func FSMObstructionChange(obstructed bool, orders orderstate.AllOrders) {

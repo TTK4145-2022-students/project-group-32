@@ -1,14 +1,13 @@
 package timer
 
 import (
-	// "fmt"
 	"time"
 )
 
 const _pollRate = 20 * time.Millisecond
 const _doorOpenTime = 3 * time.Second
 const _waitForDecisionTime = 250 * time.Millisecond
-const _forceActionTime = 1 * time.Second
+const _pokeTime = 1 * time.Second
 
 type Timer struct {
 	isActive      bool
@@ -18,9 +17,7 @@ type Timer struct {
 
 var DoorTimer = Timer{timerDuration: _doorOpenTime}
 var DecisionTimer = Timer{timerDuration: _waitForDecisionTime}
-
-// var NewOrderDecisionTimer = Timer{timerDuration: _waitForDecisionTime}
-var ForceActionTimer = Timer{timerDuration: _forceActionTime, isActive: true}
+var PokeElevatorTimer = Timer{timerDuration: _pokeTime, isActive: true}
 
 func (timer *Timer) PollTimerOut(receiver chan<- bool) {
 	prev := false
@@ -31,7 +28,6 @@ func (timer *Timer) PollTimerOut(receiver chan<- bool) {
 			receiver <- v
 		}
 		prev = v
-		// fmt.Println(timer.timerDuration)
 	}
 }
 
