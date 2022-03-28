@@ -36,75 +36,75 @@ func UpdateOrderAndInternalETAs(
 	allOrdersMtx.Lock()
 	defer allOrdersMtx.Unlock()
 	previousETAs = internalETAs
-	// prioritizedDirection := PrioritizedDirection(
-	// 	currentFloor,
-	// 	recentDirection,
-	// 	allOrders,
-	// 	internalETAs)
-	// newETAs := ComputeETAs(
-	// 	currentFloor,
-	// 	prioritizedDirection,
-	// 	recentDirection,
-	// 	doorOpen,
-	// 	allOrders)
+	prioritizedDirection := PrioritizedDirection(
+		currentFloor,
+		recentDirection,
+		allOrders,
+		internalETAs)
+	newETAs := ComputeETAs(
+		currentFloor,
+		prioritizedDirection,
+		recentDirection,
+		doorOpen,
+		allOrders)
 	now := time.Now()
-	var newETAs InternalETAs
-	eta := now.Add(OffsetDuration)
-	newETAs.setETA(
-		recentDirection,
-		currentFloor,
-		eta)
-	allOrders.setOrderETA(
-		recentDirection,
-		currentFloor,
-		eta)
+	// var newETAs InternalETAs
+	// eta := now.Add(OffsetDuration)
+	// newETAs.setETA(
+	// 	recentDirection,
+	// 	currentFloor,
+	// 	eta)
+	// allOrders.setOrderETA(
+	// 	recentDirection,
+	// 	currentFloor,
+	// 	eta)
 
-	// for _, floor := range hardware.ValidFloors() {
+	for _, floor := range hardware.ValidFloors() {
 
-	// 	if newETABetterOrBestETAExpired(
-	// 		allOrders.Up[floor],
-	// 		newETAs.Up[floor],
-	// 		now) ||
-	// 		InternalETABest(
-	// 			allOrders.Up[floor],
-	// 			internalETAs.Up[floor]) {
+		if newETABetterOrBestETAExpired(
+			allOrders.Up[floor],
+			newETAs.Up[floor],
+			now) ||
+			InternalETABest(
+				allOrders.Up[floor],
+				internalETAs.Up[floor]) {
 
-	// 		allOrders.Up[floor].BestETA = newETAs.Up[floor]
-	// 		// allOrders.Up[floor].Now = now
-	// 	}
-	// 	// } else if InternalETABestAndNotExpired(
-	// 	// 	newETAs.Up[floor],
-	// 	// 	allOrders.Up[floor],
-	// 	// 	now) {
+			allOrders.Up[floor].BestETA = newETAs.Up[floor]
+			// allOrders.Up[floor].Now = now
+		}
+		// } else if InternalETABestAndNotExpired(
+		// 	newETAs.Up[floor],
+		// 	allOrders.Up[floor],
+		// 	now) {
 
-	// 	// 	newETAs.Up[floor] = allOrders.Up[floor].BestETA
+		// 	newETAs.Up[floor] = allOrders.Up[floor].BestETA
 
-	// 	// }
+		// }
 
-	// 	if newETABetterOrBestETAExpired(
-	// 		allOrders.Down[floor],
-	// 		newETAs.Down[floor],
-	// 		now) ||
-	// 		InternalETABest(
-	// 			allOrders.Down[floor],
-	// 			internalETAs.Down[floor]) {
+		if newETABetterOrBestETAExpired(
+			allOrders.Down[floor],
+			newETAs.Down[floor],
+			now) ||
+			InternalETABest(
+				allOrders.Down[floor],
+				internalETAs.Down[floor]) {
 
-	// 		allOrders.Down[floor].BestETA = newETAs.Down[floor]
-	// 		// allOrders.Down[floor].Now = now
-	// 	}
-	// 	// } else if InternalETABestAndNotExpired(
-	// 	// 	newETAs.Down[floor],
-	// 	// 	allOrders.Down[floor],
-	// 	// 	now) {
+			allOrders.Down[floor].BestETA = newETAs.Down[floor]
+			// allOrders.Down[floor].Now = now
+		}
+		// } else if InternalETABestAndNotExpired(
+		// 	newETAs.Down[floor],
+		// 	allOrders.Down[floor],
+		// 	now) {
 
-	// 	// 	newETAs.Down[floor] = allOrders.Down[floor].BestETA
+		// 	newETAs.Down[floor] = allOrders.Down[floor].BestETA
 
-	// 	// }
-	// 	// allOrders.Up[floor].LocalETA = newETAs.Up[floor]
-	// 	// allOrders.Down[floor].LocalETA = newETAs.Down[floor]
-	// 	// allOrders.Up[floor].Now = now
-	// 	// allOrders.Down[floor].Now = now
-	// }
+		// }
+		// allOrders.Up[floor].LocalETA = newETAs.Up[floor]
+		// allOrders.Down[floor].LocalETA = newETAs.Down[floor]
+		// allOrders.Up[floor].Now = now
+		// allOrders.Down[floor].Now = now
+	}
 	internalETAs = newETAs
 	return allOrders, internalETAs
 }

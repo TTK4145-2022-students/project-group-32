@@ -3,7 +3,6 @@ package orderstate
 import (
 	"elevators/controlunit/prioritize"
 	"elevators/hardware"
-	"fmt"
 	"sync"
 	"time"
 )
@@ -253,22 +252,22 @@ func updateFloorOrderState(
 	if inputState.LastCompleteTime.After(currentState.LastCompleteTime) {
 		currentState.LastCompleteTime = inputState.LastCompleteTime
 	}
-	// if !inputBestETABetterOrBestETAExpired(
-	// 	inputState,
-	// 	*currentState,
-	// 	now) {
-	internalBest := InternalETABest(
-		*currentState,
-		*currentETA)
-
-	if !inputBestETAExpired(
+	if !inputBestETABetterOrBestETAExpired(
 		inputState,
-		now) &&
-		!(internalBest &&
-			newETABetterOrBestETAExpired(
-				inputState,
-				*currentETA,
-				now)) {
+		*currentState,
+		now) {
+		// internalBest := InternalETABest(
+		// 	*currentState,
+		// 	*currentETA)
+
+		// if !inputBestETAExpired(
+		// 	inputState,
+		// 	now) &&
+		// 	!(internalBest &&
+		// 		newETABetterOrBestETAExpired(
+		// 			inputState,
+		// 			*currentETA,
+		// 			now)) {
 
 		currentState.BestETA = inputState.BestETA
 		currentState.ETAOwn = true
@@ -277,34 +276,34 @@ func updateFloorOrderState(
 
 	}
 
-	if inputState.BestETA.Before(now) {
-		currentState.BestETA = time.Time{}
-	}
+	// if inputState.BestETA.Before(now) {
+	// 	currentState.BestETA = time.Time{}
+	// }
 
-	if inputState.BestETA.Equal(*previousETA) {
-		// fmt.Println("Got old own ETA")
-	} else if inputState.BestETA.Equal(*currentETA) {
-		// fmt.Println("Got own ETA")
-	} else if inputState.BestETA.IsZero() {
-		// fmt.Println("Got no ETA")
-	} else {
-		fmt.Println("Got other ETA")
-		fmt.Println(inputState.BestETA)
-		currentState.BestETA = inputState.BestETA
-	}
-	if internalBest {
-		*currentETA = currentState.BestETA
-		currentState.LocalETABest = true
-	} else {
-		currentState.LocalETABest = false
+	// if inputState.BestETA.Equal(*previousETA) {
+	// 	// fmt.Println("Got old own ETA")
+	// } else if inputState.BestETA.Equal(*currentETA) {
+	// 	// fmt.Println("Got own ETA")
+	// } else if inputState.BestETA.IsZero() {
+	// 	// fmt.Println("Got no ETA")
+	// } else {
+	// 	fmt.Println("Got other ETA")
+	// 	fmt.Println(inputState.BestETA)
+	// 	currentState.BestETA = inputState.BestETA
+	// }
+	// if internalBest {
+	// 	*currentETA = currentState.BestETA
+	// 	currentState.LocalETABest = true
+	// } else {
+	// 	currentState.LocalETABest = false
 
-	}
-	if !inputState.BestETA.Equal(*currentETA) {
-		fmt.Println("recieved not equal to local")
-	}
-	currentState.LastRecievedETA = inputState.BestETA
-	currentState.LocalETA = *currentETA
-	currentState.Now = now
+	// }
+	// if !inputState.BestETA.Equal(*currentETA) {
+	// 	fmt.Println("recieved not equal to local")
+	// }
+	// currentState.LastRecievedETA = inputState.BestETA
+	// currentState.LocalETA = *currentETA
+	// currentState.Now = now
 
 	newCurrentOrder := currentState.hasOrder()
 	orderChange := NoChange

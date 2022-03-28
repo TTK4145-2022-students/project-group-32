@@ -59,16 +59,16 @@ func newETABetterOrBestETAExpiredWithOrder(
 				order.BestETA.Before(currentTime)))
 }
 
-// func inputBestETABetterOrBestETAExpired(
-// 	inputOrder OrderState,
-// 	currentOrder OrderState,
-// 	currentTime time.Time) bool {
+func inputBestETABetterOrBestETAExpired(
+	inputOrder OrderState,
+	currentOrder OrderState,
+	currentTime time.Time) bool {
 
-// 	return newETABetterOrBestETAExpired(
-// 		inputOrder.BestETA,
-// 		currentOrder,
-// 		currentTime)
-// }
+	return newETABetterOrBestETAExpired(
+		currentOrder,
+		inputOrder.BestETA,
+		currentTime)
+}
 
 func inputBestETAExpired(
 	inputOrder OrderState,
