@@ -39,7 +39,7 @@ func Init(initOrders AllOrders) {
 	allOrdersMtx.Lock()
 	defer allOrdersMtx.Unlock()
 	allOrders = initOrders
-	for floor := 0; floor < hardware.FloorCount; floor++ {
+	for _, floor := range hardware.ValidFloors() {
 		if allOrders.Cab[floor] {
 			hardware.SetButtonLamp(
 				hardware.BT_Cab,
@@ -177,7 +177,7 @@ func (orderState *OrderState) hasOrder() bool {
 }
 
 func AnyOrders(orders AllOrders) bool {
-	for floor := 0; floor < hardware.FloorCount; floor++ {
+	for _, floor := range hardware.ValidFloors() {
 		if orders.Up[floor].hasOrder() ||
 			orders.Down[floor].hasOrder() ||
 			orders.Cab[floor] {
@@ -191,7 +191,7 @@ func UpdateOrders(inputOrders AllOrders) [hardware.FloorCount]bool {
 	allOrdersMtx.Lock()
 	defer allOrdersMtx.Unlock()
 	var newOrders [hardware.FloorCount]bool
-	for floor := 0; floor < hardware.FloorCount; floor++ {
+	for _, floor := range hardware.ValidFloors() {
 		switch updateFloorOrderState(
 			inputOrders.Down[floor],
 			&allOrders.Down[floor]) {

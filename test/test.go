@@ -86,7 +86,9 @@ func testComputeETAs() {
 
 func main() {
 	// testHasOrder()
-	testAnyOrders()
-	testFirstExternalETA()
-	testComputeETAs()
+	// testAnyOrders()
+	// testFirstExternalETA()
+	// testComputeETAs()
+	fmt.Println(hardware.ValidFloors())
+	fmt.Println(time.Now().Before(time.Unix(1<<62, 0)))
 }

@@ -103,7 +103,7 @@ func getNumberOfBestETAsForFloor(
 		orders)
 
 	numBestETAs := 0
-	for floor := 0; floor < hardware.FloorCount; floor++ {
+	for _, floor := range hardware.ValidFloors() {
 		if orders.Down[floor].BestETA.Before(internalETAs.Down[floor]) {
 			numBestETAs++
 		}
@@ -127,7 +127,7 @@ func abs(x int) int {
 // 	internalETAs orderstate.InternalETAs) [hardware.FloorCount]bool {
 // 	var cabPositions [hardware.FloorCount]bool
 // 	now := time.Now()
-// 	for floor := 0; floor < hardware.FloorCount; floor++ {
+// 	for _, floor := range hardware.ValidFloors() {
 // 		if (
 // !orderstate.InternalETABest(orders.Up[floor],
 // internalETAs.Up[floor]) &&
