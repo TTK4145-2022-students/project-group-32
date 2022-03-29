@@ -18,7 +18,7 @@ func DoorActionOnDoorTimeout(
 		}
 	case hardware.MD_Down:
 		if currentOrders.DownAtFloor ||
-			(currentOrders.CabAtFloor && currentOrders.AboveFloor) {
+			(currentOrders.CabAtFloor && currentOrders.BelowFloor) {
 			return hardware.DS_Open_Down
 		} else if currentOrders.UpAtFloor && !currentOrders.BelowFloor {
 			return hardware.DS_Open_Up

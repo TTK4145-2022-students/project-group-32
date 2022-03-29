@@ -23,14 +23,10 @@ func InitUDPSendingSocket(
 			sendAddr),
 	}
 
-	wconn, err := net.DialUDP(
+	wconn, _ := net.DialUDP(
 		"udp",
 		nil,
 		&sendaddr)
-
-	if err != nil {
-		panic(err)
-	}
 
 	return sendaddr,
 		wconn
