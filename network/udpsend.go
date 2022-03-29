@@ -11,39 +11,59 @@ const UDPPort = 20014
 const broadcastAddr = "255.255.255.255"
 const _sendRate = orderstate.WaitBeforeGuaranteeTime / 5
 
-func InitUDPSendingSocket(port int, sendAddr string) (net.UDPAddr, *net.UDPConn) {
+func InitUDPSendingSocket(
+	port int,
+	sendAddr string) (
+	net.UDPAddr,
+	*net.UDPConn) {
+
 	sendaddr := net.UDPAddr{
 		Port: port,
-		IP:   net.ParseIP(sendAddr),
+		IP: net.ParseIP(
+			sendAddr),
 	}
 
-	wconn, err := net.DialUDP("udp", nil, &sendaddr)
+	wconn, err := net.DialUDP(
+		"udp",
+		nil,
+		&sendaddr)
 
 	if err != nil {
 		panic(err)
 	}
 
-	return sendaddr, wconn
+	return sendaddr,
+		wconn
 }
 
-func BroadcastOrderState(orderState orderstate.AllOrders, wconn *net.UDPConn) {
-	message, _ := json.Marshal(orderState)
-	broadcastMessage(message, wconn)
+func BroadcastOrders(
+	orders orderstate.AllOrders,
+	wconn *net.UDPConn) {
+
+	message, _ := json.Marshal(orders)
+	broadcastMessage(
+		message,
+		wconn)
 }
 
-func broadcastMessage(message []byte, wconn *net.UDPConn) {
+func broadcastMessage(
+	message []byte,
+	wconn *net.UDPConn) {
+
 	wconn.Write(message)
 }
 
-func SendOrderStatePeriodically() {
-	_, wconn := InitUDPSendingSocket(UDPPort, broadcastAddr)
+func SendOrdersPeriodically() {
+	_, wconn := InitUDPSendingSocket(
+		UDPPort,
+		broadcastAddr)
 	defer wconn.Close()
 
 	for {
-		state := orderstate.GetOrders()
-
-		// // fmt.Println("state send:", state, "\n\n")
-		BroadcastOrderState(state, wconn)
+		orders := orderstate.GetOrders()
+		BroadcastOrders(
+			orders,
+			wconn)
 		time.Sleep(_sendRate)
 	}
 }

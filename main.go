@@ -14,10 +14,15 @@ func main() {
 	// phoenix.Init()
 	// go phoenix.Phoenix()
 	if len(os.Args) > 1 {
-		hardware.Init("localhost:"+os.Args[1], hardware.FloorCount)
+		hardware.Init(
+			"localhost:"+os.Args[1],
+			hardware.FloorCount)
 	} else {
-		hardware.Init("localhost:15657", hardware.FloorCount)
+		hardware.Init(
+			"localhost:15657",
+			hardware.FloorCount)
 	}
+	filesystem.Init()
 	orderstate.Init(filesystem.ReadOrders())
 	cabstate.Init(filesystem.ReadCabState())
 
@@ -28,35 +33,46 @@ func main() {
 	stopChange := make(chan bool)
 
 	doorTimedOut := make(chan bool)
-	decisionTimedOut := make(chan bool)
-	pokeElevator := make(chan bool)
+	decisionDeadlineTimedOut := make(chan bool)
+	etaExpiredAlarmRinging := make(chan bool)
+	// internalETAExpiringAlarmRinging := make(chan bool)
+
+	pokeCab := make(chan bool)
 
 	ordersRecieved := make(chan orderstate.AllOrders)
 
 	go hardware.PollButtons(buttonPress)
-	go hardware.PollFloorSensor(floorArrival, floorLeft)
+	go hardware.PollFloorSensor(
+		floorArrival,
+		floorLeft)
 	go hardware.PollObstructionSwitch(obstructionChange)
 	go hardware.PollStopButton(stopChange)
 
 	go timer.DoorTimer.PollTimerOut(doorTimedOut)
-	go timer.DecisionTimer.PollTimerOut(decisionTimedOut)
-	go timer.PokeElevatorTimer.PollTimerOut(pokeElevator)
+	go timer.DecisionDeadlineTimer.PollTimerOut(decisionDeadlineTimedOut)
+	go timer.ETAExpiredAlarm.PollAlarm(etaExpiredAlarmRinging)
+	go timer.InternalETAExpiringAlarm.PollAlarm(etaExpiredAlarmRinging)
+	go timer.PokeCabTimer.PollTimerOut(pokeCab)
 
-	go network.PollReceiveOrderState(ordersRecieved)
+	go network.PollReceiveOrders(ordersRecieved)
+	go network.SendOrdersPeriodically()
 
-	go network.SendOrderStatePeriodically()
+	go filesystem.SaveStatesPeriodically()
 
-	go filesystem.SaveStatePeriodically()
-
-	//Glorious loop
+	timer.PokeCabTimer.TimerStart()
+	// All hail The Loop!
+	// that grants us non-concurrency and fastest poll rate
 	for {
 		select {
 		case buttonEvent := <-buttonPress:
 			// fmt.Println("Button pressed")
-			orderstate.AcceptNewOrder(buttonEvent.Button, buttonEvent.Floor)
+			orderstate.AcceptNewOrder(
+				buttonEvent.Button,
+				buttonEvent.Floor)
 			orders := orderstate.GetOrders()
-			timer.DecisionTimer.TimerStart()
-			cabstate.FSMNewOrder(buttonEvent.Floor, orders)
+			cabstate.FSMNewOrder(
+				buttonEvent.Floor,
+				orders)
 
 		case floor := <-floorArrival:
 			// fmt.Println("Ariived at floor")
@@ -76,16 +92,13 @@ func main() {
 			orders := orderstate.GetOrders()
 			cabstate.FSMDoorTimeout(orders)
 
-		case <-decisionTimedOut:
+		case <-decisionDeadlineTimedOut:
 			// fmt.Println("Decision timed out")
-			orders := orderstate.GetOrders()
-			cabstate.FSMDecisionTimeout(orders)
+			cabstate.FSMDecisionDeadline()
 
-		case <-pokeElevator:
-			orders := orderstate.GetOrders()
-			timer.DecisionTimer.TimerStart()
-			cabstate.FSMDecisionTimeout(orders)
-			timer.PokeElevatorTimer.TimerStart()
+		case <-pokeCab:
+			cabstate.FSMPoke()
+			timer.PokeCabTimer.TimerStart()
 
 		case <-stopChange:
 			orderstate.ResetOrders()

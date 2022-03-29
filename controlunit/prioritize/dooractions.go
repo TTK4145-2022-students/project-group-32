@@ -7,7 +7,7 @@ import (
 func DoorActionOnDoorTimeout(
 	prioritizedDirection hardware.MotorDirection,
 	doorObstructed bool,
-	currentOrders OrderStatus) hardware.DoorState {
+	currentOrders OrderSummary) hardware.DoorAction {
 	switch prioritizedDirection {
 	case hardware.MD_Up:
 		if currentOrders.UpAtFloor ||
@@ -38,7 +38,7 @@ func DoorActionOnDoorTimeout(
 
 func DoorActionOnFloorStop(
 	prioritizedDirection hardware.MotorDirection,
-	currentOrders OrderStatus) hardware.DoorState {
+	currentOrders OrderSummary) hardware.DoorAction {
 
 	switch prioritizedDirection {
 	case hardware.MD_Up:
@@ -64,4 +64,30 @@ func DoorActionOnFloorStop(
 		return hardware.DS_Open_Cab
 	}
 	return hardware.DS_Close
+}
+
+func DoorActionOnNewOrder(
+	prioritizedDirection hardware.MotorDirection,
+	currentOrders OrderSummary) hardware.DoorAction {
+
+	switch prioritizedDirection {
+	case hardware.MD_Up:
+		if currentOrders.DownAtFloor {
+			return hardware.DS_Open_Down
+		}
+
+	case hardware.MD_Down:
+		if currentOrders.UpAtFloor {
+			return hardware.DS_Open_Up
+		}
+
+	case hardware.MD_Stop:
+		break
+	default:
+		panic("Invalid recent direction on floor stop")
+	}
+	if currentOrders.CabAtFloor {
+		return hardware.DS_Open_Cab
+	}
+	return hardware.DS_Do_Nothing
 }
