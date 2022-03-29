@@ -2,3 +2,4 @@
 filesystem/cabState.json
 filesystem/orderState.json
 phoenix/phoenix*.txt
+*.json
