@@ -24,7 +24,8 @@ func main() {
 	}
 	filesystem.Init()
 	orderstate.Init(filesystem.ReadOrders())
-	cabstate.Init(filesystem.ReadCabState())
+	// cabstate.Init(filesystem.ReadCabState())
+	cabstate.Init()
 
 	buttonPress := make(chan hardware.ButtonEvent)
 	floorArrival := make(chan int)
@@ -57,7 +58,7 @@ func main() {
 	go network.PollReceiveOrders(ordersRecieved)
 	go network.SendOrdersPeriodically()
 
-	go filesystem.SaveStatesPeriodically()
+	go filesystem.SaveOrdersPeriodically()
 
 	timer.PokeCabTimer.TimerStart()
 	// All hail The Loop!

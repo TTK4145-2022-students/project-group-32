@@ -29,8 +29,12 @@ type CabState struct {
 
 var Cab CabState
 
-func Init(cabState CabState) {
-	Cab = cabState
+// func Init(cabState CabState) {
+// 	Cab = cabState
+// 	FSMInitBetweenFloors()
+// }
+
+func Init() {
 	FSMInitBetweenFloors()
 }
 
