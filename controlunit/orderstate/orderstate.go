@@ -91,7 +91,8 @@ func AcceptNewOrder(
 		panic("order type not implemented " + string(rune(orderType)))
 	}
 	go waitForOrderGuarantee(
-		orderType, floor)
+		orderType,
+		floor)
 }
 
 func waitForOrderGuarantee(
@@ -149,7 +150,8 @@ func clearCabOrder(floor int) {
 	defer allOrdersMtx.Unlock()
 	hardware.SetButtonLamp(
 		hardware.BT_Cab,
-		floor, false)
+		floor,
+		false)
 	allOrders.Cab[floor] = false
 }
 
@@ -158,7 +160,8 @@ func clearUpOrder(floor int) {
 	defer allOrdersMtx.Unlock()
 	hardware.SetButtonLamp(
 		hardware.BT_HallUp,
-		floor, false)
+		floor,
+		false)
 	allOrders.Up[floor].LastCompleteTime = time.Now()
 	internalETAs.Up[floor] = time.Time{}
 }
@@ -168,7 +171,8 @@ func clearDownOrder(floor int) {
 	defer allOrdersMtx.Unlock()
 	hardware.SetButtonLamp(
 		hardware.BT_HallDown,
-		floor, false)
+		floor,
+		false)
 	allOrders.Down[floor].LastCompleteTime = time.Now()
 	internalETAs.Down[floor] = time.Time{}
 }
@@ -224,12 +228,14 @@ func UpdateOrders(inputOrders AllOrders) [hardware.FloorCount]bool {
 		case OrderCleared:
 			hardware.SetButtonLamp(
 				hardware.BT_HallDown,
-				floor, false)
+				floor,
+				false)
 
 		case OrderPlaced:
 			hardware.SetButtonLamp(
 				hardware.BT_HallDown,
-				floor, true)
+				floor,
+				true)
 			newOrders[floor] = true
 		}
 		switch updateFloorOrderState(
@@ -238,12 +244,14 @@ func UpdateOrders(inputOrders AllOrders) [hardware.FloorCount]bool {
 		case OrderCleared:
 			hardware.SetButtonLamp(
 				hardware.BT_HallUp,
-				floor, false)
+				floor,
+				false)
 
 		case OrderPlaced:
 			hardware.SetButtonLamp(
 				hardware.BT_HallUp,
-				floor, true)
+				floor,
+				true)
 			newOrders[floor] = true
 		}
 	}
@@ -332,8 +340,10 @@ func GetOrderSummary(
 	orderSummary.DownAtFloor = hasOrder(orders.Down[floor])
 	orderSummary.CabAtFloor = orders.Cab[floor]
 	orderSummary.AboveFloor = OrdersAbove(
-		orders, floor)
+		orders,
+		floor)
 	orderSummary.BelowFloor = OrdersBelow(
-		orders, floor)
+		orders,
+		floor)
 	return orderSummary
 }

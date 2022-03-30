@@ -101,5 +101,6 @@ func (internalETAs *InternalETAs) setETA(
 
 func maxTime() time.Time {
 	return time.Unix(
-		1<<62, 0)
+		1<<62,
+		0)
 }

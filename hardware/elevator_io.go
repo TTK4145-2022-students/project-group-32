@@ -56,7 +56,8 @@ func Init(
 	var err error
 	_conn,
 		err = net.Dial(
-		"tcp", addr)
+		"tcp",
+		addr)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -69,7 +70,8 @@ func TurnOffAllLamps() {
 		for b := ButtonType(0); b < 3; b++ {
 			SetButtonLamp(
 				b,
-				f, false)
+				f,
+				false)
 		}
 	}
 	SetDoorOpenLamp(false)
@@ -83,7 +85,9 @@ func SetMotorDirection(dir MotorDirection) {
 	_conn.Write(
 		[]byte{1,
 			byte(
-				dir), 0, 0})
+				dir),
+			0,
+			0})
 }
 
 func SetButtonLamp(
@@ -96,7 +100,8 @@ func SetButtonLamp(
 	_conn.Write(
 		[]byte{2,
 			byte(button), byte(
-				floor), toByte(value)})
+				floor),
+			toByte(value)})
 }
 
 func SetFloorIndicator(floor int) {
@@ -105,7 +110,9 @@ func SetFloorIndicator(floor int) {
 	_conn.Write(
 		[]byte{3,
 			byte(
-				floor), 0, 0})
+				floor),
+			0,
+			0})
 }
 
 func SetDoorOpenLamp(value bool) {
@@ -114,7 +121,9 @@ func SetDoorOpenLamp(value bool) {
 	_conn.Write(
 		[]byte{4,
 			toByte(
-				value), 0, 0})
+				value),
+			0,
+			0})
 }
 
 func SetStopLamp(value bool) {
@@ -123,20 +132,25 @@ func SetStopLamp(value bool) {
 	_conn.Write(
 		[]byte{5,
 			toByte(
-				value), 0, 0})
+				value),
+			0,
+			0})
 }
 
 func PollButtons(receiver chan<- ButtonEvent) {
 	prev := make(
-		[][3]bool, _numFloors)
+		[][3]bool,
+		_numFloors)
 	for {
 		time.Sleep(_pollRate)
 		for f := 0; f < _numFloors; f++ {
 			for b := ButtonType(0); b < 3; b++ {
 				v := getButton(
-					b, f)
+					b,
+					f)
 				if v != prev[f][b] && v {
-					receiver <- ButtonEvent{f, ButtonType(b)}
+					receiver <- ButtonEvent{f,
+						ButtonType(b)}
 				}
 				prev[f][b] = v
 			}
@@ -196,7 +210,8 @@ func getButton(
 	_conn.Write(
 		[]byte{6,
 			byte(button), byte(
-				floor), 0})
+				floor),
+			0})
 	var buf [4]byte
 	_conn.Read(buf[:])
 	return toBool(buf[1])
@@ -207,7 +222,9 @@ func getFloor() int {
 	defer _mtx.Unlock()
 	_conn.Write(
 		[]byte{7,
-			0, 0, 0})
+			0,
+			0,
+			0})
 	var buf [4]byte
 	_conn.Read(buf[:])
 	if buf[1] != 0 {
@@ -222,7 +239,9 @@ func getStop() bool {
 	defer _mtx.Unlock()
 	_conn.Write(
 		[]byte{8,
-			0, 0, 0})
+			0,
+			0,
+			0})
 	var buf [4]byte
 	_conn.Read(buf[:])
 	return toBool(buf[1])
@@ -231,9 +250,7 @@ func getStop() bool {
 func getObstruction() bool {
 	_mtx.Lock()
 	defer _mtx.Unlock()
-	_conn.Write(
-		[]byte{9,
-			0, 0, 0})
+	_conn.Write([]byte{9, 0, 0, 0})
 	var buf [4]byte
 	_conn.Read(buf[:])
 	return toBool(buf[1])

@@ -413,7 +413,8 @@ func PrioritizedDirection(
 func AllInternalETAsBest(orders AllOrders) bool {
 	for floor := 0; floor < hardware.FloorCount; floor++ {
 		if !internalETABest(
-			orders.Down[floor], internalETAs.Down[floor]) ||
+			orders.Down[floor],
+			internalETAs.Down[floor]) ||
 			!internalETABest(
 				orders.Up[floor],
 				internalETAs.Up[floor]) {

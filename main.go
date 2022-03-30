@@ -77,16 +77,16 @@ func main() {
 			hardware.SetFloorIndicator(floor)
 			orders := orderstate.GetOrders()
 			cabstate.FSMFloorArrival(
-				floor, orders)
-
+				floor,
+				orders)
 		case <-floorLeft:
 			cabstate.FSMFloorLeave()
 
 		case obstruction := <-obstructionChange:
 			orders := orderstate.GetOrders()
 			cabstate.FSMObstructionChange(
-				obstruction, orders)
-
+				obstruction,
+				orders)
 		case <-doorTimedOut:
 			orders := orderstate.GetOrders()
 			cabstate.FSMDoorTimeout(orders)
@@ -104,7 +104,8 @@ func main() {
 				for b := hardware.ButtonType(0); b < 3; b++ {
 					hardware.SetButtonLamp(
 						b,
-						f, false)
+						f,
+						false)
 				}
 			}
 
@@ -114,7 +115,8 @@ func main() {
 			for floor, newOrder := range newOrdersInFloors {
 				if newOrder {
 					cabstate.FSMNewOrder(
-						floor, orders)
+						floor,
+						orders)
 				}
 			}
 		}

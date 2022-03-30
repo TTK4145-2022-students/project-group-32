@@ -46,7 +46,6 @@ func receiveUDPMessage(conn *net.UDPConn) []byte {
 	var buf [bufferSize]byte
 	rlen,
 		_, err := conn.ReadFromUDP(buf[:])
-
 	if err != nil {
 		panic(err)
 	}

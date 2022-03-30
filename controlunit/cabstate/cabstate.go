@@ -68,7 +68,8 @@ func FSMNewOrder(
 			false)
 		if (Cab.AboveOrAtFloor == orderFloor) && !Cab.BetweenFloors {
 			FSMFloorStop(
-				orderFloor, orders)
+				orderFloor,
+				orders)
 		} else {
 			timer.DecisionDeadlineTimer.TimerStart()
 		}
@@ -104,7 +105,8 @@ func FSMFloorArrival(
 	Cab.AboveOrAtFloor = floor
 	Cab.BetweenFloors = false
 	OrderSummary := orderstate.GetOrderSummary(
-		orders, floor)
+		orders,
+		floor)
 	switch Cab.Behaviour {
 	case Moving:
 		motorAction := prioritize.MotorActionOnFloorArrival(
@@ -114,7 +116,8 @@ func FSMFloorArrival(
 
 		if motorAction == hardware.MD_Stop {
 			return FSMFloorStop(
-				floor, orders)
+				floor,
+				orders)
 		}
 	default:
 	}
@@ -147,7 +150,8 @@ func FSMDecisionDeadline() ElevatorBehaviour {
 			Cab.AboveOrAtFloor,
 			false)
 		currentOrderSummary := orderstate.GetOrderSummary(
-			orders, Cab.AboveOrAtFloor)
+			orders,
+			Cab.AboveOrAtFloor)
 		motorAction := prioritize.MotorActionOnDecisionDeadline(
 			orderstate.PrioritizedDirection(
 				Cab.AboveOrAtFloor,

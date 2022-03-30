@@ -13,12 +13,16 @@ import (
 // filename := "test"
 // filestate := orderstate.GetInternalETAs()
 // if len(os.Args) > 1 {
-// 	file, _ := json.MarshalIndent(filestate, "", " ")
-// 	_ = ioutil.WriteFile("testresults/" + filename+os.Args[1]+".json", file, 0644)
-// } else {
-// 	file, _ := json.MarshalIndent(filestate, "", " ")
-// 	_ = ioutil.WriteFile("testresults/" + filename+".json", file, 0644)
-// }
+// 	file,
+ _ := json.MarshalIndent(filestate,
+ "", " ")// 	_ = ioutil.WriteFile("testresults/" + filename+os.Args[1]+".json",
+ file,
+ 0644)// } else {
+// 	file,
+ _ := json.MarshalIndent(filestate,
+ "", " ")// 	_ = ioutil.WriteFile("testresults/" + filename+".json",
+ file,
+ 0644)// }
 // }
 
 // func testHasOrder() {
@@ -31,14 +35,17 @@ import (
 // 		orderstate.OrderState{},
 // 		orderstate.OrderState{LastOrderTime: time.Time{}, LastCompleteTime: time.Time{}},
 // 		orderstate.OrderState{LastOrderTime: time.Now(), LastCompleteTime: time.Time{}},
-// 		orderstate.OrderState{LastOrderTime: time.Now(), LastCompleteTime: time.Now().Add(-1)},
-// 		orderstate.OrderState{LastOrderTime: time.Now(), LastCompleteTime: time.Now().Add(-1 * time.Second)},
-// 		orderstate.OrderState{LastOrderTime: time.Now(), LastCompleteTime: time.Now()}}
+// 		orderstate.OrderState{LastOrderTime: time.Now(),
+ LastCompleteTime: time.Now().Add(-1)},
+// 		orderstate.OrderState{LastOrderTime: time.Now(),
+ LastCompleteTime: time.Now().Add(-1 * time.Second)},
+// 		orderstate.OrderState{LastOrderTime: time.Now(),
+ LastCompleteTime: time.Now()}}
 // 	for _, order := range orders {
 // 		fmt.Print("Last order: ")
 // 		fmt.Print(order.LastOrderTime)
-// 		fmt.Print(", Last Complete: ")
-// 		fmt.Print(order.LastCompleteTime)
+// 		fmt.Print(",
+ Last Complete: ")// 		fmt.Print(order.LastCompleteTime)
 // 		fmt.Print(" ; hasOrder : ")
 // 		fmt.Println(order.hasOrder())
 // 		fmt.Println("")
@@ -82,20 +89,20 @@ func testComputeETAs() {
 		cab.RecentDirection,
 		cab.Behaviour == cabstate.DoorOpen,
 		orders)
-	filesystem.Write("testresults/"+"computeETAs.json", etas)
-	etas = orderstate.ComputeETAs(cab.AboveOrAtFloor,
+	filesystem.Write("testresults/"+"computeETAs.json",
+ etas)	etas = orderstate.ComputeETAs(cab.AboveOrAtFloor,
 		hardware.MD_Stop,
 		hardware.MD_Down,
 		cab.Behaviour == cabstate.DoorOpen,
 		orders)
-	filesystem.Write("testresults/"+"computeETAsDown.json", etas)
-	etas = orderstate.ComputeETAs(cab.AboveOrAtFloor,
+	filesystem.Write("testresults/"+"computeETAsDown.json",
+ etas)	etas = orderstate.ComputeETAs(cab.AboveOrAtFloor,
 		hardware.MD_Stop,
 		hardware.MD_Up,
 		cab.Behaviour == cabstate.DoorOpen,
 		orders)
-	filesystem.Write("testresults/"+"computeETAsUp.json", etas)
-}
+	filesystem.Write("testresults/"+"computeETAsUp.json",
+ etas)}
 
 func main() {
 	// testHasOrder()
@@ -103,6 +110,6 @@ func main() {
 	// testFirstExternalETA()
 	// testComputeETAs()
 	fmt.Println(hardware.ValidFloors())
-	fmt.Println(time.Now().Before(time.Unix(1<<62, 0)))
-	testFirstInternalETA()
+	fmt.Println(time.Now().Before(time.Unix(1<<62,
+ 0)))	testFirstInternalETA()
 }

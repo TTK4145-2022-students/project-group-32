@@ -28,11 +28,13 @@ func Init() {
 		}
 	}
 
-	cmnd := exec.Command("gnome-terminal", "--", "go", "run", "./main.go")
-
+	cmnd := exec.Command("gnome-terminal",
+		"--",
+		"go", "run", "./main.go")
 	if len(os.Args) > 1 {
 		cmnd.Args = append(
-			cmnd.Args, os.Args[1])
+			cmnd.Args,
+			os.Args[1])
 	}
 	cmnd.Run()
 }
@@ -44,7 +46,8 @@ func Phoenix() {
 			filename = "phoenix/phoenix_" + os.Args[1] + ".txt"
 		}
 		msg := fmt.Sprintln(
-			"Writing to file", time.Now())
+			"Writing to file",
+			time.Now())
 		os.WriteFile(
 			filename,
 			[]byte(msg),
