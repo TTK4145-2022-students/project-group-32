@@ -43,8 +43,7 @@ func orderToServe(
 	return (direction == hardware.MD_Down &&
 		orderDown.hasOrder()) ||
 		(direction == hardware.MD_Up &&
-			orderUp.hasOrder()) //||
-	//orderCab
+			orderUp.hasOrder())
 }
 
 func (internalETAs *InternalETAs) getETA(
@@ -101,7 +100,6 @@ func (internalETAs *InternalETAs) setETA(
 }
 
 func maxTime() time.Time {
-	// Max time to find minimum eta
-	// the actual max time of 64-bit Time can't compare because of overflow
-	return time.Unix(1<<62, 0)
+	return time.Unix(
+		1<<62, 0)
 }

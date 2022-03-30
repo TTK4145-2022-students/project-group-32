@@ -15,13 +15,10 @@ func Init() {
 	}
 
 	if _, err := os.Stat(filename); err == nil {
+
 		for {
 			file, _ := os.Stat(filename)
 			modifiedtime := file.ModTime()
-			// // fmt.Println("Last modified time : ", modifiedtime)
-
-			// data, _ := os.ReadFile(filename)
-			// // fmt.Println("You recieved: ", string(data))
 
 			if modifiedtime.Add(2 * time.Second).Before(time.Now()) {
 				fmt.Println("Spawning new program ")
@@ -34,7 +31,8 @@ func Init() {
 	cmnd := exec.Command("gnome-terminal", "--", "go", "run", "./main.go")
 
 	if len(os.Args) > 1 {
-		cmnd.Args = append(cmnd.Args, os.Args[1])
+		cmnd.Args = append(
+			cmnd.Args, os.Args[1])
 	}
 	cmnd.Run()
 }
@@ -45,8 +43,12 @@ func Phoenix() {
 		if len(os.Args) > 1 {
 			filename = "phoenix/phoenix_" + os.Args[1] + ".txt"
 		}
-		msg := fmt.Sprintln("Writing to file", time.Now())
-		os.WriteFile(filename, []byte(msg), 0666)
+		msg := fmt.Sprintln(
+			"Writing to file", time.Now())
+		os.WriteFile(
+			filename,
+			[]byte(msg),
+			0666)
 
 		time.Sleep(time.Second)
 	}

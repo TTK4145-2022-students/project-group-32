@@ -8,6 +8,7 @@ func DoorActionOnDoorTimeout(
 	prioritizedDirection hardware.MotorDirection,
 	doorObstructed bool,
 	currentOrders OrderSummary) hardware.DoorAction {
+
 	switch prioritizedDirection {
 	case hardware.MD_Up:
 		if currentOrders.UpAtFloor ||
@@ -16,6 +17,7 @@ func DoorActionOnDoorTimeout(
 		} else if currentOrders.DownAtFloor && !currentOrders.AboveFloor {
 			return hardware.DS_Open_Down
 		}
+
 	case hardware.MD_Down:
 		if currentOrders.DownAtFloor ||
 			(currentOrders.CabAtFloor && currentOrders.BelowFloor) {
@@ -23,6 +25,7 @@ func DoorActionOnDoorTimeout(
 		} else if currentOrders.UpAtFloor && !currentOrders.BelowFloor {
 			return hardware.DS_Open_Up
 		}
+
 	case hardware.MD_Stop:
 		break
 	default:
@@ -48,6 +51,7 @@ func DoorActionOnFloorStop(
 		} else if currentOrders.DownAtFloor {
 			return hardware.DS_Open_Down
 		}
+
 	case hardware.MD_Down:
 		if currentOrders.DownAtFloor ||
 			(currentOrders.CabAtFloor && currentOrders.AboveFloor) {
@@ -55,6 +59,7 @@ func DoorActionOnFloorStop(
 		} else if currentOrders.UpAtFloor {
 			return hardware.DS_Open_Up
 		}
+
 	case hardware.MD_Stop:
 		break
 	default:

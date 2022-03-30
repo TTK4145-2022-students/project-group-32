@@ -8,17 +8,8 @@ import (
 	"time"
 )
 
-// func SaveStatesPeriodically() {
-// 	for {
-// 		SaveCabState(cabstate.Cab)
-// 		SaveOrders(orderstate.GetOrders())
-// 		time.Sleep(_saveToFileRate)
-// 	}
-// }
-
 func SaveOrdersPeriodically() {
 	for {
-		// SaveCabState(cabstate.Cab)
 		SaveOrders(orderstate.GetOrders())
 		time.Sleep(_saveToFileRate)
 	}

@@ -25,7 +25,6 @@ func main() {
 	}
 	filesystem.Init()
 	orderstate.Init(filesystem.ReadOrders())
-	// cabstate.Init(filesystem.ReadCabState())
 	cabstate.Init()
 
 	buttonPress := make(chan hardware.ButtonEvent)
@@ -37,7 +36,6 @@ func main() {
 	doorTimedOut := make(chan bool)
 	decisionDeadlineTimedOut := make(chan bool)
 	etaExpiredAlarmRinging := make(chan bool)
-	// internalETAExpiringAlarmRinging := make(chan bool)
 
 	pokeCab := make(chan bool)
 
@@ -67,7 +65,6 @@ func main() {
 	for {
 		select {
 		case buttonEvent := <-buttonPress:
-			// fmt.Println("Button pressed")
 			orderstate.AcceptNewOrder(
 				buttonEvent.Button,
 				buttonEvent.Floor)
@@ -77,25 +74,24 @@ func main() {
 				orders)
 
 		case floor := <-floorArrival:
-			// fmt.Println("Ariived at floor")
 			hardware.SetFloorIndicator(floor)
 			orders := orderstate.GetOrders()
-			cabstate.FSMFloorArrival(floor, orders)
+			cabstate.FSMFloorArrival(
+				floor, orders)
 
 		case <-floorLeft:
 			cabstate.FSMFloorLeave()
 
 		case obstruction := <-obstructionChange:
 			orders := orderstate.GetOrders()
-			cabstate.FSMObstructionChange(obstruction, orders)
+			cabstate.FSMObstructionChange(
+				obstruction, orders)
 
 		case <-doorTimedOut:
-			// fmt.Println("Door timed out")
 			orders := orderstate.GetOrders()
 			cabstate.FSMDoorTimeout(orders)
 
 		case <-decisionDeadlineTimedOut:
-			// fmt.Println("Decision timed out")
 			cabstate.FSMDecisionDeadline()
 
 		case <-pokeCab:
@@ -106,16 +102,19 @@ func main() {
 			orderstate.ResetOrders()
 			for f := 0; f < hardware.FloorCount; f++ {
 				for b := hardware.ButtonType(0); b < 3; b++ {
-					hardware.SetButtonLamp(b, f, false)
+					hardware.SetButtonLamp(
+						b,
+						f, false)
 				}
 			}
+
 		case recievedOrderState := <-ordersRecieved:
 			newOrdersInFloors := orderstate.UpdateOrders(recievedOrderState)
 			orders := orderstate.GetOrders()
 			for floor, newOrder := range newOrdersInFloors {
 				if newOrder {
-					// fmt.Println("recieved new order")
-					cabstate.FSMNewOrder(floor, orders)
+					cabstate.FSMNewOrder(
+						floor, orders)
 				}
 			}
 		}

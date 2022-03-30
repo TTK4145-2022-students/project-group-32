@@ -11,7 +11,8 @@ import (
 func ReadCabState() cabstate.CabState {
 	var cabState cabstate.CabState
 	json.Unmarshal(
-		read(cabFile),
+		read(
+			cabFile),
 		&cabState)
 	return cabState
 }
@@ -19,7 +20,8 @@ func ReadCabState() cabstate.CabState {
 func ReadOrders() orderstate.AllOrders {
 	var orderState orderstate.AllOrders
 	json.Unmarshal(
-		read(orderFile),
+		read(
+			orderFile),
 		&orderState)
 	return orderState
 }

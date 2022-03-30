@@ -5,7 +5,6 @@ import (
 	"elevators/hardware"
 	"elevators/timer"
 	"time"
-	// "fmt"
 )
 
 type InternalETAs struct {
@@ -352,7 +351,10 @@ func orderAndInternalETABest(
 	return false
 }
 
-func internalETABest(orderState OrderState, internalETA time.Time) bool {
+func internalETABest(
+	orderState OrderState,
+	internalETA time.Time) bool {
+
 	return orderState.BestETA.Equal(internalETA) && internalETA.After(time.Now())
 }
 
@@ -410,40 +412,17 @@ func PrioritizedDirection(
 
 func AllInternalETAsBest(orders AllOrders) bool {
 	for floor := 0; floor < hardware.FloorCount; floor++ {
-		if !internalETABest(orders.Down[floor], internalETAs.Down[floor]) ||
-			!internalETABest(orders.Up[floor], internalETAs.Up[floor]) {
+		if !internalETABest(
+			orders.Down[floor], internalETAs.Down[floor]) ||
+			!internalETABest(
+				orders.Up[floor],
+				internalETAs.Up[floor]) {
+
 			return false
 		}
 	}
 	return true
 }
-
-// func FirstBestETAExpirationWithOrder(orders AllOrders) time.Time {
-// 	now := time.Now()
-// 	etaExpiration := maxTime()
-// 	for _, floor := range hardware.ValidFloors() {
-// 		if hasOrderAndBestETABetweenTimes(
-// 			orders.Down[floor],
-// 			now,
-// 			etaExpiration) {
-
-// 			etaExpiration = orders.Down[floor].BestETA
-
-// 		}
-// 		if hasOrderAndBestETABetweenTimes(
-// 			orders.Up[floor],
-// 			now,
-// 			etaExpiration) {
-
-// 			etaExpiration = orders.Up[floor].BestETA
-
-// 		}
-// 	}
-// 	if etaExpiration.Equal(maxTime()) {
-// 		etaExpiration = now
-// 	}
-// 	return etaExpiration
-// }
 
 func FirstInternalETAExpiration(currentETAs InternalETAs) time.Time {
 	now := time.Now()

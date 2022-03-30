@@ -44,7 +44,8 @@ func ReceiveOrders(conn *net.UDPConn) orderstate.AllOrders {
 
 func receiveUDPMessage(conn *net.UDPConn) []byte {
 	var buf [bufferSize]byte
-	rlen, _, err := conn.ReadFromUDP(buf[:])
+	rlen,
+		_, err := conn.ReadFromUDP(buf[:])
 
 	if err != nil {
 		panic(err)

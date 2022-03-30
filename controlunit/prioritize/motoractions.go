@@ -2,7 +2,6 @@ package prioritize
 
 import (
 	"elevators/hardware"
-	// "fmt"
 )
 
 func MotorActionOnDecisionDeadline(
@@ -14,10 +13,12 @@ func MotorActionOnDecisionDeadline(
 		if currentOrders.AboveFloor {
 			return hardware.MD_Up
 		}
+
 	case hardware.MD_Down:
 		if currentOrders.BelowFloor {
 			return hardware.MD_Down
 		}
+
 	case hardware.MD_Stop:
 		return hardware.MD_Stop
 	default:
@@ -49,12 +50,12 @@ func MotorActionOnFloorArrival(
 			return hardware.MD_Up
 		}
 		if currentOrders.DownAtFloor {
-			// fmt.Println("last downorder")
 			return hardware.MD_Stop
 		}
 		if currentOrders.BelowFloor {
 			return hardware.MD_Down
 		}
+
 	case hardware.MD_Down:
 		if currentOrders.DownAtFloor {
 			return hardware.MD_Stop
@@ -63,12 +64,12 @@ func MotorActionOnFloorArrival(
 			return hardware.MD_Down
 		}
 		if currentOrders.UpAtFloor {
-			// fmt.Println("last uporder")
 			return hardware.MD_Stop
 		}
 		if currentOrders.AboveFloor {
 			return hardware.MD_Up
 		}
+
 	case hardware.MD_Stop:
 		return hardware.MD_Stop
 	default:

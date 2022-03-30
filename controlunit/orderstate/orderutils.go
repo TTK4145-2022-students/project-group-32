@@ -52,17 +52,6 @@ func newETABetterOrBestETAExpired(
 			order.BestETA.Before(currentTime))
 }
 
-// func newETABetterOrBestETAExpiredWithOrder(
-// 	order OrderState,
-// 	newETA time.Time,
-// 	currentTime time.Time) bool {
-
-// 	return !newETA.IsZero() &&
-// 		(newETA.Before(order.BestETA) ||
-// 			(order.hasOrder() &&
-// 				order.BestETA.Before(currentTime)))
-// }
-
 func newETABetterOrBestETAExpiredWithOrder(
 	order OrderState,
 	newETA time.Time,
