@@ -34,6 +34,7 @@ func Init() {
 func setMotorAndCabState(state hardware.MotorDirection) {
 	hardware.SetMotorDirection(state)
 	Cab.MotorDirection = state
+
 	switch state {
 	case hardware.MD_Up:
 		Cab.Behaviour = Moving
@@ -45,8 +46,6 @@ func setMotorAndCabState(state hardware.MotorDirection) {
 
 	case hardware.MD_Stop:
 		Cab.Behaviour = Idle
-	default:
-		panic("motor state not implemented " + string(rune(state)))
 	}
 }
 
@@ -66,7 +65,8 @@ func FSMNewOrder(
 			Cab.RecentDirection,
 			Cab.AboveOrAtFloor,
 			false)
-		if (Cab.AboveOrAtFloor == orderFloor) && !Cab.BetweenFloors {
+
+		if cabInFloor(orderFloor) {
 			FSMFloorStop(
 				orderFloor,
 				orders)
@@ -75,7 +75,7 @@ func FSMNewOrder(
 		}
 
 	case Moving:
-		if (Cab.AboveOrAtFloor == orderFloor) && !Cab.BetweenFloors {
+		if cabInFloor(orderFloor) {
 			FSMFloorArrival(
 				Cab.AboveOrAtFloor,
 				orders)
@@ -86,9 +86,11 @@ func FSMNewOrder(
 			Cab.RecentDirection,
 			Cab.AboveOrAtFloor,
 			true)
+
 		orderSummary := orderstate.GetOrderSummary(
 			orders,
 			Cab.AboveOrAtFloor)
+
 		doorAction := prioritize.DoorActionOnNewOrder(
 			Cab.RecentDirection,
 			orderSummary)
@@ -104,14 +106,17 @@ func FSMFloorArrival(
 
 	Cab.AboveOrAtFloor = floor
 	Cab.BetweenFloors = false
-	OrderSummary := orderstate.GetOrderSummary(
+
+	orderSummary := orderstate.GetOrderSummary(
 		orders,
 		floor)
+
 	switch Cab.Behaviour {
 	case Moving:
 		motorAction := prioritize.MotorActionOnFloorArrival(
 			Cab.RecentDirection,
-			OrderSummary)
+			orderSummary)
+
 		setMotorAndCabState(motorAction)
 
 		if motorAction == hardware.MD_Stop {
@@ -119,13 +124,13 @@ func FSMFloorArrival(
 				floor,
 				orders)
 		}
-	default:
 	}
 	return Cab.Behaviour
 }
 
 func FSMFloorLeave() ElevatorBehaviour {
 	Cab.BetweenFloors = true
+
 	switch Cab.Behaviour {
 	case Moving:
 		switch Cab.MotorDirection {
@@ -134,10 +139,12 @@ func FSMFloorLeave() ElevatorBehaviour {
 
 		case hardware.MD_Down:
 			Cab.AboveOrAtFloor = Cab.AboveOrAtFloor - 1
+
 		default:
 			panic("Invalid motor direction on floor leave")
 		}
 	default:
+		panic("Invalid cab state on floor leave")
 	}
 	return Cab.Behaviour
 }
@@ -149,16 +156,21 @@ func FSMDecisionDeadline() ElevatorBehaviour {
 			Cab.RecentDirection,
 			Cab.AboveOrAtFloor,
 			false)
+
 		currentOrderSummary := orderstate.GetOrderSummary(
 			orders,
 			Cab.AboveOrAtFloor)
+
+		prioritizedDirection := orderstate.PrioritizedDirection(
+			Cab.AboveOrAtFloor,
+			Cab.RecentDirection,
+			orders,
+			internalETAs)
+
 		motorAction := prioritize.MotorActionOnDecisionDeadline(
-			orderstate.PrioritizedDirection(
-				Cab.AboveOrAtFloor,
-				Cab.RecentDirection,
-				orders,
-				internalETAs),
+			prioritizedDirection,
 			currentOrderSummary)
+
 		setMotorAndCabState(motorAction)
 	}
 	timer.DecisionDeadlineTimer.TimerStop()
@@ -172,6 +184,7 @@ func FSMPoke() ElevatorBehaviour {
 			Cab.RecentDirection,
 			Cab.AboveOrAtFloor,
 			false)
+
 		timer.DecisionDeadlineTimer.TimerStart()
 
 	case DoorOpen:
@@ -179,6 +192,7 @@ func FSMPoke() ElevatorBehaviour {
 			Cab.RecentDirection,
 			Cab.AboveOrAtFloor,
 			true)
+
 		timer.DecisionDeadlineTimer.TimerStart()
 	}
 	return Cab.Behaviour

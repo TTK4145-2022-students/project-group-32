@@ -29,8 +29,6 @@ func setDoorAndCabState(state hardware.DoorAction) {
 
 	case hardware.DS_Do_Nothing:
 		break
-	default:
-		panic("door state not implemented")
 	}
 }
 
@@ -51,6 +49,7 @@ func FSMObstructionChange(
 	orders orderstate.AllOrders) {
 
 	Cab.DoorObstructed = obstructed
+
 	switch obstructed {
 	case true:
 		switch Cab.Behaviour {
@@ -73,16 +72,20 @@ func FSMDoorTimeout(orders orderstate.AllOrders) ElevatorBehaviour {
 	currentOrderSummary := orderstate.GetOrderSummary(
 		orders,
 		Cab.AboveOrAtFloor)
+
 	switch Cab.Behaviour {
 	case DoorOpen:
+		prioritizedDirection := orderstate.PrioritizedDirection(
+			Cab.AboveOrAtFloor,
+			Cab.RecentDirection,
+			orders,
+			orderstate.GetInternalETAs())
+
 		doorAction := prioritize.DoorActionOnDoorTimeout(
-			orderstate.PrioritizedDirection(
-				Cab.AboveOrAtFloor,
-				Cab.RecentDirection,
-				orders,
-				orderstate.GetInternalETAs()),
+			prioritizedDirection,
 			Cab.DoorObstructed,
 			currentOrderSummary)
+
 		setDoorAndCabState(doorAction)
 
 		if doorAction == hardware.DS_Close {
@@ -90,11 +93,13 @@ func FSMDoorTimeout(orders orderstate.AllOrders) ElevatorBehaviour {
 				Cab.RecentDirection,
 				Cab.AboveOrAtFloor,
 				false)
+
 			timer.DecisionDeadlineTimer.TimerStart()
 		}
 
 	case CabObstructed:
 		break
+
 	default:
 		panic("Invalid cab state on door timeout")
 	}
@@ -108,18 +113,20 @@ func FSMFloorStop(
 	currentOrderSummary := orderstate.GetOrderSummary(
 		orders,
 		Cab.AboveOrAtFloor)
+
 	switch Cab.Behaviour {
 	case Idle:
+		prioritizedDirection := orderstate.PrioritizedDirection(
+			Cab.AboveOrAtFloor,
+			Cab.RecentDirection,
+			orders,
+			orderstate.GetInternalETAs())
+
 		doorAction := prioritize.DoorActionOnFloorStop(
-			orderstate.PrioritizedDirection(
-				Cab.AboveOrAtFloor,
-				Cab.RecentDirection,
-				orders,
-				orderstate.GetInternalETAs()),
+			prioritizedDirection,
 			currentOrderSummary)
+
 		setDoorAndCabState(doorAction)
-	default:
-		panic("Invalid cab state on door timeout")
 	}
 	return Cab.Behaviour
 }
