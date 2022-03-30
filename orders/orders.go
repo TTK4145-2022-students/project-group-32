@@ -1,4 +1,4 @@
-package orderstate
+package orders
 
 import (
 	"elevators/controlunit/prioritize"
@@ -34,12 +34,6 @@ type AllOrders struct {
 var allOrders AllOrders
 var allOrdersMtx = new(sync.RWMutex)
 
-func ResetOrders() {
-	allOrdersMtx.Lock()
-	defer allOrdersMtx.Unlock()
-	allOrders = AllOrders{}
-}
-
 func Init(orderState AllOrders) {
 	allOrdersMtx.Lock()
 	defer allOrdersMtx.Unlock()
@@ -51,13 +45,13 @@ func Init(orderState AllOrders) {
 				floor,
 				true)
 		}
-		if allOrders.Up[floor].hasOrder() {
+		if allOrders.Up[floor].HasOrder() {
 			hardware.SetButtonLamp(
 				hardware.BT_HallUp,
 				floor,
 				true)
 		}
-		if allOrders.Down[floor].hasOrder() {
+		if allOrders.Down[floor].HasOrder() {
 			hardware.SetButtonLamp(
 				hardware.BT_HallDown,
 				floor,
@@ -70,6 +64,18 @@ func GetOrders() AllOrders {
 	allOrdersMtx.RLock()
 	defer allOrdersMtx.RUnlock()
 	return allOrders
+}
+
+func SetOrders(orders AllOrders) {
+	allOrdersMtx.Lock()
+	defer allOrdersMtx.Unlock()
+	allOrders = orders
+}
+
+func ResetOrders() {
+	allOrdersMtx.Lock()
+	defer allOrdersMtx.Unlock()
+	allOrders = AllOrders{}
 }
 
 func AcceptNewOrder(
@@ -104,7 +110,7 @@ func waitForOrderGuarantee(
 	time.Sleep(WaitBeforeGuaranteeTime)
 	switch orderType {
 	case hardware.BT_HallUp:
-		if allOrders.Up[floor].hasOrder() {
+		if allOrders.Up[floor].HasOrder() {
 			hardware.SetButtonLamp(
 				orderType,
 				floor,
@@ -112,7 +118,7 @@ func waitForOrderGuarantee(
 		}
 
 	case hardware.BT_HallDown:
-		if allOrders.Down[floor].hasOrder() {
+		if allOrders.Down[floor].HasOrder() {
 			hardware.SetButtonLamp(
 				orderType,
 				floor,
@@ -163,7 +169,7 @@ func clearUpOrder(floor int) {
 		floor,
 		false)
 	allOrders.Up[floor].LastCompleteTime = time.Now()
-	internalETAs.Up[floor] = time.Time{}
+	// internalETAs.Up[floor] = time.Time{}
 }
 
 func clearDownOrder(floor int) {
@@ -174,7 +180,7 @@ func clearDownOrder(floor int) {
 		floor,
 		false)
 	allOrders.Down[floor].LastCompleteTime = time.Now()
-	internalETAs.Down[floor] = time.Time{}
+	// internalETAs.Down[floor] = time.Time{}
 }
 
 func updateFloorOrderState(
@@ -210,8 +216,8 @@ func hasOrder(inputState OrderState) bool {
 
 func AnyOrders(orders AllOrders) bool {
 	for _, floor := range hardware.ValidFloors() {
-		if orders.Up[floor].hasOrder() ||
-			orders.Down[floor].hasOrder() ||
+		if orders.Up[floor].HasOrder() ||
+			orders.Down[floor].HasOrder() ||
 			orders.Cab[floor] {
 			return true
 		}

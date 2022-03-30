@@ -1,11 +1,11 @@
 package main
 
 import (
-	"elevators/controlunit/cabstate"
-	"elevators/controlunit/orderstate"
+	"elevators/cab"
 	"elevators/filesystem"
 	"elevators/hardware"
 	"elevators/network"
+	"elevators/orders"
 	"elevators/phoenix"
 	"elevators/timer"
 	"os"
@@ -24,8 +24,8 @@ func main() {
 			hardware.FloorCount)
 	}
 	filesystem.Init()
-	orderstate.Init(filesystem.ReadOrders())
-	cabstate.Init()
+	orders.Init(filesystem.ReadOrders())
+	cab.Init()
 
 	buttonPress := make(chan hardware.ButtonEvent)
 	floorArrival := make(chan int)
@@ -39,7 +39,7 @@ func main() {
 
 	pokeCab := make(chan bool)
 
-	ordersRecieved := make(chan orderstate.AllOrders)
+	ordersRecieved := make(chan orders.AllOrders)
 
 	go hardware.PollButtons(buttonPress)
 	go hardware.PollFloorSensor(
@@ -65,41 +65,43 @@ func main() {
 	for {
 		select {
 		case buttonEvent := <-buttonPress:
-			orderstate.AcceptNewOrder(
+			orders.AcceptNewOrder(
 				buttonEvent.Button,
 				buttonEvent.Floor)
-			orders := orderstate.GetOrders()
-			cabstate.FSMNewOrder(
+			allOrders := orders.GetOrders()
+			cab.FSMNewOrder(
 				buttonEvent.Floor,
-				orders)
+				allOrders)
 
 		case floor := <-floorArrival:
 			hardware.SetFloorIndicator(floor)
-			orders := orderstate.GetOrders()
-			cabstate.FSMFloorArrival(
+			allOrders := orders.GetOrders()
+			cab.FSMFloorArrival(
 				floor,
-				orders)
+				allOrders)
 		case <-floorLeft:
-			cabstate.FSMFloorLeave()
+			cab.FSMFloorLeave()
 
 		case obstruction := <-obstructionChange:
-			orders := orderstate.GetOrders()
-			cabstate.FSMObstructionChange(
+			allOrders := orders.GetOrders()
+			cab.FSMObstructionChange(
 				obstruction,
-				orders)
+				allOrders)
 		case <-doorTimedOut:
-			orders := orderstate.GetOrders()
-			cabstate.FSMDoorTimeout(orders)
+			allOrders := orders.GetOrders()
+			cab.FSMDoorTimeout(allOrders)
 
 		case <-decisionDeadlineTimedOut:
-			cabstate.FSMDecisionDeadline()
+			allOrders := orders.GetOrders()
+			cab.FSMDecisionDeadline(allOrders)
 
 		case <-pokeCab:
-			cabstate.FSMPoke()
+			allOrders := orders.GetOrders()
+			cab.FSMPoke(allOrders)
 			timer.PokeCabTimer.TimerStart()
 
 		case <-stopChange:
-			orderstate.ResetOrders()
+			orders.ResetOrders()
 			for f := 0; f < hardware.FloorCount; f++ {
 				for b := hardware.ButtonType(0); b < 3; b++ {
 					hardware.SetButtonLamp(
@@ -110,13 +112,13 @@ func main() {
 			}
 
 		case recievedOrderState := <-ordersRecieved:
-			newOrdersInFloors := orderstate.UpdateOrders(recievedOrderState)
-			orders := orderstate.GetOrders()
+			newOrdersInFloors := orders.UpdateOrders(recievedOrderState)
+			allOrders := orders.GetOrders()
 			for floor, newOrder := range newOrdersInFloors {
 				if newOrder {
-					cabstate.FSMNewOrder(
+					cab.FSMNewOrder(
 						floor,
-						orders)
+						allOrders)
 				}
 			}
 		}

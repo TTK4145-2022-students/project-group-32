@@ -1,7 +1,7 @@
 package network
 
 import (
-	"elevators/controlunit/orderstate"
+	"elevators/orders"
 	"encoding/json"
 	"net"
 	"time"
@@ -33,8 +33,8 @@ func InitUDPReceivingSocket(port int) (
 		conn
 }
 
-func ReceiveOrders(conn *net.UDPConn) orderstate.AllOrders {
-	var allOrders orderstate.AllOrders
+func ReceiveOrders(conn *net.UDPConn) orders.AllOrders {
+	var allOrders orders.AllOrders
 	buf := receiveUDPMessage(conn)
 	json.Unmarshal(
 		buf,
@@ -52,13 +52,13 @@ func receiveUDPMessage(conn *net.UDPConn) []byte {
 	return buf[:rlen]
 }
 
-func PollReceiveOrders(receiver chan<- orderstate.AllOrders) {
+func PollReceiveOrders(receiver chan<- orders.AllOrders) {
 	_, conn := InitUDPReceivingSocket(UDPPort)
 	defer conn.Close()
 
 	for {
 		time.Sleep(_pollRate)
-		orders := ReceiveOrders(conn)
-		receiver <- orders
+		allOrders := ReceiveOrders(conn)
+		receiver <- allOrders
 	}
 }

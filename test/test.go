@@ -1,17 +1,18 @@
 package main
 
 import (
-	"elevators/controlunit/cabstate"
-	"elevators/controlunit/orderstate"
+	"elevators/cab"
+	"elevators/eta"
 	"elevators/filesystem"
 	"elevators/hardware"
+	"elevators/orders"
 	"fmt"
 	"time"
 )
 
 // {
 // filename := "test"
-// filestate := orderstate.GetInternalETAs()
+// filestate := orders.GetInternalETAs()
 // if len(os.Args) > 1 {
 // 	file,_ := json.MarshalIndent(filestate,"", " ")
 // 	_ = ioutil.WriteFile("testresults/" + filename+os.Args[1]+".json",file, 0644)
@@ -21,81 +22,51 @@ import (
 // }
 // }
 
-// func testHasOrder() {
-// 	fmt.Println("Testing hasOrder")
-// 	fmt.Println("")
-
-// 	// var time1 = time.Time{}
-// 	// var time2 = time.Time{}
-// 	orders := []orderstate.OrderState{
-// 		orderstate.OrderState{},
-// 		orderstate.OrderState{LastOrderTime: time.Time{}, LastCompleteTime: time.Time{}},
-// 		orderstate.OrderState{LastOrderTime: time.Now(), LastCompleteTime: time.Time{}},
-// 		orderstate.OrderState{LastOrderTime: time.Now(),LastCompleteTime: time.Now().Add(-1)},
-// 		orderstate.OrderState{LastOrderTime: time.Now(),LastCompleteTime: time.Now().Add(-1 * time.Second)},
-// 		orderstate.OrderState{LastOrderTime: time.Now(),LastCompleteTime: time.Now()}}
-// 	for _, order := range orders {
-// 		fmt.Print("Last order: ")
-// 		fmt.Print(order.LastOrderTime)
-// 		fmt.Print(",Last Complete: ")
-// 		fmt.Print(order.LastCompleteTime)
-// 		fmt.Print(" ; hasOrder : ")
-// 		fmt.Println(order.hasOrder())
-// 		fmt.Println("")
-// 	}
-// }
-
 func testAnyOrders() {
 	filesystem.Init()
-	orders := filesystem.ReadOrders()
+	allOrders := filesystem.ReadOrders()
 	fmt.Print("Any orders: ")
-	fmt.Println(orderstate.AnyOrders(orders))
+	fmt.Println(orders.AnyOrders(allOrders))
 }
 
-// func testFirstExternalETA() {
-// 	filesystem.Init()
-// 	orders := filesystem.ReadOrders()
-// 	fmt.Print("first eta expire: ")
-// 	fmt.Println(orderstate.FirstBestETAExpirationWithOrder(orders))
-// }
 func testFirstInternalETA() {
 	filesystem.Init()
-	orders := filesystem.ReadOrders()
-	cab := filesystem.ReadCabState()
-	etas := orderstate.ComputeETAs(cab.AboveOrAtFloor,
+	allOrders := filesystem.ReadOrders()
+	cabstate := filesystem.ReadCabState()
+	etas := eta.ComputeETAs(cabstate.AboveOrAtFloor,
 		hardware.MD_Stop,
 		hardware.MD_Down,
-		cab.Behaviour == cabstate.DoorOpen,
-		orders)
+		cabstate.Behaviour == cab.DoorOpen,
+		allOrders)
 	fmt.Println("now: ")
 	fmt.Println(time.Now())
 	fmt.Println("first internal eta expire: ")
-	fmt.Println(orderstate.FirstInternalETAExpiration(etas))
+	fmt.Println(eta.FirstInternalETAExpiration(etas))
 }
 
 func testComputeETAs() {
 	filesystem.Init()
-	orders := filesystem.ReadOrders()
-	cab := filesystem.ReadCabState()
-	etas := orderstate.ComputeETAs(cab.AboveOrAtFloor,
+	allOrders := filesystem.ReadOrders()
+	cabstate := filesystem.ReadCabState()
+	etas := eta.ComputeETAs(cabstate.AboveOrAtFloor,
 		hardware.MD_Stop,
-		cab.RecentDirection,
-		cab.Behaviour == cabstate.DoorOpen,
-		orders)
+		cabstate.RecentDirection,
+		cabstate.Behaviour == cab.DoorOpen,
+		allOrders)
 	filesystem.Write("testresults/"+"computeETAs.json",
 		etas)
-	etas = orderstate.ComputeETAs(cab.AboveOrAtFloor,
+	etas = eta.ComputeETAs(cabstate.AboveOrAtFloor,
 		hardware.MD_Stop,
 		hardware.MD_Down,
-		cab.Behaviour == cabstate.DoorOpen,
-		orders)
+		cabstate.Behaviour == cab.DoorOpen,
+		allOrders)
 	filesystem.Write("testresults/"+"computeETAsDown.json",
 		etas)
-	etas = orderstate.ComputeETAs(cab.AboveOrAtFloor,
+	etas = eta.ComputeETAs(cabstate.AboveOrAtFloor,
 		hardware.MD_Stop,
 		hardware.MD_Up,
-		cab.Behaviour == cabstate.DoorOpen,
-		orders)
+		cabstate.Behaviour == cab.DoorOpen,
+		allOrders)
 	filesystem.Write("testresults/"+"computeETAsUp.json",
 		etas)
 }

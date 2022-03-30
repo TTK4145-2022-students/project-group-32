@@ -1,15 +1,15 @@
 package filesystem
 
 import (
-	"elevators/controlunit/cabstate"
-	"elevators/controlunit/orderstate"
+	"elevators/cab"
+	"elevators/orders"
 	"encoding/json"
 	"io/ioutil"
 	"os"
 )
 
-func ReadCabState() cabstate.CabState {
-	var cabState cabstate.CabState
+func ReadCabState() cab.CabState {
+	var cabState cab.CabState
 	json.Unmarshal(
 		read(
 			cabFile),
@@ -17,8 +17,8 @@ func ReadCabState() cabstate.CabState {
 	return cabState
 }
 
-func ReadOrders() orderstate.AllOrders {
-	var orderState orderstate.AllOrders
+func ReadOrders() orders.AllOrders {
+	var orderState orders.AllOrders
 	json.Unmarshal(
 		read(
 			orderFile),

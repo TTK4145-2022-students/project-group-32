@@ -1,12 +1,13 @@
-package orderstate
+package eta
 
 import (
 	"elevators/hardware"
+	"elevators/orders"
 	"time"
 )
 
 func InternalETABest(
-	order OrderState,
+	order orders.OrderState,
 	internalETA time.Time) bool {
 
 	return order.BestETA.Equal(internalETA) &&
@@ -14,7 +15,7 @@ func InternalETABest(
 }
 
 func InternalETABestAndNotExpired(
-	order OrderState,
+	order orders.OrderState,
 	internalETA time.Time,
 	currentTime time.Time) bool {
 
@@ -24,26 +25,26 @@ func InternalETABestAndNotExpired(
 		order.BestETA.Before(currentTime)
 }
 
-func hasOrderAndBestETABetweenTimes(
-	order OrderState,
+func HasOrderAndBestETABetweenTimes(
+	order orders.OrderState,
 	startTime time.Time,
 	endTime time.Time) bool {
 
-	return order.hasOrder() &&
+	return order.HasOrder() &&
 		startTime.Before(order.BestETA) &&
 		order.BestETA.Before(endTime)
 }
 
 func orderToServe(
 	direction hardware.MotorDirection,
-	orderUp OrderState,
-	orderDown OrderState,
+	orderUp orders.OrderState,
+	orderDown orders.OrderState,
 	orderCab bool) bool {
 
 	return (direction == hardware.MD_Down &&
-		orderDown.hasOrder()) ||
+		orderDown.HasOrder()) ||
 		(direction == hardware.MD_Up &&
-			orderUp.hasOrder())
+			orderUp.HasOrder())
 }
 
 func (internalETAs *InternalETAs) getETA(
@@ -103,4 +104,42 @@ func maxTime() time.Time {
 	return time.Unix(
 		1<<62,
 		0)
+}
+
+func newETABetterOrBestETAExpired(
+	order orders.OrderState,
+	newETA time.Time,
+	currentTime time.Time) bool {
+
+	return !newETA.IsZero() &&
+		(newETA.Before(order.BestETA) ||
+			order.BestETA.Before(currentTime))
+}
+
+func newETABetterOrBestETAExpiredWithOrder(
+	order orders.OrderState,
+	newETA time.Time,
+	currentTime time.Time) bool {
+
+	return (newETA.Before(order.BestETA) ||
+		(order.HasOrder() &&
+			currentTime.After(order.BestETA)))
+}
+
+func inputBestETABetterOrBestETAExpired(
+	inputOrder orders.OrderState,
+	currentOrder orders.OrderState,
+	currentTime time.Time) bool {
+
+	return newETABetterOrBestETAExpired(
+		currentOrder,
+		inputOrder.BestETA,
+		currentTime)
+}
+
+func inputBestETAExpired(
+	inputOrder orders.OrderState,
+	currentTime time.Time) bool {
+
+	return inputOrder.BestETA.Before(currentTime)
 }

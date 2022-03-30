@@ -1,8 +1,8 @@
 package filesystem
 
 import (
-	"elevators/controlunit/cabstate"
-	"elevators/controlunit/orderstate"
+	"elevators/cab"
+	"elevators/orders"
 	"encoding/json"
 	"io/ioutil"
 	"time"
@@ -10,21 +10,21 @@ import (
 
 func SaveOrdersPeriodically() {
 	for {
-		SaveOrders(orderstate.GetOrders())
+		SaveOrders(orders.GetOrders())
 		time.Sleep(_saveToFileRate)
 	}
 }
 
-func SaveCabState(cabState cabstate.CabState) {
+func SaveCabState(cabState cab.CabState) {
 	Write(
 		cabFile,
 		cabState)
 }
 
-func SaveOrders(orders orderstate.AllOrders) {
+func SaveOrders(allOrders orders.AllOrders) {
 	Write(
 		orderFile,
-		orders)
+		allOrders)
 }
 
 func Write(
