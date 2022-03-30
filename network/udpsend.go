@@ -1,7 +1,7 @@
 package network
 
 import (
-	"elevators/controlunit/orderstate"
+	"elevators/orders"
 	"encoding/json"
 	"net"
 	"time"
@@ -9,7 +9,7 @@ import (
 
 const UDPPort = 20014
 const broadcastAddr = "255.255.255.255"
-const _sendRate = orderstate.WaitBeforeGuaranteeTime / 5
+const _sendRate = orders.WaitBeforeGuaranteeTime / 5
 
 func InitUDPSendingSocket(
 	port int,
@@ -33,10 +33,11 @@ func InitUDPSendingSocket(
 }
 
 func BroadcastOrders(
-	orders orderstate.AllOrders,
+	allOrders orders.AllOrders,
 	wconn *net.UDPConn) {
 
-	message, _ := json.Marshal(orders)
+	message, _ := json.Marshal(allOrders)
+
 	broadcastMessage(
 		message,
 		wconn)
@@ -53,13 +54,16 @@ func SendOrdersPeriodically() {
 	_, wconn := InitUDPSendingSocket(
 		UDPPort,
 		broadcastAddr)
+
 	defer wconn.Close()
 
 	for {
-		orders := orderstate.GetOrders()
+		allOrders := orders.GetOrders()
+
 		BroadcastOrders(
-			orders,
+			allOrders,
 			wconn)
+
 		time.Sleep(_sendRate)
 	}
 }
