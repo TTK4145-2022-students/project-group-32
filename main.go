@@ -8,6 +8,7 @@ import (
 	"elevators/orders"
 	"elevators/phoenix"
 	"elevators/timer"
+	"fmt"
 	"os"
 )
 
@@ -101,15 +102,16 @@ func main() {
 			timer.PokeCabTimer.TimerStart()
 
 		case <-stopChange:
-			orders.ResetOrders()
-			for f := 0; f < hardware.FloorCount; f++ {
-				for b := hardware.ButtonType(0); b < 3; b++ {
-					hardware.SetButtonLamp(
-						b,
-						f,
-						false)
-				}
-			}
+			fmt.Println("No stopping this cab")
+		// 	orders.ResetOrders()
+		// 	for f := 0; f < hardware.FloorCount; f++ {
+		// 		for b := hardware.ButtonType(0); b < 3; b++ {
+		// 			hardware.SetButtonLamp(
+		// 				b,
+		// 				f,
+		// 				false)
+		// 		}
+		// 	}
 
 		case recievedOrderState := <-ordersRecieved:
 			newOrdersInFloors := orders.UpdateOrders(recievedOrderState)

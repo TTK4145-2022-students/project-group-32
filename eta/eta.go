@@ -1,9 +1,9 @@
 package eta
 
 import (
-	"elevators/controlunit/prioritize"
 	"elevators/hardware"
 	"elevators/orders"
+	"elevators/prioritize"
 	"elevators/timer"
 	"time"
 )

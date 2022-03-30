@@ -1,8 +1,8 @@
 package orders
 
 import (
-	"elevators/controlunit/prioritize"
 	"elevators/hardware"
+	"elevators/prioritize"
 	"sync"
 	"time"
 )

@@ -1,10 +1,10 @@
 package cab
 
 import (
-	"elevators/controlunit/prioritize"
 	"elevators/eta"
 	"elevators/hardware"
 	"elevators/orders"
+	"elevators/prioritize"
 	"elevators/timer"
 )
 
