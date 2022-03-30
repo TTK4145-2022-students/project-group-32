@@ -126,6 +126,47 @@ func newETABetterOrBestETAExpiredWithOrder(
 			currentTime.After(order.BestETA)))
 }
 
+func orderAndInternalETABest(
+	direction hardware.MotorDirection,
+	currentFloor int,
+	allOrders orders.AllOrders,
+	allETAs InternalETAs) bool {
+
+	switch direction {
+	case hardware.MD_Up:
+		if allOrders.Up[currentFloor].HasOrder() {
+			return true
+		}
+
+	case hardware.MD_Down:
+		if allOrders.Down[currentFloor].HasOrder() {
+			return true
+		}
+	}
+	for floor := currentFloor + int(direction); hardware.ValidFloor(floor); floor += int(direction) {
+		if InternalETABestWithOrder(
+			allOrders.Up[floor],
+			allETAs.Up[floor]) ||
+			InternalETABestWithOrder(
+				allOrders.Down[floor],
+				allETAs.Down[floor]) ||
+			allOrders.Cab[floor] {
+			return true
+		}
+	}
+	return false
+}
+
+func InternalETABestWithOrder(
+	order orders.OrderState,
+	eta time.Time) bool {
+
+	return order.HasOrder() &&
+		InternalETABest(
+			order,
+			eta)
+}
+
 func inputBestETABetterOrBestETAExpired(
 	inputOrder orders.OrderState,
 	currentOrder orders.OrderState,
@@ -142,4 +183,8 @@ func inputBestETAExpired(
 	currentTime time.Time) bool {
 
 	return inputOrder.BestETA.Before(currentTime)
+}
+
+func noETA(eta time.Time) bool {
+	return eta.Equal(time.Time{})
 }
