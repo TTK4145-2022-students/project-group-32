@@ -202,10 +202,16 @@ func updateFloorOrderState(
 
 	newCurrentOrder := hasOrder(*currentState)
 	orderChange := NoChange
-	if newCurrentOrder && !currentOrder {
+	if newCurrentOrder &&
+		!currentOrder {
+
 		orderChange = OrderPlaced
-	} else if !newCurrentOrder && currentOrder {
+
+	} else if !newCurrentOrder &&
+		currentOrder {
+
 		orderChange = OrderCleared
+
 	}
 	return orderChange
 }
