@@ -21,7 +21,7 @@ func Init() {
 			modifiedtime := file.ModTime()
 
 			if modifiedtime.Add(2 * time.Second).Before(time.Now()) {
-				fmt.Println("Spawning new program ")
+				fmt.Println("Spawning new program from the ashes")
 				break
 			}
 			time.Sleep(time.Second)
