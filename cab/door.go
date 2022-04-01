@@ -70,12 +70,13 @@ func FSMObstructionChange(
 }
 
 func FSMDoorTimeout(allOrders orders.AllOrders) ElevatorBehaviour {
-	currentOrderSummary := orders.GetOrderSummary(
-		allOrders,
-		Cab.AboveOrAtFloor)
 
 	switch Cab.Behaviour {
 	case DoorOpen:
+		currentOrderSummary := orders.GetOrderSummary(
+			allOrders,
+			Cab.AboveOrAtFloor)
+
 		prioritizedDirection := eta.PrioritizedDirection(
 			Cab.AboveOrAtFloor,
 			Cab.RecentDirection,
@@ -112,12 +113,12 @@ func FSMFloorStop(
 	floor int,
 	allOrders orders.AllOrders) ElevatorBehaviour {
 
-	currentOrderSummary := orders.GetOrderSummary(
-		allOrders,
-		Cab.AboveOrAtFloor)
-
 	switch Cab.Behaviour {
 	case Idle:
+		currentOrderSummary := orders.GetOrderSummary(
+			allOrders,
+			Cab.AboveOrAtFloor)
+
 		prioritizedDirection := eta.PrioritizedDirection(
 			Cab.AboveOrAtFloor,
 			Cab.RecentDirection,

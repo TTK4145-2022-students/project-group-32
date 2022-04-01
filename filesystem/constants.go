@@ -1,13 +1,14 @@
 package filesystem
 
 import (
+	"elevators/orders"
 	"os"
 	"time"
 )
 
 var cabFile = "filesystem/cabState.json"
 var orderFile = "filesystem/orderState.json"
-var _saveToFileRate = time.Millisecond * 500
+var saveToFileRate = time.Millisecond * orders.WaitBeforeGuaranteeTime / 2
 
 func Init() {
 	if len(os.Args) > 1 {

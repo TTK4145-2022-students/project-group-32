@@ -9,7 +9,7 @@ import (
 
 const UDPPort = 20014
 const broadcastAddr = "255.255.255.255"
-const _sendRate = orders.WaitBeforeGuaranteeTime / 5
+const sendRate = orders.WaitBeforeGuaranteeTime / 5
 
 func InitUDPSendingSocket(
 	port int,
@@ -64,6 +64,6 @@ func SendOrdersPeriodically() {
 			allOrders,
 			wconn)
 
-		time.Sleep(_sendRate)
+		time.Sleep(sendRate)
 	}
 }

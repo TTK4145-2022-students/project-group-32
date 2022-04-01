@@ -1,15 +1,17 @@
 package network
 
 import (
+	"elevators/hardware"
 	"elevators/orders"
 	"encoding/json"
 	"net"
 	"time"
 )
 
-const _pollRate = _sendRate / 3
+const pollRate = sendRate / 3
 
-const bufferSize = 2 * 2048
+const bufferSize = hardware.FloorCount * 512
+
 const listenAddr = "224.0.0.251"
 
 func InitUDPReceivingSocket(port int) (
@@ -57,7 +59,7 @@ func PollReceiveOrders(receiver chan<- orders.AllOrders) {
 	defer conn.Close()
 
 	for {
-		time.Sleep(_pollRate)
+		time.Sleep(pollRate)
 		allOrders := ReceiveOrders(conn)
 		receiver <- allOrders
 	}

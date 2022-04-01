@@ -74,10 +74,6 @@ func SetOrders(orders AllOrders) {
 	allOrders = orders
 }
 
-func ResetOrders() {
-	SetOrders(AllOrders{})
-}
-
 func CompleteOrderCabAndUp(floor int) {
 	clearCabOrder(floor)
 	clearUpOrder(floor)
