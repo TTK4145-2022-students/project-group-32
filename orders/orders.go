@@ -29,8 +29,10 @@ type AllOrders struct {
 	Cab  [hardware.FloorCount]bool
 }
 
-var allOrders AllOrders
-var allOrdersMtx = new(sync.RWMutex)
+var (
+	allOrders    AllOrders
+	allOrdersMtx = new(sync.RWMutex)
+)
 
 func Init(orderState AllOrders) {
 	allOrdersMtx.Lock()
@@ -224,20 +226,6 @@ func updateFloorOrderState(
 	return orderChange
 }
 
-func AnyOrders(orders AllOrders) bool {
-	for _, floor := range hardware.ValidFloors() {
-
-		if orders.Up[floor].HasOrder() ||
-			orders.Down[floor].HasOrder() ||
-			orders.Cab[floor] {
-
-			return true
-
-		}
-	}
-	return false
-}
-
 func UpdateOrders(inputOrders AllOrders) [hardware.FloorCount]bool {
 
 	var newOrders [hardware.FloorCount]bool
@@ -284,7 +272,7 @@ func UpdateOrders(inputOrders AllOrders) [hardware.FloorCount]bool {
 	return newOrders
 }
 
-func OrdersAbove(
+func ordersAbove(
 	orders AllOrders,
 	currentFloor int) bool {
 
@@ -301,22 +289,7 @@ func OrdersAbove(
 	return false
 }
 
-func CabOrdersAbove(
-	cabOrders [hardware.FloorCount]bool,
-	currentFloor int) bool {
-
-	for floor := currentFloor + 1; hardware.ValidFloor(floor); floor++ {
-
-		if cabOrders[floor] {
-
-			return true
-
-		}
-	}
-	return false
-}
-
-func OrdersBelow(
+func ordersBelow(
 	orders AllOrders,
 	currentFloor int) bool {
 
@@ -328,18 +301,6 @@ func OrdersBelow(
 
 			return true
 
-		}
-	}
-	return false
-}
-
-func CabOrdersBelow(
-	cabOrders [hardware.FloorCount]bool,
-	currentFloor int) bool {
-
-	for floor := currentFloor - 1; hardware.ValidFloor(floor); floor-- {
-		if cabOrders[floor] {
-			return true
 		}
 	}
 	return false
@@ -355,10 +316,10 @@ func GetOrderSummary(
 	orderSummary.DownAtFloor = orders.Down[floor].HasOrder()
 	orderSummary.CabAtFloor = orders.Cab[floor]
 
-	orderSummary.AboveFloor = OrdersAbove(
+	orderSummary.AboveFloor = ordersAbove(
 		orders,
 		floor)
-	orderSummary.BelowFloor = OrdersBelow(
+	orderSummary.BelowFloor = ordersBelow(
 		orders,
 		floor)
 

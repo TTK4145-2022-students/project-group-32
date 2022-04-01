@@ -6,33 +6,12 @@ import (
 	"time"
 )
 
-func InternalETABest(
+func internalETABest(
 	order orders.OrderState,
 	internalETA time.Time) bool {
 
 	return order.BestETA.Equal(internalETA) &&
 		!internalETA.IsZero()
-}
-
-func InternalETABestAndNotExpired(
-	order orders.OrderState,
-	internalETA time.Time,
-	currentTime time.Time) bool {
-
-	return InternalETABest(
-		order,
-		internalETA) &&
-		order.BestETA.Before(currentTime)
-}
-
-func HasOrderAndBestETABetweenTimes(
-	order orders.OrderState,
-	startTime time.Time,
-	endTime time.Time) bool {
-
-	return order.HasOrder() &&
-		startTime.Before(order.BestETA) &&
-		order.BestETA.Before(endTime)
 }
 
 func orderToServe(
@@ -66,20 +45,6 @@ func (internalETAs *InternalETAs) getETA(
 	}
 }
 
-func (internalETAs *InternalETAs) ETABetweenTimes(
-	direction hardware.MotorDirection,
-	floor int,
-	startTime time.Time,
-	endTime time.Time) bool {
-
-	return startTime.Before(internalETAs.getETA(
-		direction,
-		floor)) &&
-		internalETAs.getETA(
-			direction,
-			floor).Before(endTime)
-}
-
 func (internalETAs *InternalETAs) setETA(
 	direction hardware.MotorDirection,
 	floor int,
@@ -98,19 +63,6 @@ func (internalETAs *InternalETAs) setETA(
 	default:
 		panic("Invalid direction to get eta")
 	}
-}
-
-func maxTime() time.Time {
-	return time.Unix(
-		1<<62,
-		0)
-}
-
-func internalETABest(
-	orderState orders.OrderState,
-	internalETA time.Time) bool {
-
-	return orderState.BestETA.Equal(internalETA) && internalETA.After(time.Now())
 }
 
 func newETABetterOrBestETAExpired(
@@ -173,7 +125,7 @@ func internalETABestWithOrder(
 	eta time.Time) bool {
 
 	return order.HasOrder() &&
-		InternalETABest(
+		internalETABest(
 			order,
 			eta)
 }

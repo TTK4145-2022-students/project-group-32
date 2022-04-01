@@ -9,18 +9,18 @@ import (
 
 func SaveOrdersPeriodically() {
 	for {
-		SaveOrders(orders.GetOrders())
+		saveOrders(orders.GetOrders())
 		time.Sleep(saveToFileRate)
 	}
 }
 
-func SaveOrders(allOrders orders.AllOrders) {
-	Write(
+func saveOrders(allOrders orders.AllOrders) {
+	write(
 		orderFile,
 		allOrders)
 }
 
-func Write(
+func write(
 	filepath string,
 	state interface{}) {
 

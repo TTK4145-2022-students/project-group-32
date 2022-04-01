@@ -1,14 +1,7 @@
 package main
 
-import (
-	"elevators/cab"
-	"elevators/eta"
-	"elevators/filesystem"
-	"elevators/hardware"
-	"elevators/orders"
-	"fmt"
-	"time"
-)
+// Copy and paste the following code snippet into a function
+// to get a snapshot of the orders in json file format:
 
 // {
 // filename := "test"
@@ -22,61 +15,36 @@ import (
 // }
 // }
 
-func testAnyOrders() {
-	filesystem.Init()
-	allOrders := filesystem.ReadOrders()
-	fmt.Print("Any orders: ")
-	fmt.Println(orders.AnyOrders(allOrders))
-}
+// Write unit test functions below when debugging,
+// remember to make functions temporarily global:
 
-func testFirstInternalETA() {
-	filesystem.Init()
-	allOrders := filesystem.ReadOrders()
-	cabstate := filesystem.ReadCabState()
-	etas := eta.ComputeETAs(cabstate.AboveOrAtFloor,
-		hardware.MD_Stop,
-		hardware.MD_Down,
-		cabstate.Behaviour == cab.DoorOpen,
-		allOrders)
-	fmt.Println("now: ")
-	fmt.Println(time.Now())
-	fmt.Println("first internal eta expire: ")
-	fmt.Println(eta.FirstInternalETAExpiration(etas))
-}
-
-func testComputeETAs() {
-	filesystem.Init()
-	allOrders := filesystem.ReadOrders()
-	cabstate := filesystem.ReadCabState()
-	etas := eta.ComputeETAs(cabstate.AboveOrAtFloor,
-		hardware.MD_Stop,
-		cabstate.RecentDirection,
-		cabstate.Behaviour == cab.DoorOpen,
-		allOrders)
-	filesystem.Write("testresults/"+"computeETAs.json",
-		etas)
-	etas = eta.ComputeETAs(cabstate.AboveOrAtFloor,
-		hardware.MD_Stop,
-		hardware.MD_Down,
-		cabstate.Behaviour == cab.DoorOpen,
-		allOrders)
-	filesystem.Write("testresults/"+"computeETAsDown.json",
-		etas)
-	etas = eta.ComputeETAs(cabstate.AboveOrAtFloor,
-		hardware.MD_Stop,
-		hardware.MD_Up,
-		cabstate.Behaviour == cab.DoorOpen,
-		allOrders)
-	filesystem.Write("testresults/"+"computeETAsUp.json",
-		etas)
-}
+// func testComputeETAs() {
+// 	filesystem.Init()
+// 	allOrders := filesystem.ReadOrders()
+// 	cabstate := filesystem.ReadCabState()
+// 	etas := eta.ComputeETAs(cabstate.AboveOrAtFloor,
+// 		hardware.MD_Stop,
+// 		cabstate.RecentDirection,
+// 		cabstate.Behaviour == cab.DoorOpen,
+// 		allOrders)
+// 	filesystem.Write("testresults/"+"computeETAs.json",
+// 		etas)
+// 	etas = eta.ComputeETAs(cabstate.AboveOrAtFloor,
+// 		hardware.MD_Stop,
+// 		hardware.MD_Down,
+// 		cabstate.Behaviour == cab.DoorOpen,
+// 		allOrders)
+// 	filesystem.Write("testresults/"+"computeETAsDown.json",
+// 		etas)
+// 	etas = eta.ComputeETAs(cabstate.AboveOrAtFloor,
+// 		hardware.MD_Stop,
+// 		hardware.MD_Up,
+// 		cabstate.Behaviour == cab.DoorOpen,
+// 		allOrders)
+// 	filesystem.Write("testresults/"+"computeETAsUp.json",
+// 		etas)
+// }
 
 func main() {
-	// testHasOrder()
-	// testAnyOrders()
-	// testFirstExternalETA()
 	// testComputeETAs()
-	fmt.Println(hardware.ValidFloors())
-	fmt.Println(time.Now().Before(time.Unix(1<<62, 0)))
-	testFirstInternalETA()
 }

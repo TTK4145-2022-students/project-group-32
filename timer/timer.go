@@ -5,9 +5,7 @@ import (
 )
 
 const DoorOpenTime = 3 * time.Second
-const UpdateETAMargin = -1 * time.Second
 const decisionDeadline = 250 * time.Millisecond
-const etaExpirationMargin = 50 * time.Millisecond
 const pollRate = 20 * time.Millisecond
 const PokeRate = 500 * time.Millisecond
 

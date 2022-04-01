@@ -7,9 +7,11 @@ import (
 	"time"
 )
 
-const UDPPort = 20014
-const broadcastAddr = "255.255.255.255"
-const sendRate = orders.WaitBeforeGuaranteeTime / 5
+const (
+	udpPort       = 20014
+	broadcastAddr = "255.255.255.255"
+	sendRate      = orders.WaitBeforeGuaranteeTime / 5
+)
 
 func InitUDPSendingSocket(
 	port int,
@@ -32,7 +34,7 @@ func InitUDPSendingSocket(
 		wconn
 }
 
-func BroadcastOrders(
+func broadcastOrders(
 	allOrders orders.AllOrders,
 	wconn *net.UDPConn) {
 
@@ -52,7 +54,7 @@ func broadcastMessage(
 
 func SendOrdersPeriodically() {
 	_, wconn := InitUDPSendingSocket(
-		UDPPort,
+		udpPort,
 		broadcastAddr)
 
 	defer wconn.Close()
@@ -60,7 +62,7 @@ func SendOrdersPeriodically() {
 	for {
 		allOrders := orders.GetOrders()
 
-		BroadcastOrders(
+		broadcastOrders(
 			allOrders,
 			wconn)
 

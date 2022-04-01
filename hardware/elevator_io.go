@@ -61,11 +61,11 @@ func Init(
 	if err != nil {
 		panic(err.Error())
 	}
-	TurnOffAllLamps()
+	turnOffAllLamps()
 	_initialized = true
 }
 
-func TurnOffAllLamps() {
+func turnOffAllLamps() {
 	for f := 0; f < FloorCount; f++ {
 		for b := ButtonType(0); b < 3; b++ {
 			SetButtonLamp(
@@ -82,12 +82,7 @@ func TurnOffAllLamps() {
 func SetMotorDirection(dir MotorDirection) {
 	_mtx.Lock()
 	defer _mtx.Unlock()
-	_conn.Write(
-		[]byte{1,
-			byte(
-				dir),
-			0,
-			0})
+	_conn.Write([]byte{1, byte(dir), 0, 0})
 }
 
 func SetButtonLamp(
@@ -97,44 +92,25 @@ func SetButtonLamp(
 
 	_mtx.Lock()
 	defer _mtx.Unlock()
-	_conn.Write(
-		[]byte{2,
-			byte(button), byte(
-				floor),
-			toByte(value)})
+	_conn.Write([]byte{2, byte(button), byte(floor), toByte(value)})
 }
 
 func SetFloorIndicator(floor int) {
 	_mtx.Lock()
 	defer _mtx.Unlock()
-	_conn.Write(
-		[]byte{3,
-			byte(
-				floor),
-			0,
-			0})
+	_conn.Write([]byte{3, byte(floor), 0, 0})
 }
 
 func SetDoorOpenLamp(value bool) {
 	_mtx.Lock()
 	defer _mtx.Unlock()
-	_conn.Write(
-		[]byte{4,
-			toByte(
-				value),
-			0,
-			0})
+	_conn.Write([]byte{4, toByte(value), 0, 0})
 }
 
 func SetStopLamp(value bool) {
 	_mtx.Lock()
 	defer _mtx.Unlock()
-	_conn.Write(
-		[]byte{5,
-			toByte(
-				value),
-			0,
-			0})
+	_conn.Write([]byte{5, toByte(value), 0, 0})
 }
 
 func PollButtons(receiver chan<- ButtonEvent) {
@@ -207,11 +183,7 @@ func getButton(
 
 	_mtx.Lock()
 	defer _mtx.Unlock()
-	_conn.Write(
-		[]byte{6,
-			byte(button), byte(
-				floor),
-			0})
+	_conn.Write([]byte{6, byte(button), byte(floor), 0})
 	var buf [4]byte
 	_conn.Read(buf[:])
 	return toBool(buf[1])
@@ -220,11 +192,7 @@ func getButton(
 func getFloor() int {
 	_mtx.Lock()
 	defer _mtx.Unlock()
-	_conn.Write(
-		[]byte{7,
-			0,
-			0,
-			0})
+	_conn.Write([]byte{7, 0, 0, 0})
 	var buf [4]byte
 	_conn.Read(buf[:])
 	if buf[1] != 0 {
@@ -237,11 +205,7 @@ func getFloor() int {
 func getStop() bool {
 	_mtx.Lock()
 	defer _mtx.Unlock()
-	_conn.Write(
-		[]byte{8,
-			0,
-			0,
-			0})
+	_conn.Write([]byte{8, 0, 0, 0})
 	var buf [4]byte
 	_conn.Read(buf[:])
 	return toBool(buf[1])

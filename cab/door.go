@@ -106,6 +106,7 @@ func FSMDoorTimeout(allOrders orders.AllOrders) ElevatorBehaviour {
 	default:
 		panic("Invalid cab state on door timeout")
 	}
+
 	return Cab.Behaviour
 }
 
@@ -130,6 +131,10 @@ func FSMFloorStop(
 			currentOrderSummary)
 
 		setDoorAndCabState(doorAction)
+
+	default:
+		break
 	}
+
 	return Cab.Behaviour
 }
