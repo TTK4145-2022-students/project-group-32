@@ -41,3 +41,13 @@ func (orders *AllOrders) setOrderETA(
 		panic("Invalid direction to set order")
 	}
 }
+
+func inputETABetterOrCurrentETAExpired(
+	inputOrder OrderState,
+	currentOrder OrderState,
+	currentTime time.Time) bool {
+
+	return (inputOrder.BestETA.Before(currentOrder.BestETA) ||
+		currentOrder.BestETA.Before(currentTime)) &&
+		inputOrder.BestETA.After(currentTime)
+}

@@ -194,6 +194,8 @@ func updateFloorOrderState(
 	inputState OrderState,
 	currentState *OrderState) OrderChange {
 
+	currentTime := time.Now()
+
 	currentOrder := currentState.HasOrder()
 	if inputState.LastOrderTime.After(currentState.LastOrderTime) {
 		currentState.LastOrderTime = inputState.LastOrderTime
@@ -201,14 +203,17 @@ func updateFloorOrderState(
 	if inputState.LastCompleteTime.After(currentState.LastCompleteTime) {
 		currentState.LastCompleteTime = inputState.LastCompleteTime
 	}
-	if (inputState.BestETA.Before(currentState.BestETA) ||
-		currentState.BestETA.Before(time.Now())) &&
-		inputState.BestETA.After(time.Now()) {
+	if inputETABetterOrCurrentETAExpired(
+		inputState,
+		*currentState,
+		currentTime) {
+
 		currentState.BestETA = inputState.BestETA
 	}
 
 	newCurrentOrder := currentState.HasOrder()
 	orderChange := NoChange
+
 	if newCurrentOrder &&
 		!currentOrder {
 
@@ -225,21 +230,27 @@ func updateFloorOrderState(
 
 func AnyOrders(orders AllOrders) bool {
 	for _, floor := range hardware.ValidFloors() {
+
 		if orders.Up[floor].HasOrder() ||
 			orders.Down[floor].HasOrder() ||
 			orders.Cab[floor] {
+
 			return true
+
 		}
 	}
 	return false
 }
 
 func UpdateOrders(inputOrders AllOrders) [hardware.FloorCount]bool {
+
 	var newOrders [hardware.FloorCount]bool
+
 	for _, floor := range hardware.ValidFloors() {
 		switch updateFloorOrderState(
 			inputOrders.Down[floor],
 			&allOrders.Down[floor]) {
+
 		case OrderCleared:
 			hardware.SetButtonLamp(
 				hardware.BT_HallDown,
@@ -251,11 +262,14 @@ func UpdateOrders(inputOrders AllOrders) [hardware.FloorCount]bool {
 				hardware.BT_HallDown,
 				floor,
 				true)
+
 			newOrders[floor] = true
 		}
+
 		switch updateFloorOrderState(
 			inputOrders.Up[floor],
 			&allOrders.Up[floor]) {
+
 		case OrderCleared:
 			hardware.SetButtonLamp(
 				hardware.BT_HallUp,
@@ -267,44 +281,25 @@ func UpdateOrders(inputOrders AllOrders) [hardware.FloorCount]bool {
 				hardware.BT_HallUp,
 				floor,
 				true)
+
 			newOrders[floor] = true
 		}
 	}
 	return newOrders
 }
 
-func OrdersBetween(
-	orders AllOrders,
-	startFloor int,
-	destinationFloor int) int {
-
-	if startFloor == destinationFloor {
-		return 0
-	}
-	ordersBetweenCount := 0
-	if startFloor < destinationFloor {
-		for floor := startFloor; floor < destinationFloor; floor++ {
-			if orders.Up[floor].HasOrder() || orders.Cab[floor] {
-				ordersBetweenCount++
-			}
-		}
-	} else {
-		for floor := startFloor; floor > destinationFloor; floor-- {
-			if orders.Down[floor].HasOrder() || orders.Cab[floor] {
-				ordersBetweenCount++
-			}
-		}
-	}
-	return ordersBetweenCount
-}
-
 func OrdersAbove(
 	orders AllOrders,
 	currentFloor int) bool {
 
-	for floor := currentFloor + 1; floor < hardware.FloorCount; floor++ {
-		if orders.Up[floor].HasOrder() || orders.Down[floor].HasOrder() || orders.Cab[floor] {
+	for floor := currentFloor + 1; hardware.ValidFloor(floor); floor++ {
+
+		if orders.Up[floor].HasOrder() ||
+			orders.Down[floor].HasOrder() ||
+			orders.Cab[floor] {
+
 			return true
+
 		}
 	}
 	return false
@@ -314,9 +309,12 @@ func CabOrdersAbove(
 	cabOrders [hardware.FloorCount]bool,
 	currentFloor int) bool {
 
-	for floor := currentFloor + 1; floor < hardware.FloorCount; floor++ {
+	for floor := currentFloor + 1; hardware.ValidFloor(floor); floor++ {
+
 		if cabOrders[floor] {
+
 			return true
+
 		}
 	}
 	return false
@@ -326,9 +324,14 @@ func OrdersBelow(
 	orders AllOrders,
 	currentFloor int) bool {
 
-	for floor := currentFloor - 1; floor >= 0; floor-- {
-		if orders.Up[floor].HasOrder() || orders.Down[floor].HasOrder() || orders.Cab[floor] {
+	for floor := currentFloor - 1; hardware.ValidFloor(floor); floor-- {
+
+		if orders.Up[floor].HasOrder() ||
+			orders.Down[floor].HasOrder() ||
+			orders.Cab[floor] {
+
 			return true
+
 		}
 	}
 	return false
@@ -338,7 +341,7 @@ func CabOrdersBelow(
 	cabOrders [hardware.FloorCount]bool,
 	currentFloor int) bool {
 
-	for floor := currentFloor - 1; floor >= 0; floor-- {
+	for floor := currentFloor - 1; hardware.ValidFloor(floor); floor-- {
 		if cabOrders[floor] {
 			return true
 		}
@@ -351,14 +354,17 @@ func GetOrderSummary(
 	floor int) prioritize.OrderSummary {
 
 	var orderSummary prioritize.OrderSummary
+
 	orderSummary.UpAtFloor = orders.Up[floor].HasOrder()
 	orderSummary.DownAtFloor = orders.Down[floor].HasOrder()
 	orderSummary.CabAtFloor = orders.Cab[floor]
+
 	orderSummary.AboveFloor = OrdersAbove(
 		orders,
 		floor)
 	orderSummary.BelowFloor = OrdersBelow(
 		orders,
 		floor)
+
 	return orderSummary
 }
