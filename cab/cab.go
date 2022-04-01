@@ -53,6 +53,7 @@ func setMotorAndCabState(state hardware.MotorDirection) {
 func FSMInitBetweenFloors() ElevatorBehaviour {
 	Cab.BetweenFloors = true
 	setMotorAndCabState(hardware.MD_Down)
+
 	return Cab.Behaviour
 }
 
@@ -100,6 +101,7 @@ func FSMNewOrder(
 
 		setDoorAndCabState(doorAction)
 	}
+
 	return Cab.Behaviour
 }
 
@@ -128,6 +130,7 @@ func FSMFloorArrival(
 				allOrders)
 		}
 	}
+
 	return Cab.Behaviour
 }
 
@@ -149,6 +152,7 @@ func FSMFloorLeave() ElevatorBehaviour {
 	default:
 		panic("Invalid cab state on floor leave")
 	}
+
 	return Cab.Behaviour
 }
 
@@ -177,7 +181,9 @@ func FSMDecisionDeadline(allOrders orders.AllOrders) ElevatorBehaviour {
 
 		setMotorAndCabState(motorAction)
 	}
+
 	timer.DecisionDeadlineTimer.TimerStop()
+
 	return Cab.Behaviour
 }
 
@@ -201,5 +207,6 @@ func FSMPoke(allOrders orders.AllOrders) ElevatorBehaviour {
 
 		timer.DecisionDeadlineTimer.TimerStart()
 	}
+
 	return Cab.Behaviour
 }

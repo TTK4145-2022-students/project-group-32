@@ -25,19 +25,12 @@ func (orders *AllOrders) GetOrderState(
 	}
 }
 
-func (orders *AllOrders) setOrderETA(
-	direction hardware.MotorDirection,
-	floor int,
-	eta time.Time) {
+func inputETABetterOrCurrentETAExpired(
+	inputOrder OrderState,
+	currentOrder OrderState,
+	currentTime time.Time) bool {
 
-	switch direction {
-	case hardware.MD_Down:
-		orders.Down[floor].BestETA = eta
-
-	case hardware.MD_Up:
-		orders.Up[floor].BestETA = eta
-
-	default:
-		panic("Invalid direction to set order")
-	}
+	return (inputOrder.BestETA.Before(currentOrder.BestETA) ||
+		currentOrder.BestETA.Before(currentTime)) &&
+		inputOrder.BestETA.After(currentTime)
 }

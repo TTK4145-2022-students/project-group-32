@@ -36,8 +36,6 @@ func main() {
 
 	doorTimedOut := make(chan bool)
 	decisionDeadlineTimedOut := make(chan bool)
-	etaExpiredAlarmRinging := make(chan bool)
-
 	pokeCab := make(chan bool)
 
 	ordersRecieved := make(chan orders.AllOrders)
@@ -51,8 +49,6 @@ func main() {
 
 	go timer.DoorTimer.PollTimerOut(doorTimedOut)
 	go timer.DecisionDeadlineTimer.PollTimerOut(decisionDeadlineTimedOut)
-	go timer.ETAExpiredAlarm.PollAlarm(etaExpiredAlarmRinging)
-	go timer.InternalETAExpiringAlarm.PollAlarm(etaExpiredAlarmRinging)
 	go timer.PokeCabTimer.PollTimerOut(pokeCab)
 
 	go network.PollReceiveOrders(ordersRecieved)
@@ -61,6 +57,7 @@ func main() {
 	go filesystem.SaveOrdersPeriodically()
 
 	timer.PokeCabTimer.TimerStart()
+
 	// All hail The Loop!
 	// that grants us non-concurrency and fastest poll rate
 	for {
@@ -88,6 +85,7 @@ func main() {
 			cab.FSMObstructionChange(
 				obstruction,
 				allOrders)
+
 		case <-doorTimedOut:
 			allOrders := orders.GetOrders()
 			cab.FSMDoorTimeout(allOrders)
@@ -103,15 +101,6 @@ func main() {
 
 		case <-stopChange:
 			fmt.Println("No stopping this cab")
-		// 	orders.ResetOrders()
-		// 	for f := 0; f < hardware.FloorCount; f++ {
-		// 		for b := hardware.ButtonType(0); b < 3; b++ {
-		// 			hardware.SetButtonLamp(
-		// 				b,
-		// 				f,
-		// 				false)
-		// 		}
-		// 	}
 
 		case recievedOrderState := <-ordersRecieved:
 			newOrdersInFloors := orders.UpdateOrders(recievedOrderState)

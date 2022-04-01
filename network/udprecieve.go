@@ -1,16 +1,18 @@
 package network
 
 import (
+	"elevators/hardware"
 	"elevators/orders"
 	"encoding/json"
 	"net"
 	"time"
 )
 
-const _pollRate = _sendRate / 3
-
-const bufferSize = 2 * 2048
-const listenAddr = "224.0.0.251"
+const (
+	pollRate   = sendRate / 3
+	bufferSize = hardware.FloorCount * 512
+	listenAddr = "224.0.0.251"
+)
 
 func InitUDPReceivingSocket(port int) (
 	net.UDPAddr,
@@ -33,7 +35,7 @@ func InitUDPReceivingSocket(port int) (
 		conn
 }
 
-func ReceiveOrders(conn *net.UDPConn) orders.AllOrders {
+func receiveOrders(conn *net.UDPConn) orders.AllOrders {
 	var allOrders orders.AllOrders
 	buf := receiveUDPMessage(conn)
 	json.Unmarshal(
@@ -53,12 +55,12 @@ func receiveUDPMessage(conn *net.UDPConn) []byte {
 }
 
 func PollReceiveOrders(receiver chan<- orders.AllOrders) {
-	_, conn := InitUDPReceivingSocket(UDPPort)
+	_, conn := InitUDPReceivingSocket(udpPort)
 	defer conn.Close()
 
 	for {
-		time.Sleep(_pollRate)
-		allOrders := ReceiveOrders(conn)
+		time.Sleep(pollRate)
+		allOrders := receiveOrders(conn)
 		receiver <- allOrders
 	}
 }

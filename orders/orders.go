@@ -21,8 +21,6 @@ type OrderState struct {
 	LastOrderTime    time.Time
 	LastCompleteTime time.Time
 	BestETA          time.Time
-	LocalETA         time.Time
-	Now              time.Time
 }
 
 type AllOrders struct {
@@ -31,13 +29,17 @@ type AllOrders struct {
 	Cab  [hardware.FloorCount]bool
 }
 
-var allOrders AllOrders
-var allOrdersMtx = new(sync.RWMutex)
+var (
+	allOrders    AllOrders
+	allOrdersMtx = new(sync.RWMutex)
+)
 
 func Init(orderState AllOrders) {
 	allOrdersMtx.Lock()
 	defer allOrdersMtx.Unlock()
+
 	allOrders = orderState
+
 	for _, floor := range hardware.ValidFloors() {
 		if allOrders.Cab[floor] {
 			hardware.SetButtonLamp(
@@ -63,19 +65,65 @@ func Init(orderState AllOrders) {
 func GetOrders() AllOrders {
 	allOrdersMtx.RLock()
 	defer allOrdersMtx.RUnlock()
+
 	return allOrders
 }
 
 func SetOrders(orders AllOrders) {
 	allOrdersMtx.Lock()
 	defer allOrdersMtx.Unlock()
+
 	allOrders = orders
 }
 
-func ResetOrders() {
+func CompleteOrderCabAndUp(floor int) {
+	clearCabOrder(floor)
+	clearUpOrder(floor)
+}
+
+func CompleteOrderCabAndDown(floor int) {
+	clearCabOrder(floor)
+	clearDownOrder(floor)
+}
+
+func CompleteOrderCab(floor int) {
+	clearCabOrder(floor)
+}
+
+func clearCabOrder(floor int) {
 	allOrdersMtx.Lock()
 	defer allOrdersMtx.Unlock()
-	allOrders = AllOrders{}
+
+	hardware.SetButtonLamp(
+		hardware.BT_Cab,
+		floor,
+		false)
+
+	allOrders.Cab[floor] = false
+}
+
+func clearUpOrder(floor int) {
+	allOrdersMtx.Lock()
+	defer allOrdersMtx.Unlock()
+
+	hardware.SetButtonLamp(
+		hardware.BT_HallUp,
+		floor,
+		false)
+
+	allOrders.Up[floor].LastCompleteTime = time.Now()
+}
+
+func clearDownOrder(floor int) {
+	allOrdersMtx.Lock()
+	defer allOrdersMtx.Unlock()
+
+	hardware.SetButtonLamp(
+		hardware.BT_HallDown,
+		floor,
+		false)
+
+	allOrders.Down[floor].LastCompleteTime = time.Now()
 }
 
 func AcceptNewOrder(
@@ -84,6 +132,7 @@ func AcceptNewOrder(
 
 	allOrdersMtx.Lock()
 	defer allOrdersMtx.Unlock()
+
 	switch orderType {
 	case hardware.BT_HallUp:
 		allOrders.Up[floor].LastOrderTime = time.Now()
@@ -93,9 +142,11 @@ func AcceptNewOrder(
 
 	case hardware.BT_Cab:
 		allOrders.Cab[floor] = true
+
 	default:
 		panic("order type not implemented " + string(rune(orderType)))
 	}
+
 	go waitForOrderGuarantee(
 		orderType,
 		floor)
@@ -107,7 +158,9 @@ func waitForOrderGuarantee(
 
 	allOrdersMtx.Lock()
 	defer allOrdersMtx.Unlock()
+
 	time.Sleep(WaitBeforeGuaranteeTime)
+
 	switch orderType {
 	case hardware.BT_HallUp:
 		if allOrders.Up[floor].HasOrder() {
@@ -132,105 +185,56 @@ func waitForOrderGuarantee(
 				floor,
 				true)
 		}
-	default:
-		panic("order type not implemented " + string(rune(orderType)))
 	}
-}
-
-func CompleteOrderCabAndUp(floor int) {
-	clearCabOrder(floor)
-	clearUpOrder(floor)
-}
-
-func CompleteOrderCabAndDown(floor int) {
-	clearCabOrder(floor)
-	clearDownOrder(floor)
-}
-
-func CompleteOrderCab(floor int) {
-	clearCabOrder(floor)
-}
-
-func clearCabOrder(floor int) {
-	allOrdersMtx.Lock()
-	defer allOrdersMtx.Unlock()
-	hardware.SetButtonLamp(
-		hardware.BT_Cab,
-		floor,
-		false)
-	allOrders.Cab[floor] = false
-}
-
-func clearUpOrder(floor int) {
-	allOrdersMtx.Lock()
-	defer allOrdersMtx.Unlock()
-	hardware.SetButtonLamp(
-		hardware.BT_HallUp,
-		floor,
-		false)
-	allOrders.Up[floor].LastCompleteTime = time.Now()
-	// internalETAs.Up[floor] = time.Time{}
-}
-
-func clearDownOrder(floor int) {
-	allOrdersMtx.Lock()
-	defer allOrdersMtx.Unlock()
-	hardware.SetButtonLamp(
-		hardware.BT_HallDown,
-		floor,
-		false)
-	allOrders.Down[floor].LastCompleteTime = time.Now()
-	// internalETAs.Down[floor] = time.Time{}
 }
 
 func updateFloorOrderState(
 	inputState OrderState,
 	currentState *OrderState) OrderChange {
 
-	currentOrder := hasOrder(*currentState)
+	currentTime := time.Now()
+
+	currentOrder := currentState.HasOrder()
 	if inputState.LastOrderTime.After(currentState.LastOrderTime) {
 		currentState.LastOrderTime = inputState.LastOrderTime
 	}
 	if inputState.LastCompleteTime.After(currentState.LastCompleteTime) {
 		currentState.LastCompleteTime = inputState.LastCompleteTime
 	}
-	if (inputState.BestETA.Before(currentState.BestETA) ||
-		currentState.BestETA.Before(time.Now())) &&
-		inputState.BestETA.After(time.Now()) {
+	if inputETABetterOrCurrentETAExpired(
+		inputState,
+		*currentState,
+		currentTime) {
+
 		currentState.BestETA = inputState.BestETA
 	}
 
-	newCurrentOrder := hasOrder(*currentState)
+	newCurrentOrder := currentState.HasOrder()
 	orderChange := NoChange
-	if newCurrentOrder && !currentOrder {
+
+	if newCurrentOrder &&
+		!currentOrder {
+
 		orderChange = OrderPlaced
-	} else if !newCurrentOrder && currentOrder {
+
+	} else if !newCurrentOrder &&
+		currentOrder {
+
 		orderChange = OrderCleared
+
 	}
 	return orderChange
 }
 
-func hasOrder(inputState OrderState) bool {
-	return inputState.LastOrderTime.After(inputState.LastCompleteTime)
-}
-
-func AnyOrders(orders AllOrders) bool {
-	for _, floor := range hardware.ValidFloors() {
-		if orders.Up[floor].HasOrder() ||
-			orders.Down[floor].HasOrder() ||
-			orders.Cab[floor] {
-			return true
-		}
-	}
-	return false
-}
-
 func UpdateOrders(inputOrders AllOrders) [hardware.FloorCount]bool {
+
 	var newOrders [hardware.FloorCount]bool
+
 	for _, floor := range hardware.ValidFloors() {
 		switch updateFloorOrderState(
 			inputOrders.Down[floor],
 			&allOrders.Down[floor]) {
+
 		case OrderCleared:
 			hardware.SetButtonLamp(
 				hardware.BT_HallDown,
@@ -242,11 +246,14 @@ func UpdateOrders(inputOrders AllOrders) [hardware.FloorCount]bool {
 				hardware.BT_HallDown,
 				floor,
 				true)
+
 			newOrders[floor] = true
 		}
+
 		switch updateFloorOrderState(
 			inputOrders.Up[floor],
 			&allOrders.Up[floor]) {
+
 		case OrderCleared:
 			hardware.SetButtonLamp(
 				hardware.BT_HallUp,
@@ -258,80 +265,42 @@ func UpdateOrders(inputOrders AllOrders) [hardware.FloorCount]bool {
 				hardware.BT_HallUp,
 				floor,
 				true)
+
 			newOrders[floor] = true
 		}
 	}
 	return newOrders
 }
 
-func OrdersBetween(
-	orders AllOrders,
-	startFloor int,
-	destinationFloor int) int {
-
-	if startFloor == destinationFloor {
-		return 0
-	}
-	ordersBetweenCount := 0
-	if startFloor < destinationFloor {
-		for floor := startFloor; floor < destinationFloor; floor++ {
-			if hasOrder(orders.Up[floor]) || orders.Cab[floor] {
-				ordersBetweenCount++
-			}
-		}
-	} else {
-		for floor := startFloor; floor > destinationFloor; floor-- {
-			if hasOrder(orders.Down[floor]) || orders.Cab[floor] {
-				ordersBetweenCount++
-			}
-		}
-	}
-	return ordersBetweenCount
-}
-
-func OrdersAbove(
+func ordersAbove(
 	orders AllOrders,
 	currentFloor int) bool {
 
-	for floor := currentFloor + 1; floor < hardware.FloorCount; floor++ {
-		if hasOrder(orders.Up[floor]) || hasOrder(orders.Down[floor]) || orders.Cab[floor] {
+	for floor := currentFloor + 1; hardware.ValidFloor(floor); floor++ {
+
+		if orders.Up[floor].HasOrder() ||
+			orders.Down[floor].HasOrder() ||
+			orders.Cab[floor] {
+
 			return true
+
 		}
 	}
 	return false
 }
 
-func CabOrdersAbove(
-	cabOrders [hardware.FloorCount]bool,
-	currentFloor int) bool {
-
-	for floor := currentFloor + 1; floor < hardware.FloorCount; floor++ {
-		if cabOrders[floor] {
-			return true
-		}
-	}
-	return false
-}
-
-func OrdersBelow(
+func ordersBelow(
 	orders AllOrders,
 	currentFloor int) bool {
 
-	for floor := currentFloor - 1; floor >= 0; floor-- {
-		if hasOrder(orders.Up[floor]) || hasOrder(orders.Down[floor]) || orders.Cab[floor] {
-			return true
-		}
-	}
-	return false
-}
+	for floor := currentFloor - 1; hardware.ValidFloor(floor); floor-- {
 
-func CabOrdersBelow(
-	cabOrders [hardware.FloorCount]bool,
-	currentFloor int) bool {
+		if orders.Up[floor].HasOrder() ||
+			orders.Down[floor].HasOrder() ||
+			orders.Cab[floor] {
 
-	for floor := currentFloor - 1; floor >= 0; floor-- {
-		if cabOrders[floor] {
 			return true
+
 		}
 	}
 	return false
@@ -342,14 +311,17 @@ func GetOrderSummary(
 	floor int) prioritize.OrderSummary {
 
 	var orderSummary prioritize.OrderSummary
-	orderSummary.UpAtFloor = hasOrder(orders.Up[floor])
-	orderSummary.DownAtFloor = hasOrder(orders.Down[floor])
+
+	orderSummary.UpAtFloor = orders.Up[floor].HasOrder()
+	orderSummary.DownAtFloor = orders.Down[floor].HasOrder()
 	orderSummary.CabAtFloor = orders.Cab[floor]
-	orderSummary.AboveFloor = OrdersAbove(
+
+	orderSummary.AboveFloor = ordersAbove(
 		orders,
 		floor)
-	orderSummary.BelowFloor = OrdersBelow(
+	orderSummary.BelowFloor = ordersBelow(
 		orders,
 		floor)
+
 	return orderSummary
 }
