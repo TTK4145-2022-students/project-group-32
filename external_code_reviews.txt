@@ -30,8 +30,10 @@ Use of pure functions is good; helps outline what’s important and makes it eas
 Variable and function names are clear and descriptive for what a variable or function is supposed to do and/or what kind of data it holds.
 Flow of information makes sense and is very traceable. Function calls to other modules occur in a single direction.
 It is not immediately clear how the “button light contract” is upheld, the p2p structure without acknowledgements might result in lost orders with heavy packet loss.
+-- This is true, we went with a statistical approach.
 Indentation and nesting levels are kept to a minimum throughout the interfaces, which makes it trivial to assert the correctness of the code.
 Using mutexes and shared variables might not be as safe and reliable as an MP approach. 
+-- We only need one mutex, and using a mutex there seems justified.
 
 Reviewer 4:
 9
