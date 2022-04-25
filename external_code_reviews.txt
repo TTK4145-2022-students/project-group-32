@@ -54,13 +54,21 @@ Reviewer 4:
 Reviewer 5:
 8
 Your FS package could easily be in the Order package since you only use it for orders.
+-- Disagree, it should be a separate module, as orders have nothing to do with the filesystem, inherently speaking, and other states could possibly use the filesystem.
 The saveOrders function is completely useless and unnecessary 
+-- Kind of agree, it would be better to call the write function directly.
 In the UDP-receive: listenAddr should be 0.0.0.0 . That way you don't have to change it on every machine. This is hardcoding!
+-- This is certainly an example of a magical number in our case, and it is not clear why we use it. The part about changing on every machine isn't really justified.
 You often use switch and have an if statement as the first line inside each case. Just do an if. And you have literally the same code in at least one switch case(in MotorActionOnFloorArrival), maybe you should have used fallthrough
+-- This is a bad suggestion, the switch is used to filter out undesired states and extensive if statements are not as maintainable or clear (in state machines, especially)
+-- The code is not the same in the specified function, the order is changed based on state, and fallthrough would never apply as a switch has only one value.
 I think you should use the mutexes in the order package also every time you read from it since it could update in the time of reading
+-- We did, but somehow forgot to lock the mutex in UpdateOrder, and even worse, locked the mutex when waiting to place orderGuarantee
 Unnecessary assignments in main. Some of the assignments could have been solved in another module
+-- This is true, but we think most of the assignments can be justified.
 Main makes it easy to get a good overview of the dependencies of the modules. 
 Unnecessary comments in the codes
+-- We didn't really expect this feedback, but the plural form is probably a mistake?
 
 Reviewer 6:
 7
