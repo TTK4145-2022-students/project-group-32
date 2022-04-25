@@ -38,9 +38,15 @@ Using mutexes and shared variables might not be as safe and reliable as an MP ap
 Reviewer 4:
 9
 -cabutils.go is a very small module, which might have been better to add in existing modules. It is good for scalability though, if you are to expand the cabutils.go. This way the module doesn't act outside its own scope. 
+-- It isn't really a module, but it could be included in cab.go insteaad, however we made it to be consistent with the eta and order packages.
 -AboveOrAtFloor is somewhat confusing. It implies that it returns the floor number, as returning value is an integer. This should be specified in the name, for instance “AboveOrAtFloorNr”. 
+-- This is understandable, but we thought the implication to be quite clear, and don't think suffixing Number would help much.
 -cab.go is somewhat inconsistent, and contains functions that can be moved or conjoined to separate modules - the only purpose of the init function is to call another init function. We assume this is to have a consistent name for all initialization functions, but this would perhaps work better if the function did more than just calling another function.  Naming of cab.go could be more specific as well - what does it actually do (based on its name)?
+-- The FSMInit... function should have been renamed to Init. 
+-- Cab.go could have a better name, but we couldn't find it, which implies that we should have split it into more files or modules.
 -Some naming of functions could be better, for instance inputETABetterOrCurrentETAExpired. This function is placed in orderutils.go and not in etautils.go, which might cause confusion.
+-- Agreed, escpecially the utilfunctions could often be better.
+-- We have some problems concerning splitting orders and eta, due to everything being sent in the same message, but we should have improved this somehow.
 -Formatting is otherwise well put and makes the code easy to read.
 -Decent use of commentary. Could be used a bit more to explain for instance why some functions are placed outside their module naming scope. 
 -Otherwise well structured and easy to navigate through. 
