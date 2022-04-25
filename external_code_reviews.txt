@@ -14,9 +14,13 @@ Reviewer 2:
 7
 - Entry point documents the files/modules used in the system. 
 - High thread count is expensive for the OS, some of the used threads could be fibers instead. E.g threads for timers.
+-- Very technical feedback, not clear what this has to do with code quality.
 - A package called "cab" is a misleading name. The group has used this to denote the physical object that would move passengers, in other words, an elevator. Functionality for the project is understandable, albeit difficult. The reason for this is bad naming convention used throughout. Lack of comments makes harder to understand.
+-- It seems like this group isn't familiar with the definition of an (elevator) cab. Using this as an example for bad naming conventions makes it harder to take seriosly, and the names we have grown used to can be hard to evaluate on our part.
 - Modularization of code is done based on name basis and not functionality. Getting the direction for the motor to move in for one order requires the programmer to traverse 5 packages.
+-- We tried to name modules based on functionality, but we might have failed (more than we expected). The package traversion to find direction depends heavily on how one counts, and might not say too much without further communication.
 - Low code coherence, modules are not independent enough. Functionception going on, using channels would make things much simpler.
+-- We can't see that modules are too dependent on each other, though they are certainly not perfect. We tried to explain why we use functions over channels in our comment.
 - One good thing about having less variables and using a lot of function calls is that the information is traceable
 
 Reviewer 3:
