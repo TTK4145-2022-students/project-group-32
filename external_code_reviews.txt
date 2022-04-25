@@ -73,10 +73,13 @@ Unnecessary comments in the codes
 Reviewer 6:
 7
 Does show dependencies by using channels but it's a bit hard to identify what's actually happening  and how the modules interact with each other. For example order assignment is not clear
+-- Order assignment is not clear, as it isn't really done. This is a expected reaction to very different design choices.
 Orders and ETA module has long files which could be subdivided in smaller files and thus loses its coherence due to longness and naming convention. However the functions sticks to a single task mostly.
+-- This is probably true for cab as well, and that way we could get more specific/clear file names.
 Apparently the functions are quite pure and do not modify variables outside their scope. There are variables which have a wider scope than the functions but they are quite easy to keep track of and the use of state is minimized.
 The flow of information is easy to follow. 
 Even though there are shared variables, lots of the names make sense. 
 There is some minor back and forth information flow for example in  Phoenix.
+-- Can't really find back and forth information in Phoenix?
 Only one single comment. Some code parts definitely needed a comment to explain the names since some names were ambiguous and not self explanatory.
-
+-- Then we proabably need better names.
