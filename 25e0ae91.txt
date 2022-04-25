@@ -1,0 +1,59 @@
+Reviewer 1:
+8
+* Functions and variables are well named, and it is easy to discern their function from their names.
+* The code is mostly well structured, and it is usually easy to find the file and function responsible for a specific part of the system.
+* It appears that the phoenix package/module is responsible for resuming operation in the event of an error, but this is not explained anywhere. It makes reading this part of the code harder than necessary.
+* It is not apparent why filesystem.Init() is placed in constants.go 
+* The control flow is not especially easy to follow.
+* It seems that we can see how all the modules are initialized from the main function, but it also feels like main could be cleaned up a bit.
+
+Reviewer 2:
+7
+- Entry point documents the files/modules used in the system. 
+- High thread count is expensive for the OS, some of the used threads could be fibers instead. E.g threads for timers.
+- A package called "cab" is a misleading name. The group has used this to denote the physical object that would move passengers, in other words, an elevator. Functionality for the project is understandable, albeit difficult. The reason for this is bad naming convention used throughout. Lack of comments makes harder to understand.
+- Modularization of code is done based on name basis and not functionality. Getting the direction for the motor to move in for one order requires the programmer to traverse 5 packages.
+- Low code coherence, modules are not independent enough. Functionception going on, using channels would make things much simpler.
+- One good thing about having less variables and using a lot of function calls is that the information is traceable
+
+Reviewer 3:
+9
+Good coherence and completeness of modules. The role of each module is well defined which makes it easy to get an overview of the codebase.
+Use of pure functions is good; helps outline what’s important and makes it easy to test those functions.
+Variable and function names are clear and descriptive for what a variable or function is supposed to do and/or what kind of data it holds.
+Flow of information makes sense and is very traceable. Function calls to other modules occur in a single direction.
+It is not immediately clear how the “button light contract” is upheld, the p2p structure without acknowledgements might result in lost orders with heavy packet loss.
+Indentation and nesting levels are kept to a minimum throughout the interfaces, which makes it trivial to assert the correctness of the code.
+Using mutexes and shared variables might not be as safe and reliable as an MP approach. 
+
+Reviewer 4:
+9
+-cabutils.go is a very small module, which might have been better to add in existing modules. It is good for scalability though, if you are to expand the cabutils.go. This way the module doesn't act outside its own scope. 
+-AboveOrAtFloor is somewhat confusing. It implies that it returns the floor number, as returning value is an integer. This should be specified in the name, for instance “AboveOrAtFloorNr”. 
+-cab.go is somewhat inconsistent, and contains functions that can be moved or conjoined to separate modules - the only purpose of the init function is to call another init function. We assume this is to have a consistent name for all initialization functions, but this would perhaps work better if the function did more than just calling another function.  Naming of cab.go could be more specific as well - what does it actually do (based on its name)?
+-Some naming of functions could be better, for instance inputETABetterOrCurrentETAExpired. This function is placed in orderutils.go and not in etautils.go, which might cause confusion.
+-Formatting is otherwise well put and makes the code easy to read.
+-Decent use of commentary. Could be used a bit more to explain for instance why some functions are placed outside their module naming scope. 
+-Otherwise well structured and easy to navigate through. 
+
+Reviewer 5:
+8
+Your FS package could easily be in the Order package since you only use it for orders.
+The saveOrders function is completely useless and unnecessary 
+In the UDP-receive: listenAddr should be 0.0.0.0 . That way you don't have to change it on every machine. This is hardcoding!
+You often use switch and have an if statement as the first line inside each case. Just do an if. And you have literally the same code in at least one switch case(in MotorActionOnFloorArrival), maybe you should have used fallthrough
+I think you should use the mutexes in the order package also every time you read from it since it could update in the time of reading
+Unnecessary assignments in main. Some of the assignments could have been solved in another module
+Main makes it easy to get a good overview of the dependencies of the modules. 
+Unnecessary comments in the codes
+
+Reviewer 6:
+7
+Does show dependencies by using channels but it's a bit hard to identify what's actually happening  and how the modules interact with each other. For example order assignment is not clear
+Orders and ETA module has long files which could be subdivided in smaller files and thus loses its coherence due to longness and naming convention. However the functions sticks to a single task mostly.
+Apparently the functions are quite pure and do not modify variables outside their scope. There are variables which have a wider scope than the functions but they are quite easy to keep track of and the use of state is minimized.
+The flow of information is easy to follow. 
+Even though there are shared variables, lots of the names make sense. 
+There is some minor back and forth information flow for example in  Phoenix.
+Only one single comment. Some code parts definitely needed a comment to explain the names since some names were ambiguous and not self explanatory.
+
