@@ -3,9 +3,12 @@ Reviewer 1:
 * Functions and variables are well named, and it is easy to discern their function from their names.
 * The code is mostly well structured, and it is usually easy to find the file and function responsible for a specific part of the system.
 * It appears that the phoenix package/module is responsible for resuming operation in the event of an error, but this is not explained anywhere. It makes reading this part of the code harder than necessary.
+-- Who else than phoenix should resume operation on a error, that is when the program crashes? This seemed obvious to us, but we could have explained that phoenix is process pairs if that was not clear.
 * It is not apparent why filesystem.Init() is placed in constants.go 
+-- It might have been better to have a single filesystem.go file in this package, or just rename constants.go to filesystem.go to avoid this problem.
 * The control flow is not especially easy to follow.
 * It seems that we can see how all the modules are initialized from the main function, but it also feels like main could be cleaned up a bit.
+-- Hardware init could benefit from taking care of the port and floorcount itself, as this should not be in main. The order update loop check could probably be moved elsewhere as well
 
 Reviewer 2:
 7
